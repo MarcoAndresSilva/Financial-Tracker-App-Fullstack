@@ -1,0 +1,42 @@
+version: '3.8' # Especifica la versión de la sintaxis de Docker Compose
+
+services:
+  # Servicio para nuestra API de NestJS
+  api:
+    build:
+      context: ./backend # Construye la imagen usando el Dockerfile en la carpeta 'backend'
+      dockerfile: Dockerfile
+    container_name: financial_tracker_api
+    depends_on: # Le dice a Docker que inicie este contenedor DESPUÉS de que el de la BBDD esté listo
+      - db
+    ports:
+      - "3000:3000" # Mapea el puerto 3000 del host al puerto 3000 del contenedor
+    environment: # Variables de entorno para la aplicación
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase?schema=public
+    networks:
+      - financial-tracker-net
+
+  # Servicio para nuestra base de datos PostgreSQL
+  db:
+    image: postgres:15-alpine # Usa una imagen oficial de PostgreSQL de Docker Hub
+    container_name: financial_tracker_db
+    restart: always
+    environment: # Variables para configurar la instancia de PostgreSQL
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=mydatabase
+    ports:
+      - "5432:5432" # Mapea el puerto para que podamos conectarnos con un cliente de BBDD si es necesario
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Persiste los datos de la BBDD en un volumen de Docker
+    networks:
+      - financial-tracker-net
+
+# Define las redes
+networks:
+  financial-tracker-net:
+    driver: bridge
+
+# Define los volúmenes
+volumes:
+  pgdata: # El volumen nombrado para persistir los datos de la BBDD
