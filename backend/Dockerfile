@@ -1,35 +1,32 @@
 # ---- Base Stage ----
-# Usamos una imagen oficial de Node.js como base.
-# '18-alpine' es una versión ligera y segura, ideal para producción.
 FROM node:18-alpine AS base
-
-# Establecemos el directorio de trabajo dentro del contenedor.
 WORKDIR /usr/src/app
 
 # ---- Dependencies Stage ----
-# Copiamos los archivos de definición de paquetes ANTES que el resto del código.
-# Esto aprovecha el sistema de caché de Docker. Si estos archivos no cambian,
-# Docker no volverá a ejecutar 'npm install', acelerando las builds.
+# Esta etapa solo instala las dependencias.
 FROM base AS dependencies
 COPY package*.json ./
 RUN npm install
 
 # ---- Build Stage ----
-# Aquí construiremos la aplicación para producción.
+# Esta etapa construye la aplicación y genera el cliente de Prisma.
+# Es nuestra "fuente de verdad" para todos los artefactos de producción.
 FROM dependencies AS build
-# Copiamos todo el código fuente.
 COPY . .
-# Ejecutamos el script de build de NestJS.
+# El script "build" ahora ejecuta "prisma generate && nest build"
 RUN npm run build
 
 # ---- Production Stage ----
-# Esta es la etapa final, la que se usará para correr la aplicación.
-# Empezamos desde la imagen base para mantener la imagen final lo más pequeña posible.
+# Esta es la imagen final que correrá.
 FROM base AS production
-# Copiamos solo los artefactos necesarios desde las etapas anteriores.
+ENV NODE_ENV=production
+# Copiamos package.json para que los gestores de paquetes sepan qué dependencias son de producción.
+COPY --from=build /usr/src/app/package*.json ./
+# Copiamos los node_modules desde la etapa de BUILD, no de DEPENDENCIES.
+# Esta es la corrección clave, ya que esta carpeta contiene el cliente de Prisma generado.
+COPY --from=build /usr/src/app/node_modules ./node_modules
+# Copiamos el código compilado.
 COPY --from=build /usr/src/app/dist ./dist
-COPY --from=dependencies /usr/src/app/node_modules ./node_modules
-COPY --from=dependencies /usr/src/app/package*.json ./
 
 # El comando que se ejecutará cuando el contenedor se inicie.
 CMD ["node", "dist/main"]
