@@ -1,4 +1,4 @@
-version: '3.8' # Especifica la versión de la sintaxis de Docker Compose
+version: "3.8" # Especifica la versión de la sintaxis de Docker Compose
 
 services:
   # Servicio para nuestra API de NestJS
@@ -11,7 +11,9 @@ services:
       - db
     ports:
       - "3000:3000" # Mapea el puerto 3000 del host al puerto 3000 del contenedor
-    environment: # Variables de entorno para la aplicación
+    env_file: # Variables de entorno para la aplicación
+      - ./backend/.env
+    environment:
       - DATABASE_URL=postgresql://user:password@db:5432/mydatabase?schema=public
     networks:
       - financial-tracker-net

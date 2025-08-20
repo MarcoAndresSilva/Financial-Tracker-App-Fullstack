@@ -1,12 +1,20 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { SignUpDto } from './dto';
+import { SignUpDto, SignInDto } from './dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwt: JwtService,
+  ) {}
 
   async signup(dto: SignUpDto) {
     // Hashear la contraseña
@@ -36,8 +44,43 @@ export class AuthService {
     }
   }
 
-  signin() {
-    // TODO : sign in
-    return { msg: 'I am signed in' };
+  async signin(dto: SignInDto) {
+    const user = await this.prisma.user.findUnique({
+      // Busca un usuario en la base de datos
+      where: {
+        email: dto.email,
+      },
+    });
+
+    if (!user) {
+      // Si no lo encuentra lanza un error
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const passwordMatches = await bcrypt.compare(dto.password, user.password); // Compara la contraseña ingresada con la de la base de datos
+    if (!passwordMatches) {
+      // Si no son iguales lanza un error
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    return this.signToken(user.id, user.email); // si todo es correcto devuelve el token
+  }
+
+  // funcion auxiliar para firmar el token
+  async signToken(
+    userId: string,
+    email: string,
+  ): Promise<{ access_token: string }> {
+    const payload = {
+      sub: userId,
+      email,
+    };
+
+    const token = await this.jwt.signAsync(payload, {
+      secret: process.env.JWT_SECRET,
+    });
+
+    return {
+      access_token: token,
+    };
   }
 }
