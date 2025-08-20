@@ -57,3 +57,37 @@ Esta sección sirve como un diario de desarrollo y una guía de arquitectura det
 
 - **Carga Asíncrona de Módulos (Patrón Profesional):**
   Para evitar "race conditions" donde un módulo intenta usar una variable de entorno antes de que `ConfigModule` la haya cargado, se utiliza el patrón `registerAsync`. En nuestro `AuthModule`, el `JwtModule` se registra de forma asíncrona, declarando una dependencia del `ConfigService` y usando una `useFactory` para leer el `JWT_SECRET` solo cuando este servicio está disponible. Esto garantiza una inicialización robusta y en el orden correcto.
+
+### Paso 4: Protección de Rutas con Estrategia JWT y Guards
+
+- **Objetivo:** Utilizar el `access_token` generado en el login para proteger rutas, asegurando que solo usuarios autenticados puedan acceder a ciertos recursos. Se implementará un endpoint `GET /users/me` como ejemplo.
+
+- **Componentes Clave y Conceptos:**
+
+  1.  **La Estrategia de Passport (`strategy/jwt.strategy.ts`):**
+
+      - **Concepto:** Una "Estrategia" en Passport.js es una clase modular que encapsula toda la lógica para un método de autenticación específico (ej. JWT, OAuth, etc.).
+      - **Implementación:**
+        - `extends PassportStrategy(Strategy, 'jwt')`: Nuestra clase hereda de `PassportStrategy`. El primer argumento `Strategy` es la implementación base de `passport-jwt`. El segundo, `'jwt'`, es un identificador por defecto.
+        - `constructor(...)` y `super({...})`:
+          - **¿Qué es `super()`?**: En la programación orientada a objetos, `super()` es una llamada al constructor de la clase padre (en este caso, `PassportStrategy`). Es necesario para inicializar correctamente la estrategia base.
+          - Le pasamos un objeto de configuración que le dice a la estrategia:
+            - `jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()`: Cómo encontrar el token. Le indicamos que lo extraiga de la cabecera `Authorization` como un "Bearer Token", que es el estándar (`Authorization: Bearer <token>`).
+            - `secretOrKey`: Qué secreto usar para verificar la firma del token y asegurar que no ha sido alterado.
+        - `async validate(payload)`:
+          - **Rol:** Este método es el corazón de la estrategia. Passport solo lo llama **después** de haber verificado exitosamente la firma y la expiración del token. Su trabajo es tomar el `payload` (los datos que pusimos dentro del token, como el ID de usuario) y realizar una validación adicional si es necesario.
+          - **Nuestra Lógica:** Usamos el `payload.sub` (el ID del usuario) para buscarlo en la base de datos. Esto asegura que el usuario del token todavía existe en nuestro sistema.
+          - **El "Retorno Mágico":** El valor que esta función `validate` retorna es lo que NestJS **adjuntará al objeto `request` como `req.user`**. Este es un mecanismo clave que nos permite acceder a los datos del usuario autenticado en cualquier controlador protegido.
+
+  2.  **El Guardián (`@UseGuards`):**
+
+      - **Concepto:** Un "Guard" en NestJS es una clase que implementa la interfaz `CanActivate`. Su única responsabilidad es decidir si una petición puede continuar o no, devolviendo `true` o `false`. Son ideales para la autorización y autenticación.
+      - **Implementación:**
+        - `@UseGuards(AuthGuard('jwt'))`: En lugar de crear nuestro propio Guard desde cero, usamos el `AuthGuard` que viene con `@nestjs/passport`. Este es un Guard genérico que funciona con las estrategias de Passport.
+        - Al pasarle `'jwt'`, le estamos diciendo: "Usa la estrategia que registramos con el identificador 'jwt'".
+        - El `AuthGuard` se encarga de orquestar todo el flujo: invoca la estrategia, maneja los errores y, si la estrategia tiene éxito, permite que la petición continúe hacia el controlador.
+
+  3.  **El Controlador Protegido (`user/user.controller.ts`):**
+      - Aplicamos `@UseGuards(AuthGuard('jwt'))` a nivel de controlador para proteger todas sus rutas.
+      - En el método `getMe`, usamos el decorador `@Req()` para inyectar el objeto `request` completo de Express.
+      - Gracias a nuestra estrategia, ahora podemos acceder a `req.user` para obtener la información del usuario que fue validado por el token.
