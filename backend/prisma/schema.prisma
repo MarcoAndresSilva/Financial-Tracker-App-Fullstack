@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,6 +5,25 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ========================================
+//          ENUMERATIONS
+// ========================================
+
+enum WalletType {
+  PERSONAL
+  SHARED
+}
+
+enum MembershipRole {
+  OWNER
+  MEMBER
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
 }
 
 // ========================================
@@ -24,4 +37,78 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  memberships WalletMembership[]
+  transactions Transaction[]
+}
+
+model Wallet {
+  id        String     @id @default(uuid())
+  name      String
+  type      WalletType @default(PERSONAL)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  memberships  WalletMembership[]
+  categories   Category[]
+  transactions Transaction[]
+}
+
+model WalletMembership {
+  id        String         @id @default(uuid())
+  role      MembershipRole @default(MEMBER)
+  createdAt DateTime       @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, walletId]) // Un usuario solo puede pertenecer una vez a una cartera
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  walletId      String
+  wallet        Wallet         @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  subcategories Subcategory[]
+
+  @@unique([walletId, name]) // El nombre de la categoría debe ser único por cartera
+}
+
+model Subcategory {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([categoryId, name]) // El nombre de la subcategoría debe ser único por categoría
+}
+
+model Transaction {
+  id          String          @id @default(uuid())
+  amount      Float
+  type        TransactionType
+  date        DateTime
+  description String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  subcategoryId String
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
 }

@@ -17,26 +17,47 @@ export class AuthService {
   ) {}
 
   async signup(dto: SignUpDto) {
-    // Hashear la contraseña
+    // Hashear la contraseña (esto no cambia)
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(dto.password, salt);
 
     try {
-      // guarda en la base de datos
+      // Crear el usuario Y su cartera personal en una sola transacción
       const user = await this.prisma.user.create({
         data: {
           email: dto.email,
           name: dto.name,
           password: hashedPassword,
+          // ¡Magia de Prisma! Creación anidada
+          memberships: {
+            create: {
+              role: 'OWNER',
+              wallet: {
+                create: {
+                  name: 'Personal',
+                  type: 'PERSONAL',
+                },
+              },
+            },
+          },
+        },
+        // Incluir la información de la membresía y la cartera en la respuesta
+        include: {
+          memberships: {
+            include: {
+              wallet: true,
+            },
+          },
         },
       });
-      // Devolver el usuario sin la contraseña
+
+      //  Devolver el usuario sin la contraseña
       delete user.password;
       return user;
     } catch (error) {
       if (
         error instanceof PrismaClientKnownRequestError &&
-        error.code === 'P2002' // codigo de prisma para violacion de restriccion unica
+        error.code === 'P2002'
       ) {
         throw new ForbiddenException('Credentials taken');
       }
