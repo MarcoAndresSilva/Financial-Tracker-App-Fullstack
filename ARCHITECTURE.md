@@ -15,7 +15,7 @@ Esta sección sirve como un diario de desarrollo y una guía de arquitectura det
 
 ### **Paso 2: Integración de Prisma, Migraciones y Conexión a NestJS**
 
-- **Objetivo:** Conectar la API a la base de datos, definir el modelo `User` y crear la tabla correspondiente mediante migraciones, integrando Prisma de forma robusta en NestJS.
+- **Objetivo:** Conectar la API a la base de datos, definir el modelo `User` inicial y crear la tabla correspondiente mediante migraciones, integrando Prisma de forma robusta en NestJS.
 - **Componentes Clave:**
   - **ORM:** Se eligió Prisma por su seguridad de tipos (type-safety) y su moderna API de cliente.
   - `prisma/schema.prisma`: Es la **única fuente de verdad** para el esquema de la base de datos.
@@ -25,69 +25,28 @@ Esta sección sirve como un diario de desarrollo y una guía de arquitectura det
 ### **Paso 3: Módulo de Autenticación (Registro y Login con JWT)**
 
 - **Objetivo:** Implementar un flujo de autenticación completo, permitiendo a los usuarios registrarse, iniciar sesión y recibir un `access_token` (JWT) para futuras peticiones.
+- **Flujo de `signin` y `signup`:** Se implementaron los endpoints `POST /auth/signup` y `POST /auth/signin` siguiendo el patrón de NestJS: `Controller` -> `Service` -> `DTO`. Se utiliza `bcrypt` para el hasheo y comparación de contraseñas, y `JwtService` para la generación de tokens.
+- **Decisiones de Arquitectura Clave:**
+  - **Carga Asíncrona de Módulos (Patrón Profesional):** Para evitar "race conditions" con las variables de entorno, el `JwtModule` se registra de forma asíncrona (`registerAsync`) en el `AuthModule`. Se utiliza una `useFactory` que depende del `ConfigService` para garantizar que el `JWT_SECRET` se lee solo después de que ha sido cargado por el `ConfigModule`.
 
-#### **3.1 - Registro (Sign Up)**
+### **Paso 4: Protección de Rutas con Estrategia JWT y Guards**
 
-- **Flujo de la Petición:**
-  1.  **`main.ts` (Habilitador Global):** Se configura un `ValidationPipe` global para validar automáticamente todos los DTOs entrantes.
-  2.  **`auth.controller.ts` (Portero):** Define la ruta `POST /auth/signup` y utiliza `@Body()` para validar la petición contra el `SignUpDto`.
-  3.  **`dto/signup.dto.ts` (Contrato):** Define la "forma" de los datos de registro usando decoradores de `class-validator`.
-  4.  **`auth.service.ts` (Cerebro):**
-      - Hashea la contraseña con `bcrypt`.
-      - Crea el usuario en la base de datos usando `PrismaService`.
-      - Maneja errores de email duplicado.
-      - Elimina el hash de la contraseña de la respuesta.
-
-#### **3.2 - Login (Sign In) y Generación de JWT**
-
-- **Flujo de la Petición:**
-  1.  **`auth.controller.ts`:** Recibe la petición en `POST /auth/signin` con el `SignInDto`.
-  2.  **`auth.service.ts`:**
-      - Busca al usuario por email.
-      - Compara la contraseña del DTO con el hash de la BBDD usando `bcrypt.compare()`.
-      - Si las credenciales son válidas, llama a una función `signToken()`.
-  3.  **`signToken()`:**
-      - Crea un `payload` con el ID y email del usuario.
-      - Usa el `JwtService` inyectado para firmar el payload y crear el `access_token`.
-      - Devuelve el token al cliente.
-
-#### **3.3 - Decisiones de Arquitectura Clave en Autenticación**
-
-- **`auth.module.ts` (El Organizador):** Este módulo debe _importar_ los módulos de los que dependen sus servicios. Como `AuthService` usa `PrismaService` y `JwtService`, el `AuthModule` importa `PrismaModule` y configura el `JwtModule`.
-
-- **Carga Asíncrona de Módulos (Patrón Profesional):**
-  Para evitar "race conditions" donde un módulo intenta usar una variable de entorno antes de que `ConfigModule` la haya cargado, se utiliza el patrón `registerAsync`. En nuestro `AuthModule`, el `JwtModule` se registra de forma asíncrona, declarando una dependencia del `ConfigService` y usando una `useFactory` para leer el `JWT_SECRET` solo cuando este servicio está disponible. Esto garantiza una inicialización robusta y en el orden correcto.
-
-### Paso 4: Protección de Rutas con Estrategia JWT y Guards
-
-- **Objetivo:** Utilizar el `access_token` generado en el login para proteger rutas, asegurando que solo usuarios autenticados puedan acceder a ciertos recursos. Se implementará un endpoint `GET /users/me` como ejemplo.
-
+- **Objetivo:** Utilizar el `access_token` para proteger rutas, implementando un endpoint de ejemplo `GET /users/me`.
 - **Componentes Clave y Conceptos:**
+  - **La Estrategia de Passport (`JwtStrategy`):** Una clase que encapsula la lógica para validar un JWT. Extrae el token de la cabecera `Authorization`, verifica su firma y valida el payload (ej. comprobando que el usuario todavía existe en la BBDD). El valor que retorna el método `validate` es inyectado por NestJS en `req.user`.
+  - **El Guardián (`@UseGuards(AuthGuard('jwt'))`):** Un decorador de NestJS que intercepta las peticiones y ejecuta la estrategia de autenticación especificada. Si la estrategia tiene éxito, permite el paso; si no, devuelve un error `401 Unauthorized`.
+  - **Decorador Personalizado (`@GetUser`):** Para evitar la dependencia de Express (`@Req`) y mejorar la legibilidad, se creó un decorador personalizado. Este encapsula la lógica de `request.user`, permitiendo inyectar directamente el objeto de usuario (`@GetUser() user: User`) o una de sus propiedades (`@GetUser('email') email: string`) en los controladores de forma type-safe.
 
-  1.  **La Estrategia de Passport (`strategy/jwt.strategy.ts`):**
+### **Paso 5: Diseño del Esquema de Datos Multi-Cartera**
 
-      - **Concepto:** Una "Estrategia" en Passport.js es una clase modular que encapsula toda la lógica para un método de autenticación específico (ej. JWT, OAuth, etc.).
-      - **Implementación:**
-        - `extends PassportStrategy(Strategy, 'jwt')`: Nuestra clase hereda de `PassportStrategy`. El primer argumento `Strategy` es la implementación base de `passport-jwt`. El segundo, `'jwt'`, es un identificador por defecto.
-        - `constructor(...)` y `super({...})`:
-          - **¿Qué es `super()`?**: En la programación orientada a objetos, `super()` es una llamada al constructor de la clase padre (en este caso, `PassportStrategy`). Es necesario para inicializar correctamente la estrategia base.
-          - Le pasamos un objeto de configuración que le dice a la estrategia:
-            - `jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()`: Cómo encontrar el token. Le indicamos que lo extraiga de la cabecera `Authorization` como un "Bearer Token", que es el estándar (`Authorization: Bearer <token>`).
-            - `secretOrKey`: Qué secreto usar para verificar la firma del token y asegurar que no ha sido alterado.
-        - `async validate(payload)`:
-          - **Rol:** Este método es el corazón de la estrategia. Passport solo lo llama **después** de haber verificado exitosamente la firma y la expiración del token. Su trabajo es tomar el `payload` (los datos que pusimos dentro del token, como el ID de usuario) y realizar una validación adicional si es necesario.
-          - **Nuestra Lógica:** Usamos el `payload.sub` (el ID del usuario) para buscarlo en la base de datos. Esto asegura que el usuario del token todavía existe en nuestro sistema.
-          - **El "Retorno Mágico":** El valor que esta función `validate` retorna es lo que NestJS **adjuntará al objeto `request` como `req.user`**. Este es un mecanismo clave que nos permite acceder a los datos del usuario autenticado en cualquier controlador protegido.
-
-  2.  **El Guardián (`@UseGuards`):**
-
-      - **Concepto:** Un "Guard" en NestJS es una clase que implementa la interfaz `CanActivate`. Su única responsabilidad es decidir si una petición puede continuar o no, devolviendo `true` o `false`. Son ideales para la autorización y autenticación.
-      - **Implementación:**
-        - `@UseGuards(AuthGuard('jwt'))`: En lugar de crear nuestro propio Guard desde cero, usamos el `AuthGuard` que viene con `@nestjs/passport`. Este es un Guard genérico que funciona con las estrategias de Passport.
-        - Al pasarle `'jwt'`, le estamos diciendo: "Usa la estrategia que registramos con el identificador 'jwt'".
-        - El `AuthGuard` se encarga de orquestar todo el flujo: invoca la estrategia, maneja los errores y, si la estrategia tiene éxito, permite que la petición continúe hacia el controlador.
-
-  3.  **El Controlador Protegido (`user/user.controller.ts`):**
-      - Aplicamos `@UseGuards(AuthGuard('jwt'))` a nivel de controlador para proteger todas sus rutas.
-      - En el método `getMe`, usamos el decorador `@Req()` para inyectar el objeto `request` completo de Express.
-      - Gracias a nuestra estrategia, ahora podemos acceder a `req.user` para obtener la información del usuario que fue validado por el token.
+- **Objetivo:** Evolucionar el modelo de datos de un sistema de finanzas personales a uno que soporte múltiples carteras (`Wallets`) por usuario, permitiendo espacios de trabajo tanto privados como compartidos.
+- **Modelo de Datos Implementado:**
+  - **`Wallet`:** El núcleo del sistema. Puede ser de tipo `PERSONAL` o `SHARED`.
+  - **`User` y `WalletMembership`:** Se implementa una relación **muchos-a-muchos** entre `User` y `Wallet` a través de una tabla intermedia `WalletMembership`. Esto permite que un usuario pertenezca a múltiples carteras y que una cartera tenga múltiples miembros, con roles definidos (`OWNER`, `MEMBER`).
+  - **`Category` y `Subcategory`:** Ahora están vinculadas directamente a una `Wallet`. Esto permite que cada cartera (personal o compartida) tenga su propio conjunto de categorías personalizables.
+  - **`Transaction`:** El registro de movimiento. Cada transacción está ligada a una `Wallet`, una `Subcategory`, y un `User` (el autor).
+- **Lógica de Registro Actualizada (`signup`):**
+  - **Requisito:** Al registrarse, un usuario debe obtener automáticamente una cartera personal. Esta operación debe ser "todo o nada" para evitar datos inconsistentes.
+  - **Implementación con Transacciones Anidadas de Prisma:** La solución se implementó usando una **escritura anidada (nested write)**. Dentro de una única operación `prisma.user.create`, se anidan las instrucciones para crear también la `WalletMembership` y la `Wallet` personal.
+  - **Atomicidad y `ROLLBACK` (La "Pepita de Oro"):** Prisma convierte esta operación anidada en una **transacción de base de datos** real. Si alguna de las sub-operaciones falla, toda la transacción se revierte automáticamente (**`ROLLBACK`**). Esto garantiza la integridad de los datos sin necesidad de gestionar transacciones manualmente.
+  - **Respuesta Enriquecida con `include`:** Se utiliza la opción `include` para que la respuesta de la creación devuelva no solo el `User`, sino también los datos relacionados de la `WalletMembership` y la `Wallet` que se crearon en la misma transacción.
