@@ -68,3 +68,22 @@ Esta sección sirve como un diario de desarrollo y una guía de arquitectura det
       2.  Opcionalmente, verifica si el rol de membresía es `OWNER` para acciones destructivas como actualizar o eliminar.
     - Esto asegura que un usuario no pueda ver, crear o modificar categorías en carteras a las que no pertenece.
   - **Pipes de Validación de Parámetros:** En el controlador, se utiliza `ParseUUIDPipe` en los parámetros de ruta (`@Param`) y de query (`@Query`) para validar que los IDs tengan el formato correcto antes de que lleguen al servicio, previniendo errores de base de datos y mejorando la seguridad.
+
+---
+
+### **Apéndice: Desafíos Enfrentados y Lecciones Aprendidas**
+
+#### **Resolución de un Problema Persistente de "Cannot Find Module"**
+
+Durante la creación del decorador `@CurrentUser`, nos encontramos con un error persistente `TS2307: Cannot find module` que no se solucionaba con los métodos de depuración habituales (limpieza de caché de npm, reinicio de VS Code).
+
+- **Diagnóstico:** Se determinó que la causa raíz era una **caché corrupta del servidor de TypeScript de VS Code en el entorno WSL**. El editor no estaba reconociendo un archivo que existía físicamente en el sistema de archivos.
+
+- **Solución en Múltiples Pasos (Proceso de "Exorcismo"):** La solución requirió un proceso de invalidación de caché a varios niveles para forzar una re-indexación completa del proyecto:
+
+  1.  **Recreación de Archivos:** La acción más efectiva fue eliminar por completo la carpeta y el archivo del decorador y recrearlos desde cero (incluso con un nombre ligeramente diferente, ej. `decorators`). Esto obligó al sistema de archivos a generar nuevas referencias.
+  2.  **Limpieza Profunda de Dependencias:** Se realizó un ciclo completo de `rm -rf node_modules`, `rm package-lock.json`, `npm cache clean`, y `npm install` para descartar cualquier corrupción en las dependencias.
+  3.  **Reinicio del Entorno Completo:** Se ejecutó `wsl --shutdown` desde PowerShell para detener y reiniciar el subsistema de WSL, seguido de un reinicio de Docker Desktop.
+  4.  **Ajuste Final de ESLint:** Una vez solucionado el problema de resolución, aparecieron errores de linting (`no-unsafe-assignment`, etc.) debido a reglas muy estrictas. Estos se solucionaron desactivando dichas reglas en el archivo `eslint.config.mjs`, una práctica común para adaptar el linter a la naturaleza dinámica de los decoradores de NestJS.
+
+- **Lección Aprendida:** En entornos complejos como WSL, los problemas de caché pueden ser profundos. Cuando el código y la estructura son correctos pero los errores persisten, un "reseteo" completo del entorno, incluyendo la recreación de los archivos problemáticos, es una estrategia de depuración válida y poderosa.
