@@ -1,11 +1,11 @@
 import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
-export class CreateCategoryDto {
+export class CreateSubcategoryDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
   @IsUUID()
   @IsNotEmpty()
-  walletId: string;
+  categoryId: string;
 }
