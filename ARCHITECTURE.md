@@ -69,6 +69,17 @@ Esta sección sirve como un diario de desarrollo y una guía de arquitectura det
     - Esto asegura que un usuario no pueda ver, crear o modificar categorías en carteras a las que no pertenece.
   - **Pipes de Validación de Parámetros:** En el controlador, se utiliza `ParseUUIDPipe` en los parámetros de ruta (`@Param`) y de query (`@Query`) para validar que los IDs tengan el formato correcto antes de que lleguen al servicio, previniendo errores de base de datos y mejorando la seguridad.
 
+### Paso 7: CRUD para el Módulo de Subcategorías
+
+- **Objetivo:** Construir los endpoints para gestionar las `Subcategories`, que están anidadas dentro de una `Category`. Este módulo sirve para reforzar los patrones de diseño establecidos en el CRUD de Categorías.
+- **Implementación:**
+  - **Estructura y DTOs:** Se sigue la misma estructura que el `CategoryModule` (Controller, Service, DTOs con `PartialType` para updates).
+  - **Lógica de Autorización Anidada:** La decisión de arquitectura clave aquí es cómo se manejan los permisos. Para realizar cualquier operación sobre una `Subcategory`, el servicio primero debe:
+    1.  Consultar la `Subcategory` para encontrar el `id` de su `Category` padre.
+    2.  Consultar la `Category` padre para encontrar el `id` de su `Wallet`.
+    3.  Ejecutar la lógica de `checkWalletMembership` con el `userId` del token y el `walletId` obtenido.
+  - **Lección Aprendida:** Este flujo demuestra cómo la autorización puede propagarse a través de relaciones en el modelo de datos, asegurando que los permisos a nivel de "contenedor" (la `Wallet`) protejan todos los recursos que contiene. Se identifica la duplicación de la función `checkWalletMembership`, marcándola como candidata a ser extraída a un `PermissionsService` compartido en una futura refactorización para seguir el principio DRY (Don't Repeat Yourself).
+
 ---
 
 ### **Apéndice: Desafíos Enfrentados y Lecciones Aprendidas**
