@@ -1,6 +1,6 @@
 # Financial Tracker App - Full Stack
 
-![Project Banner](URL_DEL_BANNER_AQUI) <!-- Opcional: Puedes crear un banner bonito más adelante -->
+![Project Banner](URL_DEL_BANNER_AQUI) 
 
 Una aplicación full stack moderna para el seguimiento de finanzas personales, construida con NestJS, Angular, PostgreSQL y Docker.
 
