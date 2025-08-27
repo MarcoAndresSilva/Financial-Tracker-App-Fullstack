@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { CategoryModule } from './category/category.module';
 import { SubcategoryModule } from './subcategory/subcategory.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SubcategoryModule } from './subcategory/subcategory.module';
     UserModule,
     CategoryModule,
     SubcategoryModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
