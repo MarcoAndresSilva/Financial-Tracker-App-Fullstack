@@ -80,6 +80,18 @@ Esta sección sirve como un diario de desarrollo y una guía de arquitectura det
     3.  Ejecutar la lógica de `checkWalletMembership` con el `userId` del token y el `walletId` obtenido.
   - **Lección Aprendida:** Este flujo demuestra cómo la autorización puede propagarse a través de relaciones en el modelo de datos, asegurando que los permisos a nivel de "contenedor" (la `Wallet`) protejan todos los recursos que contiene. Se identifica la duplicación de la función `checkWalletMembership`, marcándola como candidata a ser extraída a un `PermissionsService` compartido en una futura refactorización para seguir el principio DRY (Don't Repeat Yourself).
 
+### Paso 8: CRUD para el Módulo de Transacciones
+
+- **Objetivo:** Implementar la funcionalidad principal de la aplicación: la creación y gestión de transacciones de ingresos y gastos.
+- **Implementación:**
+  - **Estructura del Módulo:** Se creó la estructura estándar de NestJS (`TransactionModule`, `Controller`, `Service`, `DTOs`).
+  - **DTOs Detallados:** El `CreateTransactionDto` utiliza una variedad de validadores de `class-validator` (`@IsNumber`, `@IsPositive`, `@IsEnum`, `@IsDateString`) para garantizar la integridad de los datos de la transacción antes de que lleguen a la lógica de negocio.
+  - **Lógica de Autorización Multi-Nivel:** Este servicio presenta el caso de autorización más complejo hasta ahora:
+    1.  **Permiso de Cartera:** Al igual que en otros módulos, se verifica la membresía del usuario en la `Wallet` (`checkWalletMembership`).
+    2.  **Permiso de Pertenencia Cruzada:** Se añade una validación crucial para la operación de `create` y `update`: el servicio comprueba que la `Subcategory` proporcionada pertenezca realmente a la `Wallet` especificada. Esto previene que un usuario pueda asignar una transacción en su cartera a una categoría de otra cartera a la que no tiene acceso, manteniendo la integridad referencial.
+    3.  **Permiso de Rol:** Las operaciones de escritura (`update`, `delete`) están restringidas a usuarios con el rol `OWNER` en la cartera.
+  - **Manejo de Tipos de Datos:** El servicio se encarga de transformar los datos del DTO al formato requerido por la base de datos, como convertir una `date` en formato string a un objeto `Date` de JavaScript.
+
 ---
 
 ### **Apéndice: Desafíos Enfrentados y Lecciones Aprendidas**
