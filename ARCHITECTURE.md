@@ -92,6 +92,34 @@ Esta sección sirve como un diario de desarrollo y una guía de arquitectura det
     3.  **Permiso de Rol:** Las operaciones de escritura (`update`, `delete`) están restringidas a usuarios con el rol `OWNER` en la cartera.
   - **Manejo de Tipos de Datos:** El servicio se encarga de transformar los datos del DTO al formato requerido por la base de datos, como convertir una `date` en formato string a un objeto `Date` de JavaScript.
 
+### Paso 9: Endpoints del Dashboard y Datos Agregados
+
+- **Objetivo:** Crear endpoints especializados que no devuelvan datos crudos, sino información procesada y agregada, lista para ser consumida por componentes de visualización de datos (gráficos, resúmenes) en el frontend.
+
+#### **9.1 - Resúmenes de Cartera (`/dashboard/summary`)**
+
+- **Requisito:** Obtener una vista rápida del estado financiero de una cartera (ingresos totales, gastos totales, balance).
+- **Implementación (Prisma `aggregate`):**
+  - Se implementó el método `getWalletSummary` en el `DashboardService`.
+  - En lugar de traer todas las transacciones y sumarlas en JavaScript, se utiliza la función `aggregate` de Prisma. Esta delega el cálculo de la suma (`_sum`) directamente a la base de datos PostgreSQL, lo cual es significativamente más eficiente y rápido.
+  - Se ejecutan dos agregaciones en paralelo (una para `INCOME`, otra para `EXPENSE`) usando `Promise.all` para optimizar el tiempo de respuesta.
+
+#### **9.2 - Gastos por Categoría (`/dashboard/expenses-by-category`)**
+
+- **Requisito:** Obtener los gastos totales agrupados por categoría principal para alimentar un gráfico de pastel.
+- **Implementación (Prisma `groupBy` y Enriquecimiento de Datos):**
+  - El servicio primero utiliza `groupBy` de Prisma para agrupar las transacciones de gastos por `subcategoryId` y sumar sus montos.
+  - Como `groupBy` devuelve solo los IDs, el resultado se "enriquece" en un segundo paso: se itera sobre los grupos, se busca la información completa de cada subcategoría (incluyendo su categoría padre) y se crea un nuevo array con los nombres de las categorías.
+  - Finalmente, se utiliza el método `reduce` de JavaScript para sumar los montos de diferentes subcategorías que pertenecen a la misma categoría principal (ej. sumar "Supermercado" y "Restaurante" bajo "Comida").
+  - El resultado se formatea como `{ name, value }`, un formato ideal para la mayoría de las librerías de gráficos.
+
+#### **9.3 - Filtrado Avanzado de Transacciones**
+
+- **Requisito:** Permitir al usuario buscar y filtrar su lista de transacciones por múltiples criterios como rango de fechas o tipo.
+- **Implementación:**
+  - **DTO para Query Params:** Se creó un `GetTransactionsFilterDto` para validar los parámetros opcionales de la URL.
+  - **Construcción Dinámica de Consultas:** El `TransactionService` fue refactorizado para construir la cláusula `where` de Prisma de forma dinámica, añadiendo condiciones solo si los filtros correspondientes son proporcionados.
+
 ---
 
 ### **Apéndice: Desafíos Enfrentados y Lecciones Aprendidas**
