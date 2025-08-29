@@ -143,3 +143,20 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   4.  **Ajuste Final de ESLint:** Una vez solucionado el problema de resolución, aparecieron errores de linting (`no-unsafe-assignment`, etc.) debido a reglas muy estrictas. Estos se solucionaron desactivando dichas reglas en el archivo `eslint.config.mjs`, una práctica común para adaptar el linter a la naturaleza dinámica de los decoradores de NestJS.
 
 - **Lección Aprendida:** En entornos complejos como WSL, los problemas de caché pueden ser profundos. Cuando el código y la estructura son correctos pero los errores persisten, un "reseteo" completo del entorno, incluyendo la recreación de los archivos problemáticos, es una estrategia de depuración válida y poderosa.
+
+---
+
+### **Parte 2: El Frontend (Angular)**
+
+---
+
+### Paso 10: Inicialización y Configuración del Proyecto Angular
+
+- **Objetivo:** Crear la base para la aplicación de frontend utilizando el Angular CLI, configurada con las mejores prácticas modernas para una aplicación de panel de control (dashboard).
+
+- **Decisiones de Arquitectura y Configuración:**
+  - **Monorepo:** El proyecto de Angular se crea en una nueva carpeta `frontend/` en la raíz del repositorio, conviviendo con la carpeta `backend/`. Esto facilita la gestión del código y el control de versiones de toda la aplicación.
+  - **Angular CLI:** Se utiliza el comando `ng new` para generar la estructura del proyecto.
+  - **Componentes Standalone (`--standalone`):** Se optó por la arquitectura moderna de Angular, que simplifica la estructura de la aplicación al eliminar la necesidad de `NgModule`s. Los componentes, directivas y pipes ahora gestionan sus propias dependencias, lo que reduce el código repetitivo (`boilerplate`) y mejora la optimización (`tree-shaking`).
+  - **SCSS (`--style=scss`):** Se eligió SCSS como preprocesador de CSS para aprovechar características avanzadas como variables, mixins y anidación, lo que permite un código de estilos más mantenible y escalable.
+  - **Renderizado del Lado del Cliente (CSR):** Se optó por una configuración de SPA (Single Page Application) tradicional. Dado que la aplicación es una herramienta privada detrás de un login, el SEO no es una prioridad, y el CSR ofrece la experiencia de usuario más fluida e interactiva una vez que la aplicación ha cargado.
