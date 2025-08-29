@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { CategoryModule } from './category/category.module';
 import { SubcategoryModule } from './subcategory/subcategory.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TransactionModule } from './transaction/transaction.module';
     CategoryModule,
     SubcategoryModule,
     TransactionModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

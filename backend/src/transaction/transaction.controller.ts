@@ -14,8 +14,13 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TransactionService } from './transaction.service';
-import { CreateTransactionDto, UpdateTransactionDto } from './dto';
+import {
+  CreateTransactionDto,
+  UpdateTransactionDto,
+  GetTransactionsFilterDto,
+} from './dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+// import { filter } from 'rxjs';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('transactions')
@@ -35,9 +40,9 @@ export class TransactionController {
   @Get()
   getTransactionsByWallet(
     @CurrentUser('id') userId: string,
-    @Query('walletId', ParseUUIDPipe) walletId: string,
+    @Query() filterDto: GetTransactionsFilterDto,
   ) {
-    return this.transactionService.getTransactionsByWallet(userId, walletId);
+    return this.transactionService.getTransactionsByWallet(userId, filterDto);
   }
 
   // --- READ ONE BY ID ---
