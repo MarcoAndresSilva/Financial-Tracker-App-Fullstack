@@ -167,3 +167,16 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
     - Para evitar la importación repetitiva de módulos de Material en cada componente standalone, se ha implementado un patrón de "barrel".
     - Se creó un archivo `shared/material/material.module.ts` que no es un `NgModule`, sino un simple archivo que exporta un array constante (`MATERIAL_MODULES`) con todos los módulos de UI necesarios.
     - Los componentes que necesiten Material pueden ahora importar este array y usar el operador "spread" (`...MATERIAL_MODULES`) en su propiedad `imports`, manteniendo el código limpio, centralizado y fácil de mantener.
+
+### Paso 11: Estructura de Rutas y Páginas de Autenticación
+
+- **Objetivo:** Construir la arquitectura de enrutamiento para la sección de autenticación y desarrollar la estructura visual inicial de la página de Login.
+
+- **Implementación y Decisiones Clave:**
+  - **Organización de Módulos por Funcionalidad:** Se creó una carpeta `src/app/auth/` para contener todos los artefactos relacionados con la autenticación (componentes, rutas, servicios). Dentro de ella, se utiliza una subcarpeta `pages/` para diferenciar los componentes que actúan como vistas completas.
+  - **Enrutamiento por Módulo (`Feature Routing`):**
+    - Se creó un archivo `auth.routes.ts` que define las rutas específicas de esta funcionalidad (`login`, `register`).
+    - En el archivo principal `app.routes.ts`, se utiliza **lazy loading** (`loadChildren`) para cargar estas rutas. Esta es una práctica de rendimiento crucial: el código de las páginas de autenticación solo se descarga del servidor cuando el usuario navega a `/auth`, haciendo que la carga inicial de la aplicación sea más rápida.
+  - **UI del Login:**
+    - Se maquetó la estructura visual de la página de Login utilizando componentes de **Angular Material** como `mat-card` y `mat-form-field`. Esto proporciona una base de UI accesible y funcional desde el principio.
+    - Se aplicaron estilos básicos con **SCSS** para centrar el formulario y asegurar una presentación limpia, siguiendo el enfoque "funcionalidad primero, diseño detallado después".
