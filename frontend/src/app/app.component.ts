@@ -6,7 +6,7 @@ import { MATERIAL_MODULES } from './shared/material/material.module';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, ...MATERIAL_MODULES],
+  imports: [RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })

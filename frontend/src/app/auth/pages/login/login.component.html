@@ -1,0 +1,53 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <!-- Sección de la Imagen -->
+    <div class="hero-image-container">
+      <img src="assets/images/dinerin.jpg" alt="Ilustración de finanzas" />
+    </div>
+
+    <!-- Título -->
+    <mat-card-header>
+      <mat-card-title>Bienvenido</mat-card-title>
+      <mat-card-subtitle
+        >Ingresa tus credenciales para continuar</mat-card-subtitle
+      >
+    </mat-card-header>
+
+    <!-- Contenido del Formulario -->
+    <mat-card-content>
+      <form class="login-form">
+        <!-- Campo de Email -->
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            placeholder="ejemplo@email.com"
+            type="email"
+            required
+          />
+          <mat-icon matSuffix>alternate_email</mat-icon>
+        </mat-form-field>
+
+        <!-- Campo de Contraseña -->
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            placeholder="Tu contraseña"
+            type="password"
+            required
+          />
+          <mat-icon matSuffix>lock</mat-icon>
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+
+    <!-- Acciones (Botones) -->
+    <mat-card-actions>
+      <button mat-raised-button color="primary" class="login-button">
+        Ingresar
+      </button>
+      <a class="register-link">¿No tienes una cuenta? **Regístrate**</a>
+    </mat-card-actions>
+  </mat-card>
+</div>
