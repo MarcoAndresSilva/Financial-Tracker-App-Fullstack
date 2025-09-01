@@ -1,39 +1,47 @@
-// Color de fondo similar a tu referencia (un rosa/salmón suave)
-$background-color: #fce8e6;
-
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: $background-color;
+  background-color: #fce8e6;
   padding: 16px;
 }
 
 .login-card {
   width: 100%;
   max-width: 400px;
-  padding: 1rem;
-  border-radius: 16px !important; // Bordes más redondeados
+  // ¡Cambio clave 1! Eliminamos el padding general.
+  padding: 0 !important;
+  border-radius: 20px !important; // Bordes bien redondeados
+  overflow: hidden; // ¡Cambio clave 2! Esto es crucial.
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
 }
 
 .hero-image-container {
-  text-align: center;
-  margin-bottom: 1.5rem;
-
+  // Este contenedor ya no necesita márgenes ni alineación.
+  // La imagen dentro se encargará del tamaño.
   img {
-    max-width: 250px; // Ajusta el tamaño de tu imagen
+    width: 100%; // ¡Cambio clave 3! La imagen ocupa todo el ancho.
     height: auto;
+    display: block; // Evita un pequeño espacio extra debajo de la imagen.
   }
+}
+
+// A partir de aquí, añadimos el padding manualmente a las secciones internas.
+mat-card-header,
+mat-card-content,
+mat-card-actions {
+  padding: 0 2rem; // Padding horizontal para el contenido.
 }
 
 mat-card-header {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 mat-card-title {
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
 }
@@ -41,19 +49,22 @@ mat-card-title {
 .login-form {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
 mat-card-actions {
-  display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 0; // Añade padding vertical
+  margin-top: 1rem;
+  padding-bottom: 2rem; // Padding inferior para la tarjeta.
 }
 
 .login-button {
   width: 100%;
-  padding: 1rem 0;
-  font-size: 1rem;
+  border-radius: 50px !important;
+  padding: 1.75rem 0 !important;
+  font-size: 1.1rem !important;
+  line-height: 0;
 }
 
 .register-link {
@@ -62,7 +73,6 @@ mat-card-actions {
   cursor: pointer;
   text-decoration: none;
   font-weight: 500;
-
   &:hover {
     text-decoration: underline;
   }
