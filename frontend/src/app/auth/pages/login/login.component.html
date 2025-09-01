@@ -15,12 +15,20 @@
 
     <!-- Contenido del Formulario -->
     <mat-card-content>
-      <form class="login-form">
+      <!--
+        [formGroup]="loginForm" -> Conecta este <form> con la propiedad 'loginForm' de nuestro .ts.
+        (ngSubmit)="onSubmit()" -> Cuando el formulario se envíe, llama al método 'onSubmit()'.
+      -->
+      <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <!-- Campo de Email -->
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
+          <!--
+            formControlName="email" -> Vincula este <input> al control 'email' dentro del 'loginForm'.
+          -->
           <input
             matInput
+            formControlName="email"
             placeholder="ejemplo@email.com"
             type="email"
             required
@@ -31,23 +39,44 @@
         <!-- Campo de Contraseña -->
         <mat-form-field appearance="outline">
           <mat-label>Contraseña</mat-label>
+          <!--
+            formControlName="password" -> Vincula este <input> al control 'password'.
+          -->
           <input
             matInput
+            formControlName="password"
             placeholder="Tu contraseña"
             type="password"
             required
           />
           <mat-icon matSuffix>lock</mat-icon>
         </mat-form-field>
+
+        <!-- Botón de Envío -->
+        <!--
+          type="submit" -> Le dice al formulario que este es el botón de envío.
+          [disabled]="loginForm.invalid" -> El botón se desactivará solo si el formulario no es válido.
+        -->
+        <button
+          mat-raised-button
+          color="primary"
+          class="login-button"
+          type="submit"
+          [disabled]="loginForm.invalid"
+        >
+          Ingresar
+        </button>
       </form>
     </mat-card-content>
 
-    <!-- Acciones (Botones) -->
+    <!-- Acciones Adicionales -->
     <mat-card-actions>
-      <button mat-raised-button color="primary" class="login-button">
-        Ingresar
-      </button>
-      <a class="register-link">¿No tienes una cuenta? **Regístrate**</a>
+      <!--
+        routerLink="/auth/register" -> Convierte esto en un enlace de navegación interno de Angular.
+      -->
+      <a class="register-link" routerLink="/auth/register"
+        >¿No tienes una cuenta? **Regístrate**</a
+      >
     </mat-card-actions>
   </mat-card>
 </div>

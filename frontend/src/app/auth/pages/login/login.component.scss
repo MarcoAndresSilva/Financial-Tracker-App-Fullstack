@@ -10,28 +10,24 @@
 .login-card {
   width: 100%;
   max-width: 400px;
-  // ¡Cambio clave 1! Eliminamos el padding general.
   padding: 0 !important;
-  border-radius: 20px !important; // Bordes bien redondeados
-  overflow: hidden; // ¡Cambio clave 2! Esto es crucial.
+  border-radius: 20px !important;
+  overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
 }
 
 .hero-image-container {
-  // Este contenedor ya no necesita márgenes ni alineación.
-  // La imagen dentro se encargará del tamaño.
   img {
-    width: 100%; // ¡Cambio clave 3! La imagen ocupa todo el ancho.
+    width: 100%;
     height: auto;
-    display: block; // Evita un pequeño espacio extra debajo de la imagen.
+    display: block;
   }
 }
 
-// A partir de aquí, añadimos el padding manualmente a las secciones internas.
 mat-card-header,
 mat-card-content,
 mat-card-actions {
-  padding: 0 2rem; // Padding horizontal para el contenido.
+  padding: 0 2rem;
 }
 
 mat-card-header {
@@ -56,7 +52,7 @@ mat-card-actions {
   flex-direction: column;
   align-items: center;
   margin-top: 1rem;
-  padding-bottom: 2rem; // Padding inferior para la tarjeta.
+  padding-bottom: 2rem;
 }
 
 .login-button {
