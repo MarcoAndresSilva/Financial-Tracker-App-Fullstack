@@ -180,3 +180,21 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - **UI del Login:**
     - Se maquetó la estructura visual de la página de Login utilizando componentes de **Angular Material** como `mat-card` y `mat-form-field`. Esto proporciona una base de UI accesible y funcional desde el principio.
     - Se aplicaron estilos básicos con **SCSS** para centrar el formulario y asegurar una presentación limpia, siguiendo el enfoque "funcionalidad primero, diseño detallado después".
+
+### Paso 12: Conexión del Formulario de Login a la API
+
+- **Objetivo:** Darle funcionalidad al formulario de Login, permitiendo a los usuarios autenticarse contra el backend y persistir el estado de la sesión en el navegador.
+
+- **Implementación y Decisiones Clave:**
+  - **Formularios Reactivos (`ReactiveFormsModule`):** Se eligió el enfoque de Formularios Reactivos de Angular por su robustez y facilidad para las pruebas.
+    - Se creó un `FormGroup` en el `LoginComponent` utilizando `FormBuilder`.
+    - Se definieron `Validators` (`required`, `email`, etc.) directamente en el componente, creando una primera capa de validación en el cliente que mejora la experiencia de usuario al dar feedback inmediato.
+    - El estado del formulario se usa para deshabilitar dinámicamente el botón de envío (`[disabled]="loginForm.invalid"`), previniendo peticiones inválidas.
+  - **Servicio de Abstracción de API (`AuthService`):**
+    - Se creó un `AuthService` en Angular para encapsular toda la lógica de comunicación con los endpoints de autenticación.
+    - Utiliza el `HttpClient` de Angular (inyectado a través de `provideHttpClient` en `app.config.ts`) para realizar las peticiones `POST`.
+    - Devuelve `Observables`, siguiendo el patrón estándar de programación reactiva de Angular.
+  - **Manejo del Token (JWT):**
+    - El `LoginComponent` se suscribe al `Observable` del `AuthService`.
+    - En caso de una respuesta exitosa, el `access_token` recibido de la API se almacena en el **`localStorage`** del navegador.
+    - **Justificación de `localStorage`:** A diferencia de la base de datos (que vive en el servidor), `localStorage` es un almacenamiento persistente en el navegador del cliente. Es el lugar estándar para guardar el token JWT, permitiendo que la aplicación recuerde que el usuario está autenticado incluso si refresca la página o cierra y vuelve a abrir el navegador.
