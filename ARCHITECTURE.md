@@ -198,3 +198,40 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
     - El `LoginComponent` se suscribe al `Observable` del `AuthService`.
     - En caso de una respuesta exitosa, el `access_token` recibido de la API se almacena en el **`localStorage`** del navegador.
     - **Justificación de `localStorage`:** A diferencia de la base de datos (que vive en el servidor), `localStorage` es un almacenamiento persistente en el navegador del cliente. Es el lugar estándar para guardar el token JWT, permitiendo que la aplicación recuerde que el usuario está autenticado incluso si refresca la página o cierra y vuelve a abrir el navegador.
+
+### Paso 13: Mecanismos de Sesión y Protección de Rutas (Interceptor y Guard)
+
+- **Objetivo:** Automatizar el uso del token JWT guardado y proteger las áreas privadas de la aplicación, asegurando que solo los usuarios autenticados puedan acceder a ellas.
+
+#### **13.1 - Interceptor HTTP para Autenticación**
+
+- **Concepto:** Un `HttpInterceptor` en Angular es una clase o función que se sitúa en medio de todas las peticiones HTTP salientes. Permite "interceptar" y modificar la petición antes de que sea enviada al servidor, o la respuesta antes de que llegue al servicio que la solicitó.
+- **Implementación (`auth.interceptor.ts`):**
+  - Se creó un **interceptor funcional**, que es el enfoque moderno y más simple en aplicaciones standalone.
+  - **Lógica:**
+    1.  En cada petición saliente, el interceptor busca el `access_token` en `localStorage`.
+    2.  Si **no existe un token**, la petición continúa sin ser modificada. Esto es crucial para permitir que las peticiones públicas (como el login o el registro) funcionen.
+    3.  Si **existe un token**, el interceptor clona la petición original (ya que las peticiones son inmutables) y le añade la cabecera `Authorization: Bearer <token>`.
+    4.  La nueva petición clonada es la que finalmente se envía al servidor.
+  - **Registro Global:** El interceptor se registra globalmente en `app.config.ts` usando `provideHttpClient(withInterceptors([authInterceptor]))`. Esto asegura que se aplique a **todas** las llamadas `HttpClient` de la aplicación, creando un sistema "configúralo y olvídalo" para la autenticación de APIs.
+
+---
+
+#### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
+
+- **Problema 1: Error `NG01101 (Expected async validator)`:**
+
+  - **Síntoma:** La aplicación fallaba al escribir en el campo de contraseña.
+  - **Causa:** Una ambigüedad en la forma en que `FormBuilder` interpreta los arrays de validadores.
+  - **Solución:** Se refactorizó la creación del `FormGroup` para usar `new FormControl()` explícitamente para cada campo. Esto elimina cualquier ambigüedad para el motor de formularios de Angular, especificando claramente que solo se están usando validadores síncronos.
+
+- **Problema 2: Error de CORS (`HttpErrorResponse status: 0`):**
+
+  - **Síntoma:** Las peticiones desde Angular fallaban con un error de "conexión rechazada" o "error desconocido".
+  - **Causa:** La política de seguridad "Same-origin" del navegador, que impide que un origen (`http://localhost:4200`) haga peticiones a otro (`http://localhost:3000`) sin permiso explícito.
+  - **Solución:** Se habilitó CORS en el backend de NestJS. En `main.ts`, se añadió `app.enableCors()`, especificando el `origin` exacto del frontend de Angular. Esto le indica al servidor que confíe y acepte las peticiones que vienen de nuestra aplicación cliente.
+
+- **Problema 3: Error `404 Not Found` en el Login:**
+  - **Síntoma:** Después de solucionar CORS, la petición de login recibía un error 404.
+  - **Causa:** Una inconsistencia de nombres. El endpoint en el backend era `/auth/signin`, pero el `AuthService` de Angular estaba llamando a `/auth/login`.
+  - **Solución:** Se alinearon los nombres, actualizando la ruta en el `AuthService` de Angular para que coincidiera con la ruta definida en el `AuthController` de NestJS.
