@@ -1,11 +1,9 @@
 <div class="login-container">
   <mat-card class="login-card">
-    <!-- Sección de la Imagen -->
     <div class="hero-image-container">
       <img src="assets/images/dinerin.jpg" alt="Ilustración de finanzas" />
     </div>
 
-    <!-- Título -->
     <mat-card-header>
       <mat-card-title>Bienvenido</mat-card-title>
       <mat-card-subtitle
@@ -23,9 +21,6 @@
         <!-- Campo de Email -->
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
-          <!--
-            formControlName="email" -> Vincula este <input> al control 'email' dentro del 'loginForm'.
-          -->
           <input
             matInput
             formControlName="email"
@@ -36,12 +31,8 @@
           <mat-icon matSuffix>alternate_email</mat-icon>
         </mat-form-field>
 
-        <!-- Campo de Contraseña -->
         <mat-form-field appearance="outline">
           <mat-label>Contraseña</mat-label>
-          <!--
-            formControlName="password" -> Vincula este <input> al control 'password'.
-          -->
           <input
             matInput
             formControlName="password"
@@ -52,11 +43,6 @@
           <mat-icon matSuffix>lock</mat-icon>
         </mat-form-field>
 
-        <!-- Botón de Envío -->
-        <!--
-          type="submit" -> Le dice al formulario que este es el botón de envío.
-          [disabled]="loginForm.invalid" -> El botón se desactivará solo si el formulario no es válido.
-        -->
         <button
           mat-raised-button
           color="primary"

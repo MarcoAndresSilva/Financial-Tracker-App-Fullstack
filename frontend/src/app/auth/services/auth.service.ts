@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// interface para la respuesta de la autenticación
+// interface para la respuesta de la autenticación para tener tipado fuerte
 interface AuthResponse {
   access_token: string;
 }
@@ -20,7 +20,7 @@ export class AuthService {
     password: string;
   }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(
-      `${this.apiUrl}/auth/login`,
+      `${this.apiUrl}/auth/signin`,
       credentials
     );
   }
