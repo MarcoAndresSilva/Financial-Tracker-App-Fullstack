@@ -5,6 +5,12 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    origin: 'http://localhost:4200',
+    methods: ['GET', 'HEAD', 'PATCH', 'POST', 'PUT', 'DELETE'],
+    Credentials: true,
+  });
+
   // Usa el ValidationPipe globalmente
   app.useGlobalPipes(
     new ValidationPipe({
@@ -12,7 +18,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT ?? 3000);
 }
 
 // Usamos 'void' para indicarle a ESLint que estamos manejando
