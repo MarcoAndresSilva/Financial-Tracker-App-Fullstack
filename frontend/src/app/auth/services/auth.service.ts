@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 // interface para la respuesta de la autenticación para tener tipado fuerte
 interface AuthResponse {
@@ -19,9 +19,12 @@ export class AuthService {
     email: string;
     password: string;
   }): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(
-      `${this.apiUrl}/auth/signin`,
-      credentials
-    );
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/signin`, credentials)
+      .pipe(
+        tap((response) => {
+          localStorage.setItem('access_token', response.access_token);
+        })
+      );
   }
 }

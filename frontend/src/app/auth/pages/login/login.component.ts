@@ -39,9 +39,9 @@ export class LoginComponent {
     if (this.loginForm.invalid) return;
 
     this.authService.login(this.loginForm.value).subscribe({
-      next: (response) => {
-        console.log('login exitoso', response);
-        localStorage.setItem('access_token', response.access_token);
+      next: () => {
+        console.log('login exitoso guardado por el servicio');
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         console.error('error en login', err);
