@@ -205,15 +205,19 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
 
 #### **13.1 - Interceptor HTTP para Autenticación**
 
-- **Concepto:** Un `HttpInterceptor` en Angular es una clase o función que se sitúa en medio de todas las peticiones HTTP salientes. Permite "interceptar" y modificar la petición antes de que sea enviada al servidor, o la respuesta antes de que llegue al servicio que la solicitó.
-- **Implementación (`auth.interceptor.ts`):**
-  - Se creó un **interceptor funcional**, que es el enfoque moderno y más simple en aplicaciones standalone.
-  - **Lógica:**
-    1.  En cada petición saliente, el interceptor busca el `access_token` en `localStorage`.
-    2.  Si **no existe un token**, la petición continúa sin ser modificada. Esto es crucial para permitir que las peticiones públicas (como el login o el registro) funcionen.
-    3.  Si **existe un token**, el interceptor clona la petición original (ya que las peticiones son inmutables) y le añade la cabecera `Authorization: Bearer <token>`.
-    4.  La nueva petición clonada es la que finalmente se envía al servidor.
-  - **Registro Global:** El interceptor se registra globalmente en `app.config.ts` usando `provideHttpClient(withInterceptors([authInterceptor]))`. Esto asegura que se aplique a **todas** las llamadas `HttpClient` de la aplicación, creando un sistema "configúralo y olvídalo" para la autenticación de APIs.
+- **Concepto:** Un `HttpInterceptor` en Angular es una función que se sitúa en medio de todas las peticiones HTTP salientes para modificarlas.
+- **Implementación (`auth.interceptor.ts`):** Se creó un interceptor funcional que busca el `access_token` en `localStorage`. Si existe, clona la petición y le añade la cabecera `Authorization: Bearer <token>`. Se registra globalmente en `app.config.ts` para automatizar la autenticación de todas las llamadas a la API.
+
+#### **13.2 - Route Guard para Autorización de Vistas**
+
+- **Concepto:** Un `Guard` en el enrutador de Angular es una función que se ejecuta antes de permitir la navegación a una ruta, devolviendo `true` (permitir) o `false` (bloquear).
+- **Implementación (`auth.guard.ts`):** Se creó un `CanActivateFn` que comprueba la existencia del `access_token` en `localStorage`. Si el token no existe, cancela la navegación y redirige al usuario a la página de `/auth/login`.
+- **Aplicación:** El guardián se aplica a las rutas principales que necesitan protección en `app.routes.ts` utilizando la propiedad `canActivate: [authGuard]`.
+
+#### **13.3 - Desafíos Enfrentados y Soluciones**
+
+- **Problema de Redirección:** Se detectó un bug donde la redirección al dashboard fallaba porque el `AuthGuard` buscaba el token con una clave incorrecta en `localStorage` (`'token'` en lugar de `'access_token'`).
+- **Solución:** Se estandarizó el uso de la clave `'access_token'` en toda la aplicación (tanto en el `AuthService` que lo guarda como en el `AuthGuard` que lo lee), solucionando el flujo de redirección.
 
 ---
 
