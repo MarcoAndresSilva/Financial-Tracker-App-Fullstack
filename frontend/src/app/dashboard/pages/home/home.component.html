@@ -1,1 +1,61 @@
-<p>home works!</p>
+<div class="dashboard-container">
+  <h1>Dashboard Principal</h1>
+
+  <!-- Contenedor del Resumen -->
+  <div *ngIf="summary" class="summary-cards">
+    <mat-card class="summary-card income">
+      <mat-card-header>
+        <mat-card-title>Ingresos Totales</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          {{
+            summary.totalIncome | currency : "CLP" : "symbol-narrow" : "1.0-0"
+          }}
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="summary-card expense">
+      <mat-card-header>
+        <mat-card-title>Gastos Totales</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          {{
+            summary.totalExpense | currency : "CLP" : "symbol-narrow" : "1.0-0"
+          }}
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="summary-card balance">
+      <mat-card-header>
+        <mat-card-title>Balance</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          {{ summary.balance | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
+        </p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div *ngIf="!summary">
+    <p>Cargando resumen...</p>
+  </div>
+
+  <div
+    *ngIf="expensesByCategory && expensesByCategory.length > 0"
+    class="chart-container"
+  >
+    <h2>Gastos por Categoría</h2>
+    <ngx-charts-pie-chart
+      [results]="expensesByCategory"
+      [gradient]="true"
+      [legend]="true"
+      [labels]="true"
+      [doughnut]="true"
+    >
+    </ngx-charts-pie-chart>
+  </div>
+</div>
