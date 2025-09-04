@@ -8,6 +8,7 @@ import {
 
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { LegendPosition } from '@swimlane/ngx-charts';
 
 @Component({
   selector: 'app-home',
@@ -21,6 +22,8 @@ export class HomeComponent implements OnInit {
   // Usaremos un walletId hardcodeado por ahora. ¡Esto lo haremos dinámico más tarde!
   // TODO: Obtener el walletId del usuario logueado.
   private tempWalletId = '6c2c74ed-a407-4238-b176-c30648c279df'; // <-- ¡REEMPLAZA ESTO!
+
+  legendPosition: LegendPosition = LegendPosition.Below;
 
   summary?: WalletSummary;
   expensesByCategory?: ExpenseByCategory[];
