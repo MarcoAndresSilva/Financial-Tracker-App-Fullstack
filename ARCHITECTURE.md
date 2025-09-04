@@ -219,6 +219,21 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
 - **Problema de Redirección:** Se detectó un bug donde la redirección al dashboard fallaba porque el `AuthGuard` buscaba el token con una clave incorrecta en `localStorage` (`'token'` en lugar de `'access_token'`).
 - **Solución:** Se estandarizó el uso de la clave `'access_token'` en toda la aplicación (tanto en el `AuthService` que lo guarda como en el `AuthGuard` que lo lee), solucionando el flujo de redirección.
 
+### Paso 14: Construcción de la Página Principal del Dashboard
+
+- **Objetivo:** Crear la primera vista funcional para el usuario autenticado, mostrando un resumen de su cartera y una visualización gráfica de sus gastos.
+
+- **Implementación y Decisiones Clave:**
+  - **Servicio de Datos del Dashboard:** Se creó un `DashboardService` en Angular, dedicado a comunicarse con los endpoints `/dashboard/*` del backend. Este servicio encapsula las llamadas HTTP para obtener datos agregados, como el resumen de la cartera y los gastos por categoría.
+  - **Componente Contenedor (`HomeComponent`):** Este componente actúa como el "cerebro" de la página. En su `ngOnInit`, orquesta las llamadas al `DashboardService` para obtener los datos necesarios.
+  - **Visualización de Datos:**
+    - Los datos de resumen (ingresos, gastos, balance) se muestran en tarjetas (`mat-card`) para una lectura rápida.
+    - Se utiliza el **`currency` pipe** de Angular para formatear los valores numéricos como moneda local, mejorando la presentación y la experiencia de usuario.
+  - **Integración de Gráficos con `ngx-charts`:**
+    - Se eligió `ngx-charts` como librería de visualización por su buena integración con Angular y su facilidad de uso.
+    - Se implementó un gráfico de dona (`ngx-charts-pie-chart`) en la plantilla del `HomeComponent`.
+    - La propiedad `[results]` del componente del gráfico se enlaza directamente al array de datos `expensesByCategory` que viene de la API, demostrando un flujo de datos reactivo y eficiente desde el backend hasta la UI.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
