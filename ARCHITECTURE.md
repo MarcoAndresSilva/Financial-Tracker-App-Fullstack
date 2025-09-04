@@ -224,15 +224,23 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
 - **Objetivo:** Crear la primera vista funcional para el usuario autenticado, mostrando un resumen de su cartera y una visualización gráfica de sus gastos.
 
 - **Implementación y Decisiones Clave:**
+
   - **Servicio de Datos del Dashboard:** Se creó un `DashboardService` en Angular, dedicado a comunicarse con los endpoints `/dashboard/*` del backend. Este servicio encapsula las llamadas HTTP para obtener datos agregados, como el resumen de la cartera y los gastos por categoría.
   - **Componente Contenedor (`HomeComponent`):** Este componente actúa como el "cerebro" de la página. En su `ngOnInit`, orquesta las llamadas al `DashboardService` para obtener los datos necesarios.
   - **Visualización de Datos:**
     - Los datos de resumen (ingresos, gastos, balance) se muestran en tarjetas (`mat-card`) para una lectura rápida.
     - Se utiliza el **`currency` pipe** de Angular para formatear los valores numéricos como moneda local, mejorando la presentación y la experiencia de usuario.
   - **Integración de Gráficos con `ngx-charts`:**
+
     - Se eligió `ngx-charts` como librería de visualización por su buena integración con Angular y su facilidad de uso.
     - Se implementó un gráfico de dona (`ngx-charts-pie-chart`) en la plantilla del `HomeComponent`.
     - La propiedad `[results]` del componente del gráfico se enlaza directamente al array de datos `expensesByCategory` que viene de la API, demostrando un flujo de datos reactivo y eficiente desde el backend hasta la UI.
+
+    #### **14.1 - Depuración y Tipado Fuerte en Plantillas**
+
+- **Desafío:** Durante la implementación del gráfico, surgieron errores de TypeScript en la plantilla HTML, como `Type '"below"' is not assignable to type 'LegendPosition'`.
+- **Solución y Buena Práctica:** Se resolvió importando el `enum` `LegendPosition` de `@swimlane/ngx-charts` directamente en el archivo TypeScript del componente (`home.component.ts`) y creando una propiedad de clase para almacenar el valor deseado (ej. `legendPosition: LegendPosition = LegendPosition.Below;`).
+- **Lección Aprendida:** Cuando se utiliza el _binding de propiedad_ (`[prop]="value"`), Angular evalúa `value` como una expresión de TypeScript. Para tipos complejos como los `enums`, la mejor práctica es manejar el valor en el TypeScript del componente y enlazar la propiedad de la plantilla a esa variable de componente. Esto aprovecha al máximo la seguridad de tipos, permite el autocompletado en el editor y mantiene la plantilla más limpia.
 
 ---
 
