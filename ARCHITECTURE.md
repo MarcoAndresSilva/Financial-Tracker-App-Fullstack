@@ -242,6 +242,23 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
 - **Solución y Buena Práctica:** Se resolvió importando el `enum` `LegendPosition` de `@swimlane/ngx-charts` directamente en el archivo TypeScript del componente (`home.component.ts`) y creando una propiedad de clase para almacenar el valor deseado (ej. `legendPosition: LegendPosition = LegendPosition.Below;`).
 - **Lección Aprendida:** Cuando se utiliza el _binding de propiedad_ (`[prop]="value"`), Angular evalúa `value` como una expresión de TypeScript. Para tipos complejos como los `enums`, la mejor práctica es manejar el valor en el TypeScript del componente y enlazar la propiedad de la plantilla a esa variable de componente. Esto aprovecha al máximo la seguridad de tipos, permite el autocompletado en el editor y mantiene la plantilla más limpia.
 
+### Paso 15: Implementación del Layout Principal de la Aplicación
+
+- **Objetivo:** Crear una estructura de navegación persistente (shell) para todas las vistas autenticadas, utilizando un menú lateral (sidenav) y una barra de herramientas superior (toolbar).
+
+- **Implementación y Decisiones Clave:**
+  - **Componente de Layout (`DashboardLayoutComponent`):** Se creó un componente dedicado para actuar como el "esqueleto" de la aplicación. Este componente no contiene lógica de negocio, solo la estructura visual.
+  - **Uso de Componentes de `Angular Material`:**
+    - `MatSidenavContainer`, `MatSidenav` y `MatSidenavContent`: Se utilizaron para crear un layout robusto de navegación lateral. El `mode="side"` asegura que el contenido principal se ajuste cuando el menú se muestra u oculta.
+    - `MatToolbar`: Proporciona una barra de herramientas superior estándar. Incluye un botón que interactúa con el `MatSidenav` (`sidenav.toggle()`) para controlar su visibilidad.
+    - `MatNavList` y `mat-list-item`: Se usan para crear una lista de navegación semánticamente correcta dentro del sidenav.
+  - **Arquitectura de Enrutamiento Padre-Hijo:**
+    - La configuración de rutas del dashboard (`dashboard.routes.ts`) se refactorizó para adoptar un patrón de anidamiento.
+    - La ruta padre (`path: ''`) ahora renderiza el `DashboardLayoutComponent`.
+    - Las páginas reales (como `HomeComponent`) se definen como rutas `children`. Estas se renderizan dentro del `<router-outlet>` del `DashboardLayoutComponent`.
+    - **Beneficio:** Esta arquitectura asegura que el layout (header, sidenav) se renderice una sola vez y persista a través de la navegación entre las diferentes secciones del dashboard, creando una experiencia de usuario fluida y de aplicación de una sola página (SPA).
+  - **Enlaces de Ruta Activos (`routerLinkActive`):** Se utiliza la directiva `routerLinkActive` en los enlaces del menú. Angular añade automáticamente una clase CSS (`active-link`) al enlace correspondiente a la ruta activa, permitiéndonos resaltar visualmente la sección actual en la que se encuentra el usuario.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
