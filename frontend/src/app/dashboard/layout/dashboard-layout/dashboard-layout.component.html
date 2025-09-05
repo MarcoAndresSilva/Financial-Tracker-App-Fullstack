@@ -1,5 +1,52 @@
-<!-- Aquí irá nuestra navegación principal (barra superior, menú lateral, etc.) -->
-<p>¡Estás dentro de la zona protegida!</p>
+<mat-sidenav-container class="sidenav-container">
+  <!-- MENÚ LATERAL (SIDENAV) -->
+  <mat-sidenav
+    #sidenav
+    mode="side"
+    [(opened)]="isSidenavOpened"
+    class="sidenav"
+  >
+    <div class="sidenav-header">
+      <h2 class="logo">Financier</h2>
+    </div>
 
-<!-- Este es el espacio donde se dibujarán las páginas del dashboard (Home, Transactions, etc.) -->
-<router-outlet></router-outlet>
+    <mat-nav-list>
+      <a mat-list-item routerLink="home" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>dashboard</mat-icon>
+        <span matListItemTitle>Dashboard</span>
+      </a>
+      <a mat-list-item routerLink="transactions" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>receipt_long</mat-icon>
+        <span matListItemTitle>Transacciones</span>
+      </a>
+      <a mat-list-item routerLink="categories" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>category</mat-icon>
+        <span matListItemTitle>Categorías</span>
+      </a>
+    </mat-nav-list>
+
+    <div class="sidenav-footer">
+      <!-- Aquí podría ir el perfil del usuario o un botón de logout -->
+      <a mat-list-item>
+        <mat-icon matListItemIcon>logout</mat-icon>
+        <span matListItemTitle>Cerrar Sesión</span>
+      </a>
+    </div>
+  </mat-sidenav>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <mat-sidenav-content class="sidenav-content">
+    <!-- BARRA SUPERIOR (TOOLBAR) -->
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="sidenav.toggle()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>Financial Tracker</span>
+    </mat-toolbar>
+
+    <!-- El espacio donde se dibujarán nuestras páginas -->
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

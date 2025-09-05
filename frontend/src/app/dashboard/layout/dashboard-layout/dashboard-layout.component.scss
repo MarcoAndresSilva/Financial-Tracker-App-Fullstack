@@ -1,0 +1,76 @@
+@use "@angular/material" as mat;
+
+// Definimos variables para que sea fácil cambiar los colores y tamaños
+$sidenav-width: 250px;
+$toolbar-height: 64px;
+$sidenav-background: #2c3e50; // Un azul oscuro/grisáceo, muy profesional
+$sidenav-text-color: #ecf0f1; // Un blanco suave
+$active-link-background: #34495e; // Un poco más claro que el fondo para el enlace activo
+$primary-color: #3f51b5; // Color índigo que usamos en el login
+
+.sidenav-container {
+  height: 100vh;
+}
+
+// Estilos para el Menú Lateral
+.sidenav {
+  width: $sidenav-width;
+  background-color: $sidenav-background;
+  color: $sidenav-text-color;
+  display: flex;
+  flex-direction: column;
+
+  .sidenav-header {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin: 0;
+      color: white;
+    }
+  }
+
+  // Estilos para la lista de navegación
+  mat-nav-list {
+    flex-grow: 1;
+    padding-top: 1rem;
+
+    a {
+      color: $sidenav-text-color;
+
+      mat-icon {
+        color: rgba(255, 255, 255, 0.7);
+      }
+    }
+
+    .active-link {
+      background-color: $active-link-background;
+      border-left: 3px solid $primary-color;
+    }
+  }
+
+  .sidenav-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+// Estilos para el Contenido Principal
+.sidenav-content {
+  background-color: #f4f7fa;
+}
+
+// Estilos para la Barra Superior
+mat-toolbar {
+  height: $toolbar-height;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+// Estilos para el área principal donde va el router-outlet
+.main-content {
+  padding: 2rem;
+}
