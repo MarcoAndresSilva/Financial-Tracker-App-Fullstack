@@ -259,6 +259,24 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
     - **Beneficio:** Esta arquitectura asegura que el layout (header, sidenav) se renderice una sola vez y persista a través de la navegación entre las diferentes secciones del dashboard, creando una experiencia de usuario fluida y de aplicación de una sola página (SPA).
   - **Enlaces de Ruta Activos (`routerLinkActive`):** Se utiliza la directiva `routerLinkActive` en los enlaces del menú. Angular añade automáticamente una clase CSS (`active-link`) al enlace correspondiente a la ruta activa, permitiéndonos resaltar visualmente la sección actual en la que se encuentra el usuario.
 
+### Paso 16: Implementación de la Vista de Lista de Transacciones
+
+- **Objetivo:** Crear una vista detallada y funcional donde el usuario pueda ver todas sus transacciones, sentando las bases para la interacción principal con la aplicación.
+
+- **Implementación y Decisiones Clave:**
+  - **Componente Dedicado (`TransactionListComponent`):** Se generó un nuevo componente de página dentro del `DashboardModule` para encapsular toda la lógica y la vista de la lista de transacciones.
+  - **Servicio de Datos (`TransactionService` Angular):** Se creó un servicio en una carpeta de dominio `transactions/` para manejar la comunicación con la API de transacciones del backend. Esto separa la lógica de obtención de datos de la lógica de presentación, siguiendo el principio de responsabilidad única.
+  - **Indicador de Carga (Spinner Reutilizable):**
+    - Se creó un `LoadingSpinnerComponent` genérico en la carpeta `shared/components`.
+    - En la `TransactionListComponent`, se implementó una propiedad `isLoading` que se activa antes de la llamada a la API y se desactiva en el bloque `finalize` del observable de RxJS. Esto asegura que el spinner se oculte tanto si la petición tiene éxito como si falla.
+    - La plantilla utiliza `*ngIf` para mostrar condicionalmente el spinner o la lista de resultados, mejorando la experiencia de usuario (UX) durante la carga de datos.
+  - **Diseño de la Lista (Tarjeta de Transacción):**
+    - **Decisión Arquitectónica:** En lugar de usar `mat-table`, que es difícil de hacer responsive, se optó por un enfoque "Mobile-First" utilizando `div`s con `display: flex`. Se abandonó el uso de `mat-list` para tener un control total y explícito sobre el layout.
+    - **Maquetación:** Cada transacción se representa como una tarjeta individual con un layout horizontal claro: [Icono] [Descripción/Detalles] [Monto].
+    - **Estilos Dinámicos:** Se utiliza la directiva `[ngClass]` para aplicar clases CSS condicionales, cambiando el color del icono y del monto dependiendo de si la transacción es un `INCOME` (verde) o un `EXPENSE` (rojo).
+    - **Pipes de Angular:** Se usan los pipes `date` y `currency` para formatear los datos directamente en la plantilla, manteniendo la lógica de presentación fuera del componente TypeScript.
+  - **Botón Flotante de Acción (FAB):** Se añadió un `mat-fab` para la acción principal de la página (añadir una nueva transacción), siguiendo las guías de diseño de Material para acciones primarias en una vista.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
