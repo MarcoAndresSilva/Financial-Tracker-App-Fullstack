@@ -1,0 +1,63 @@
+<div class="transaction-list-page">
+  <header class="page-header">
+    <h1>Mis Transacciones</h1>
+  </header>
+
+  <!-- 1. Contenedor principal que gestiona la carga y el estado vacío -->
+  <div class="list-container">
+    <app-loading-spinner
+      *ngIf="isLoading"
+      message="Cargando transacciones..."
+    ></app-loading-spinner>
+
+    <!-- Estado: No cargando Y hay transacciones -->
+    <mat-list *ngIf="!isLoading && transactions.length > 0" role="list">
+      <mat-list-item *ngFor="let tx of transactions" role="listitem">
+        <div matListItemIcon class="transaction-icon-container">
+          <mat-icon
+            [ngClass]="tx.type === 'INCOME' ? 'income-icon' : 'expense-icon'"
+          >
+            {{ tx.type === "INCOME" ? "arrow_upward" : "arrow_downward" }}
+          </mat-icon>
+        </div>
+
+        <!-- Contenido principal SIN directivas de Material -->
+        <div class="transaction-info">
+          <span class="transaction-description">{{ tx.description }}</span>
+          <span class="transaction-details">
+            {{ tx.date | date : "dd MMM yyyy" }} &bull;
+            {{ tx.subcategory.category.name }} > {{ tx.subcategory.name }}
+          </span>
+        </div>
+
+        <div
+          class="transaction-amount"
+          [ngClass]="tx.type === 'INCOME' ? 'income-amount' : 'expense-amount'"
+        >
+          {{
+            (tx.type === "INCOME" ? "+" : "-") +
+              (tx.amount | currency : "CLP" : "symbol-narrow" : "1.0-0")
+          }}
+        </div>
+      </mat-list-item>
+    </mat-list>
+
+    <!-- Estado: No cargando Y NO hay transacciones -->
+    <div *ngIf="!isLoading && transactions.length === 0" class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <p>No se encontraron transacciones.</p>
+      <p>¡Añade tu primera transacción para empezar!</p>
+    </div>
+  </div>
+
+  <!-- Botón Flotante de Acción (FAB) -->
+  <button
+    *ngIf="!isLoading"
+    mat-fab
+    color="primary"
+    class="fab-add-button"
+    aria-label="Añadir transacción"
+  >
+    <mat-icon>add</mat-icon>
+  </button>
+</div>
