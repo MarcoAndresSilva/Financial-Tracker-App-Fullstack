@@ -1,4 +1,3 @@
-// backend/src/transaction/transaction.service.ts
 import {
   ForbiddenException,
   Injectable,
@@ -44,13 +43,21 @@ export class TransactionService {
     userId: string,
     filterDto: GetTransactionsFilterDto,
   ) {
-    const { walletId, startDate, endDate, type } = filterDto;
+    const { walletId, startDate, endDate, type, categoryId, subcategoryId } =
+      filterDto;
     await this.checkWalletMembership(userId, walletId);
     const whereClause: Prisma.TransactionWhereInput = {
       walletId,
     };
     if (type) {
       whereClause.type = type;
+    }
+    if (subcategoryId) {
+      whereClause.subcategoryId = subcategoryId;
+    } else if (categoryId) {
+      whereClause.subcategory = {
+        categoryId: categoryId,
+      };
     }
     if (startDate || endDate) {
       whereClause.date = {};

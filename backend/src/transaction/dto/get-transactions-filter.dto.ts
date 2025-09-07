@@ -16,4 +16,12 @@ export class GetTransactionsFilterDto {
   @IsOptional()
   @IsEnum(TransactionType)
   type?: TransactionType;
+
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  subcategoryId?: string;
 }
