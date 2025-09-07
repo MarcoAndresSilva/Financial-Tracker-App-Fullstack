@@ -121,6 +121,8 @@ Esta sección sirve como un diario de desarrollo y una guía de arquitectura det
   - **DTO para Query Params:** Se creó un `GetTransactionsFilterDto` para validar los parámetros opcionales de la URL.
   - **Construcción Dinámica de Consultas:** El `TransactionService` fue refactorizado para construir la cláusula `where` de Prisma de forma dinámica, añadiendo condiciones solo si los filtros correspondientes son proporcionados.
 
+  - **Mejora en el Backend:** Se extendió el endpoint `GET /transactions` para aceptar también `categoryId` y `subcategoryId` como parámetros de filtro opcionales. El `TransactionService` ahora puede filtrar transacciones por una categoría específica (incluyendo todas sus subcategorías) o por una subcategoría individual.
+
   #### **9.4 - (Implementado) Filtrado Avanzado de Transacciones en `TransactionModule`**
 
 - Como parte de la base para el dashboard, se mejoró el endpoint `GET /transactions` para aceptar filtros por `startDate`, `endDate` y `type`, permitiendo al frontend solicitar los datos precisos que necesita.
