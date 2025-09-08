@@ -1,7 +1,76 @@
 <div class="transaction-list-page">
-  <header class="page-header">
+  <div class="header-content">
     <h1>Mis Transacciones</h1>
-  </header>
+    <!-- Botón para DESKTOP -->
+    <button mat-flat-button color="primary" class="add-button-desktop">
+      <mat-icon>add</mat-icon>
+      <span>Añadir Transacción</span>
+    </button>
+  </div>
+
+  <section class="filter-section">
+    <!-- PANEL DE FILTROS! -->
+    <form [formGroup]="filterForm" class="filter-panel">
+      <!-- Filtro de Tipo (Ingreso/Gasto) -->
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="type">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="INCOME">Ingresos</mat-option>
+          <mat-option value="EXPENSE">Gastos</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Filtro de Rango de Fechas -->
+      <mat-form-field appearance="outline">
+        <mat-label>Rango de Fechas</mat-label>
+        <mat-date-range-input [formGroup]="filterForm">
+          <input matStartDate formControlName="startDate" placeholder="Desde" />
+          <input matEndDate formControlName="endDate" placeholder="Hasta" />
+        </mat-date-range-input>
+        <mat-datepicker-toggle
+          matIconSuffix
+          [for]="picker"
+        ></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+
+      <!-- Filtro de Categoría -->
+      <mat-form-field appearance="outline">
+        <mat-label>Categoría</mat-label>
+        <mat-select formControlName="categoryId">
+          <mat-option [value]="null">Todas</mat-option>
+          <mat-option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Filtro de Subcategoría -->
+      <mat-form-field appearance="outline">
+        <mat-label>Subcategoría</mat-label>
+        <mat-select formControlName="subcategoryId">
+          <mat-option [value]="null">Todas</mat-option>
+          <mat-option
+            *ngFor="let subcategory of subcategories"
+            [value]="subcategory.id"
+          >
+            {{ subcategory.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Botón para Limpiar Filtros -->
+      <button
+        mat-icon-button
+        type="button"
+        (click)="resetFilters()"
+        matTooltip="Limpiar filtros"
+      >
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </form>
+  </section>
 
   <!-- 1. Contenedor principal que gestiona la carga y el estado vacío -->
   <div class="list-container">
@@ -51,13 +120,7 @@
   </div>
 
   <!-- Botón Flotante de Acción (FAB) -->
-  <button
-    *ngIf="!isLoading"
-    mat-fab
-    color="primary"
-    class="fab-add-button"
-    aria-label="Añadir transacción"
-  >
+  <button mat-fab color="primary" class="fab-add-button-mobile">
     <mat-icon>add</mat-icon>
   </button>
 </div>

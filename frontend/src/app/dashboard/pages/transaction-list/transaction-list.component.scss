@@ -3,13 +3,44 @@
   position: relative;
   height: 100%;
 }
-.page-header {
-  margin-bottom: 1.5rem;
-  h1 {
-    font-size: 2rem;
-    font-weight: 500;
-    margin: 0;
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fab-add-button-mobile {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+}
+
+.add-button-desktop {
+  display: none; // Oculto por defecto (mobile-first)
+}
+
+// Media Query para pantallas más grandes (ej. tablets y escritorio)
+@media (min-width: 768px) {
+  .fab-add-button-mobile {
+    display: none; // Ocultamos el FAB
   }
+  .add-button-desktop {
+    display: inline-flex; // Mostramos el botón de escritorio
+  }
+}
+
+.filter-section {
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.filter-panel {
+  display: flex;
+  flex-wrap: wrap; // Permite que los filtros pasen a la siguiente línea en pantallas pequeñas
+  gap: 16px;
+  align-items: center;
 }
 
 mat-list-item {

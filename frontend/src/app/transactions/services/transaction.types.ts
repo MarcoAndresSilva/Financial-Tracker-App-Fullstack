@@ -3,4 +3,6 @@ export interface GetTransactionsFilterDto {
   startDate?: string;
   endDate?: string;
   type?: 'INCOME' | 'EXPENSE';
+  categoryId?: string;
+  subcategoryId?: string;
 }
