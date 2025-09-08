@@ -279,6 +279,28 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
     - **Pipes de Angular:** Se usan los pipes `date` y `currency` para formatear los datos directamente en la plantilla, manteniendo la lógica de presentación fuera del componente TypeScript.
   - **Botón Flotante de Acción (FAB):** Se añadió un `mat-fab` para la acción principal de la página (añadir una nueva transacción), siguiendo las guías de diseño de Material para acciones primarias en una vista.
 
+### Paso 17: Implementación de la Vista de Lista de Transacciones y Filtros Avanzados
+
+- **Objetivo:** Construir la vista principal para la gestión de transacciones, mostrando una lista de movimientos y proporcionando una interfaz de usuario robusta para filtrarlos dinámicamente.
+
+- **Implementación y Decisiones Clave:**
+  - **Componente y Servicio Dedicados:** Se siguió el patrón establecido, creando un `TransactionListComponent` para la vista y un `TransactionService` en Angular para encapsular la lógica de API, manteniendo una clara separación de responsabilidades.
+  - **Carga Inicial de Datos:** En el `ngOnInit`, se realiza una llamada inicial a `loadTransactions()` para poblar la vista con todos los datos disponibles tan pronto como el componente se carga, proporcionando valor inmediato al usuario.
+  - **Formulario de Filtros Reactivo (`filterForm`):**
+    - Se implementó un `FormGroup` para gestionar el estado de todos los controles de filtro (`type`, `startDate`, `endDate`, `categoryId`, `subcategoryId`).
+    - Este enfoque centraliza el estado de los filtros y facilita la interacción con ellos de forma reactiva.
+  - **Lógica de Filtros Dinámicos y Dependientes (RxJS):**
+    - **Filtros Independientes:** La recarga de transacciones se dispara escuchando el `valueChanges` del `filterForm` completo. Para optimizar el rendimiento y la UX, se utilizan operadores de RxJS:
+      - `debounceTime(400)`: Evita hacer llamadas a la API con cada pulsación de tecla o cambio rápido, esperando a que el usuario haga una pausa.
+      - `distinctUntilChanged()`: Previene llamadas duplicadas si el valor de los filtros no ha cambiado realmente.
+    - **Filtros Dependientes (Categoría -> Subcategoría):** Se implementó una lógica reactiva separada para los filtros anidados.
+      - Se suscribe a los `valueChanges` del control de `categoryId`.
+      - Utiliza el operador `switchMap` para cancelar peticiones anteriores y lanzar una nueva llamada al `SubcategoryService` cada vez que se selecciona una nueva categoría.
+      - Esto asegura que el desplegable de subcategorías siempre muestre opciones relevantes y se actualice de forma eficiente.
+  - **Manejo de Fechas (Localización vs. API):**
+    - **UI:** Se configuró la localización de Angular (`LOCALE_ID`) y Angular Material (`MAT_DATE_LOCALE`) a `'es-CL'`. Esto hace que el `mat-date-range-input` muestre y acepte fechas en el formato `DD/MM/YYYY`, familiar para el usuario.
+    - **Lógica de Envío:** En el componente, antes de enviar los filtros a la API, la función `formatDate` de Angular se utiliza para convertir las fechas al formato estándar ISO (`YYYY-MM-DD`), que es el que el backend espera. Esta transformación garantiza una comunicación robusta y sin ambigüedades con el servidor.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
