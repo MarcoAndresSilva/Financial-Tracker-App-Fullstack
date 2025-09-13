@@ -2,7 +2,12 @@
   <div class="header-content">
     <h1>Mis Transacciones</h1>
     <!-- Botón para DESKTOP -->
-    <button mat-flat-button color="primary" class="add-button-desktop">
+    <button
+      mat-flat-button
+      color="primary"
+      class="add-button-desktop"
+      (click)="openTransactionForm()"
+    >
       <mat-icon>add</mat-icon>
       <span>Añadir Transacción</span>
     </button>
@@ -120,7 +125,12 @@
   </div>
 
   <!-- Botón Flotante de Acción (FAB) -->
-  <button mat-fab color="primary" class="fab-add-button-mobile">
+  <button
+    mat-fab
+    color="primary"
+    class="fab-add-button-mobile"
+    (click)="openTransactionForm()"
+  >
     <mat-icon>add</mat-icon>
   </button>
 </div>

@@ -1,6 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { GetTransactionsFilterDto } from './transaction.types';
+import {
+  GetTransactionsFilterDto,
+  CreateTransactionDto,
+} from './transaction.types';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -33,5 +37,9 @@ export class TransactionService {
     // 4. Hacemos la petición GET con los parámetros construidos.
     // Usamos 'any' como tipo de respuesta por ahora, pero podríamos crear una interfaz 'Transaction' detallada.
     return this.http.get<any[]>(`${this.apiUrl}/transactions`, { params });
+  }
+
+  createTransaction(transactionData: CreateTransactionDto): Observable<any> {
+    return this.http.post(`${this.apiUrl}/transactions`, transactionData);
   }
 }

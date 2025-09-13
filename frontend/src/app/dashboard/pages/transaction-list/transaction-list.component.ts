@@ -23,6 +23,8 @@ import {
   Subcategory,
   SubcategoryService,
 } from '../../../subcategories/services/subcategory.service';
+import { MatDialog } from '@angular/material/dialog';
+import { TransactionFormComponent } from '../../../transactions/components/transaction-form/transaction-form.component';
 
 @Component({
   selector: 'app-transaction-list',
@@ -41,6 +43,7 @@ export class TransactionListComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private subcategoryService = inject(SubcategoryService);
   private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
 
   // TODO: Obtener walletId dinámicamente.
   private tempWalletId = '6c2c74ed-a407-4238-b176-c30648c279df';
@@ -160,13 +163,27 @@ export class TransactionListComponent implements OnInit {
       });
   }
 
+  openTransactionForm(): void {
+    const dialogRef = this.dialog.open(TransactionFormComponent, {
+      width: '500px',
+      data: { walletId: this.tempWalletId },
+      // disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadTransactions();
+      }
+    });
+  }
+
   resetFilters(): void {
     this.filterForm.reset({
       type: null,
       startDate: null,
       endDate: null,
       categoryId: null,
-      subcategoryId: { value: null, disabled: true }, // Resetea a su estado inicial
+      subcategoryId: { value: null, disabled: true },
     });
   }
 }

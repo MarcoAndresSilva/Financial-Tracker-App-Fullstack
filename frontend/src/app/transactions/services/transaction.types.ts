@@ -6,3 +6,11 @@ export interface GetTransactionsFilterDto {
   categoryId?: string;
   subcategoryId?: string;
 }
+export interface CreateTransactionDto {
+  amount: number;
+  type: 'INCOME' | 'EXPENSE';
+  date: string; // La enviamos como 'YYYY-MM-DD'
+  description: string;
+  walletId: string;
+  subcategoryId: string;
+}

@@ -1,0 +1,38 @@
+[mat-dialog-content] {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-top: 16px;
+}
+
+.transaction-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-field {
+  flex: 1;
+  min-width: 140px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+[mat-dialog-actions] {
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.form-row[_ngcontent-ng-c2001653106] {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+}
