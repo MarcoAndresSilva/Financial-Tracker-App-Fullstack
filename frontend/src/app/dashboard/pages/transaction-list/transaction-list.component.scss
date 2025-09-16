@@ -97,6 +97,10 @@ mat-list-item {
   font-weight: 500;
   font-size: 1rem;
   flex-shrink: 0;
+}
+.transaction-actions {
+  display: flex;
+  align-items: center;
   margin-left: 16px;
 }
 .income-amount {
@@ -124,4 +128,33 @@ mat-list-item {
   position: absolute;
   bottom: 2rem;
   right: 2rem;
+}
+
+@media (max-width: 600px) {
+  .main-content[_ngcontent-ng-c3122531510] {
+    padding: 1rem;
+  }
+  mat-list-item {
+    padding: 0 !important;
+  }
+
+  .transaction-icon-container {
+    margin: 5px;
+  }
+
+  // .transaction-info {
+  //   margin-right: 8px;
+  // }
+  .transaction-description {
+    font-size: 13px;
+  }
+
+  .transaction-details {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .transaction-amount {
+    font-size: 0.9rem;
+  }
 }

@@ -98,23 +98,49 @@
         <!-- Contenido principal SIN directivas de Material -->
         <div class="transaction-info">
           <span class="transaction-description">{{ tx.description }}</span>
-          <span class="transaction-details">
-            {{ tx.date | date : "dd MMM yyyy" }} &bull;
-            {{ tx.subcategory.category.name }} > {{ tx.subcategory.name }}
-          </span>
+          <div class="transaction-details">
+            <span>{{ tx.date | date : "dd MMM yyyy" }}</span>
+            <span>&bull;</span>
+            <span
+              >{{ tx.subcategory.category.name }} >
+              {{ tx.subcategory.name }}</span
+            >
+          </div>
         </div>
 
-        <div
-          class="transaction-amount"
-          [ngClass]="tx.type === 'INCOME' ? 'income-amount' : 'expense-amount'"
-        >
-          {{
-            (tx.type === "INCOME" ? "+" : "-") +
-              (tx.amount | currency : "CLP" : "symbol-narrow" : "1.0-0")
-          }}
+        <div class="transaction-actions">
+          <div
+            class="transaction-amount"
+            [ngClass]="
+              tx.type === 'INCOME' ? 'income-amount' : 'expense-amount'
+            "
+          >
+            {{
+              (tx.type === "INCOME" ? "+" : "-") +
+                (tx.amount | currency : "CLP" : "symbol-narrow" : "1.0-0")
+            }}
+          </div>
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="transactionMenu"
+            aria-label="Opciones de transacción"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
         </div>
       </mat-list-item>
     </mat-list>
+
+    <mat-menu #transactionMenu="matMenu">
+      <button mat-menu-item>
+        <mat-icon>edit</mat-icon>
+        <span>Editar</span>
+      </button>
+      <button mat-menu-item>
+        <mat-icon>delete</mat-icon>
+        <span>Eliminar</span>
+      </button>
+    </mat-menu>
 
     <!-- Estado: No cargando Y NO hay transacciones -->
     <div *ngIf="!isLoading && transactions.length === 0" class="empty-state">
