@@ -301,6 +301,22 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
     - **UI:** Se configuró la localización de Angular (`LOCALE_ID`) y Angular Material (`MAT_DATE_LOCALE`) a `'es-CL'`. Esto hace que el `mat-date-range-input` muestre y acepte fechas en el formato `DD/MM/YYYY`, familiar para el usuario.
     - **Lógica de Envío:** En el componente, antes de enviar los filtros a la API, la función `formatDate` de Angular se utiliza para convertir las fechas al formato estándar ISO (`YYYY-MM-DD`), que es el que el backend espera. Esta transformación garantiza una comunicación robusta y sin ambigüedades con el servidor.
 
+### Paso 18: Creación de Transacciones desde el Frontend
+
+- **Objetivo:** Permitir al usuario añadir nuevas transacciones a través de una interfaz de usuario intuitiva y fluida, completando el ciclo CRUD principal de la aplicación.
+
+- **Implementación y Decisiones Clave:**
+  - **Experiencia de Usuario con Diálogo Modal (`MatDialog`):**
+    - **Decisión:** En lugar de navegar a una nueva página, la creación de transacciones se maneja a través de un **diálogo modal**.
+    - **Justificación:** Esta elección proporciona una UX superior, ya que el usuario no pierde el contexto de la lista de transacciones que está viendo. La acción de "añadir" se siente como una tarea rápida y superpuesta.
+  - **Componente de Formulario Reutilizable (`TransactionFormComponent`):**
+    - Se creó un componente dedicado exclusivamente para el formulario. Esto sigue el principio de responsabilidad única y permite que el mismo formulario pueda ser reutilizado en el futuro para una funcionalidad de "editar transacción".
+  - **Paso de Datos a Diálogos (`MAT_DIALOG_DATA`):** Se utiliza el token de inyección `MAT_DIALOG_DATA` para pasar información esencial (como el `walletId` actual) desde el componente padre (`TransactionListComponent`) al componente hijo dentro del diálogo (`TransactionFormComponent`).
+  - **Comunicación de Vuelta y Refresco de Datos:**
+    - El `TransactionFormComponent` utiliza `MatDialogRef` para controlar su propio estado. Al guardar una transacción con éxito, llama a `dialogRef.close(true)`.
+    - El `TransactionListComponent` se suscribe al evento `afterClosed()` del diálogo. Si recibe el valor `true`, interpreta que la operación fue exitosa y vuelve a llamar a su método `loadTransactions()`.
+    - Este patrón de **"abrir -> actuar -> cerrar con resultado -> reaccionar"** es el estándar para manejar la comunicación y el refresco de datos con diálogos en Angular.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
