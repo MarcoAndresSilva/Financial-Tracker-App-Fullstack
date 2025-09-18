@@ -84,26 +84,30 @@
       message="Cargando transacciones..."
     ></app-loading-spinner>
 
-    <!-- Estado: No cargando Y hay transacciones -->
     <mat-list *ngIf="!isLoading && transactions.length > 0" role="list">
-      <mat-list-item *ngFor="let tx of transactions" role="listitem">
+      <mat-list-item *ngFor="let transaction of transactions" role="listitem">
         <div matListItemIcon class="transaction-icon-container">
           <mat-icon
-            [ngClass]="tx.type === 'INCOME' ? 'income-icon' : 'expense-icon'"
+            [ngClass]="
+              transaction.type === 'INCOME' ? 'income-icon' : 'expense-icon'
+            "
           >
-            {{ tx.type === "INCOME" ? "arrow_upward" : "arrow_downward" }}
+            {{
+              transaction.type === "INCOME" ? "arrow_upward" : "arrow_downward"
+            }}
           </mat-icon>
         </div>
 
-        <!-- Contenido principal SIN directivas de Material -->
         <div class="transaction-info">
-          <span class="transaction-description">{{ tx.description }}</span>
-          <div class="transaction-details">
-            <span>{{ tx.date | date : "dd MMM yyyy" }}</span>
+          <div matListItemTitle class="transaction-description">
+            {{ transaction.description }}
+          </div>
+          <div matListItemLine class="transaction-details">
+            <span>{{ transaction.date | date : "dd MMM yyyy" }}</span>
             <span>&bull;</span>
             <span
-              >{{ tx.subcategory.category.name }} >
-              {{ tx.subcategory.name }}</span
+              >{{ transaction.subcategory.category.name }} >
+              {{ transaction.subcategory.name }}</span
             >
           </div>
         </div>
@@ -112,18 +116,20 @@
           <div
             class="transaction-amount"
             [ngClass]="
-              tx.type === 'INCOME' ? 'income-amount' : 'expense-amount'
+              transaction.type === 'INCOME' ? 'income-amount' : 'expense-amount'
             "
           >
             {{
-              (tx.type === "INCOME" ? "+" : "-") +
-                (tx.amount | currency : "CLP" : "symbol-narrow" : "1.0-0")
+              (transaction.type === "INCOME" ? "+" : "-") +
+                (transaction.amount
+                  | currency : "CLP" : "symbol-narrow" : "1.0-0")
             }}
           </div>
           <button
             mat-icon-button
             [matMenuTriggerFor]="transactionMenu"
-            aria-label="Opciones de transacción"
+            [matMenuTriggerData]="{ tx: transaction }"
+            (click)="$event.stopPropagation()"
           >
             <mat-icon>more_vert</mat-icon>
           </button>
@@ -132,14 +138,16 @@
     </mat-list>
 
     <mat-menu #transactionMenu="matMenu">
-      <button mat-menu-item>
-        <mat-icon>edit</mat-icon>
-        <span>Editar</span>
-      </button>
-      <button mat-menu-item>
-        <mat-icon>delete</mat-icon>
-        <span>Eliminar</span>
-      </button>
+      <ng-template matMenuContent let-transaction="tx">
+        <button mat-menu-item (click)="openEditForm(transaction)">
+          <mat-icon>edit</mat-icon>
+          <span>Editar</span>
+        </button>
+        <button mat-menu-item (click)="onDelete(transaction.id)">
+          <mat-icon>delete</mat-icon>
+          <span>Eliminar</span>
+        </button>
+      </ng-template>
     </mat-menu>
 
     <!-- Estado: No cargando Y NO hay transacciones -->

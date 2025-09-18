@@ -177,6 +177,36 @@ export class TransactionListComponent implements OnInit {
     });
   }
 
+  openEditForm(transaction: any): void {
+    console.log('Abriendo diálogo para editar:', transaction);
+    // Usamos 'any' por ahora para simplificar
+    const dialogRef = this.dialog.open(TransactionFormComponent, {
+      width: '500px',
+      data: {
+        walletId: this.tempWalletId,
+        transaction: transaction, // Le pasamos la transacción completa
+      },
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadTransactions(); // Refrescamos la lista si hubo un cambio
+      }
+    });
+  }
+
+  onDelete(transactionId: string): void {
+    // this.transactionService.deleteTransaction(transactionId).subscribe({
+    //   next: () => {
+    //     this.loadTransactions();
+    //   },
+    //   error: (err) => {
+    //     console.error('Error al eliminar transacción:', err);
+    //   },
+    // });
+  }
+
   resetFilters(): void {
     this.filterForm.reset({
       type: null,
