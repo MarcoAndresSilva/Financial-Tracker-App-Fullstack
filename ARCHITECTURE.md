@@ -317,6 +317,19 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
     - El `TransactionListComponent` se suscribe al evento `afterClosed()` del diálogo. Si recibe el valor `true`, interpreta que la operación fue exitosa y vuelve a llamar a su método `loadTransactions()`.
     - Este patrón de **"abrir -> actuar -> cerrar con resultado -> reaccionar"** es el estándar para manejar la comunicación y el refresco de datos con diálogos en Angular.
 
+### Paso 19: Edición de Transacciones y Reutilización de Componentes
+
+- **Objetivo:** Implementar la funcionalidad para que los usuarios puedan editar una transacción existente, reutilizando el formulario de creación para seguir el principio DRY (Don't Repeat Yourself).
+
+- **Implementación y Decisiones Clave:**
+  - **Componente de Formulario "Inteligente" (`TransactionFormComponent`):**
+    - Se refactorizó el componente para que pudiera operar en dos modos: "Crear" y "Editar".
+    - Se añadió una propiedad `isEditMode` (booleano) que se determina en el `constructor` al verificar si se han recibido datos de una transacción a través del `MAT_DIALOG_DATA`.
+    - **En modo "Editar" (`ngOnInit`):** El componente utiliza `form.patchValue()` para rellenar los campos del formulario con los datos de la transacción existente. Se implementó lógica adicional para manejar los `selects` dependientes (categoría -> subcategoría), asegurando que se carguen las opciones correctas y se preseleccione el valor adecuado.
+  - **Lógica de Guardado Condicional:** El método `onSave()` ahora contiene una bifurcación `if (this.isEditMode)`. Dependiendo del modo, llama al método `updateTransaction()` o `createTransaction()` del servicio de Angular, enviando una petición `PATCH` o `POST` respectivamente.
+  - **Reutilización y Eficiencia:** Este patrón de crear un componente de formulario único para las operaciones de Crear y Editar es una práctica estándar muy potente. Reduce drásticamente la duplicación de código (HTML, SCSS y TypeScript), facilita el mantenimiento y asegura una experiencia de usuario consistente.
+  - **Flujo de Datos:** El `TransactionListComponent` es responsable de abrir el diálogo. Para editar, pasa el objeto de la transacción completa al `data` del diálogo. Para crear, solo pasa el `walletId`.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
