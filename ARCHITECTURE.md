@@ -330,6 +330,19 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - **Reutilización y Eficiencia:** Este patrón de crear un componente de formulario único para las operaciones de Crear y Editar es una práctica estándar muy potente. Reduce drásticamente la duplicación de código (HTML, SCSS y TypeScript), facilita el mantenimiento y asegura una experiencia de usuario consistente.
   - **Flujo de Datos:** El `TransactionListComponent` es responsable de abrir el diálogo. Para editar, pasa el objeto de la transacción completa al `data` del diálogo. Para crear, solo pasa el `walletId`.
 
+### Paso 20: Refactorización a Tipado Fuerte (Eliminación de `any`)
+
+- **Objetivo:** Mejorar la calidad y robustez del código del frontend eliminando el uso del tipo `any` y reemplazándolo con interfaces explícitas, siguiendo las mejores prácticas de TypeScript.
+- **Implementación y Decisión de Arquitectura:**
+  - **Justificación:** El uso de `any` desactiva las comprobaciones de tipo de TypeScript, lo que puede llevar a errores en tiempo de ejecución y reduce la eficacia de herramientas como el autocompletado. Refactorizar a un tipado fuerte es un paso crucial para asegurar la mantenibilidad a largo plazo de la aplicación.
+  - **Interfaz `Transaction`:** Se definió una interfaz `Transaction` detallada en un archivo `transaction.types.ts`. Esta interfaz modela con precisión la estructura de los datos devueltos por la API del backend, incluyendo las relaciones anidadas (`subcategory`, `category`).
+  - **Aplicación a Través de las Capas:**
+    - **Servicio (`TransactionService`):** Se actualizaron las firmas de todos los métodos para que los `Observables` devuelvan los tipos correctos (ej. `Observable<Transaction[]>` en lugar de `Observable<any[]>`).
+    - **Componente (`TransactionListComponent`):** La propiedad que almacena la lista de transacciones se tipó como `Transaction[]`.
+  - **Beneficios Obtenidos:**
+    - **Seguridad Estática:** El compilador de TypeScript ahora puede detectar errores de tipeo (ej. acceder a una propiedad inexistente) durante el desarrollo, antes de que el código llegue al navegador.
+    - **Mejora de la Experiencia de Desarrollo (DX):** El editor de código ahora proporciona autocompletado (IntelliSense) preciso para los objetos de transacción, tanto en los archivos TypeScript como en las plantillas HTML, acelerando el desarrollo y reduciendo errores.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
