@@ -343,6 +343,20 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
     - **Seguridad Estática:** El compilador de TypeScript ahora puede detectar errores de tipeo (ej. acceder a una propiedad inexistente) durante el desarrollo, antes de que el código llegue al navegador.
     - **Mejora de la Experiencia de Desarrollo (DX):** El editor de código ahora proporciona autocompletado (IntelliSense) preciso para los objetos de transacción, tanto en los archivos TypeScript como en las plantillas HTML, acelerando el desarrollo y reduciendo errores.
 
+### Paso 21: Eliminación de Transacciones con Diálogo de Confirmación
+
+- **Objetivo:** Completar el ciclo CRUD permitiendo a los usuarios eliminar transacciones de forma segura.
+- **Implementación y Decisión de UX:**
+  - **Prevención de Errores de Usuario:** Para evitar eliminaciones accidentales, una acción destructiva por naturaleza, no se elimina la transacción directamente. En su lugar, se implementó un **diálogo de confirmación** modal.
+  - **Componente de Confirmación Reutilizable (`ConfirmDialogComponent`):**
+    - Se creó un componente genérico y reutilizable para las confirmaciones. Recibe un `title` y un `message` a través de `MAT_DIALOG_DATA`, lo que permite usarlo para confirmar cualquier acción en el futuro (ej. "¿Eliminar categoría?", "¿Salir sin guardar?").
+    - Los botones del diálogo devuelven un valor booleano a través de `mat-dialog-close`, comunicando la decisión del usuario de vuelta al componente que lo abrió.
+  - **Flujo de Eliminación Reactivo:**
+    - El `TransactionListComponent` abre el `ConfirmDialogComponent`.
+    - Se suscribe al `afterClosed()` del diálogo.
+    - Utiliza el operador `filter(result => result === true)` de RxJS para ejecutar la lógica de eliminación **solo si** el usuario confirmó la acción.
+    - Tras una llamada exitosa al `deleteTransaction` del servicio, se vuelve a llamar a `loadTransactions()` para refrescar la UI, manteniendo la consistencia de los datos mostrados.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
