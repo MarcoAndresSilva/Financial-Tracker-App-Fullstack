@@ -2,7 +2,7 @@ export interface Transaction {
   id: string;
   amount: number;
   type: 'INCOME' | 'EXPENSE';
-  date: string; // La recibimos como un string ISO de la API
+  date: string;
   description: string;
   walletId: string;
   subcategoryId: string;

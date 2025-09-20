@@ -14,7 +14,10 @@ import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
 import { TransactionService } from '../../../transactions/services/transaction.service';
-import { GetTransactionsFilterDto } from '../../../transactions/services/transaction.types';
+import {
+  GetTransactionsFilterDto,
+  Transaction,
+} from '../../../transactions/services/transaction.types';
 import {
   Category,
   CategoryService,
@@ -25,6 +28,7 @@ import {
 } from '../../../subcategories/services/subcategory.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TransactionFormComponent } from '../../../transactions/components/transaction-form/transaction-form.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-transaction-list',
@@ -34,6 +38,7 @@ import { TransactionFormComponent } from '../../../transactions/components/trans
     ...MATERIAL_MODULES,
     LoadingSpinnerComponent,
     ReactiveFormsModule,
+    ConfirmDialogComponent,
   ],
   templateUrl: './transaction-list.component.html',
   styleUrls: ['./transaction-list.component.scss'],
@@ -48,7 +53,7 @@ export class TransactionListComponent implements OnInit {
   // TODO: Obtener walletId dinámicamente.
   private tempWalletId = '6c2c74ed-a407-4238-b176-c30648c279df';
 
-  transactions: any[] = [];
+  transactions: Transaction[] = [];
   isLoading = true;
   filterForm: FormGroup;
 
@@ -154,7 +159,7 @@ export class TransactionListComponent implements OnInit {
             );
           } else {
             subcategoryControl.disable({ emitEvent: false });
-            return of([]); // Devuelve un Observable de un array vacío
+            return of([]);
           }
         })
       )
@@ -167,7 +172,6 @@ export class TransactionListComponent implements OnInit {
     const dialogRef = this.dialog.open(TransactionFormComponent, {
       width: '500px',
       data: { walletId: this.tempWalletId },
-      // disableClose: true,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -177,34 +181,48 @@ export class TransactionListComponent implements OnInit {
     });
   }
 
-  openEditForm(transaction: any): void {
+  openEditForm(transaction: Transaction): void {
     console.log('Abriendo diálogo para editar:', transaction);
-    // Usamos 'any' por ahora para simplificar
     const dialogRef = this.dialog.open(TransactionFormComponent, {
       width: '500px',
       data: {
         walletId: this.tempWalletId,
-        transaction: transaction, // Le pasamos la transacción completa
+        transaction: transaction,
       },
       disableClose: true,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.loadTransactions(); // Refrescamos la lista si hubo un cambio
+        this.loadTransactions();
       }
     });
   }
 
   onDelete(transactionId: string): void {
-    // this.transactionService.deleteTransaction(transactionId).subscribe({
-    //   next: () => {
-    //     this.loadTransactions();
-    //   },
-    //   error: (err) => {
-    //     console.error('Error al eliminar transacción:', err);
-    //   },
-    // });
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: {
+        title: 'Confirmar Eliminación',
+        message:
+          '¿Estás seguro de que quieres eliminar esta transacción? Esta acción no se puede deshacer.',
+      },
+    });
+
+    dialogRef
+      .afterClosed()
+      .pipe(filter((result) => result === true))
+      .subscribe(() => {
+        this.transactionService.deleteTransaction(transactionId).subscribe({
+          next: () => {
+            console.log('Transacción eliminada con éxito');
+            this.loadTransactions();
+          },
+          error: (err) => {
+            console.error('Error al eliminar la transacción', err);
+          },
+        });
+      });
   }
 
   resetFilters(): void {
