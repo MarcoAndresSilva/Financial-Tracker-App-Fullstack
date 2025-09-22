@@ -375,6 +375,16 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
     - Cada vez que se emite una nueva cartera activa, la lógica dentro de la suscripción se dispara automáticamente, volviendo a cargar los datos (resúmenes, transacciones, etc.) correspondientes a la nueva cartera.
 - **Beneficio:** Este patrón desacopla los componentes entre sí. Ningún componente necesita saber "quién" cambió la cartera; solo necesitan "reaccionar" al cambio emitido por el servicio central. Esto hace que la aplicación sea increíblemente escalable y fácil de mantener.
 
+### Paso 23: Integración del `WalletContextService` en los Componentes
+
+- **Objetivo:** Refactorizar los componentes de página (`HomeComponent`, `TransactionListComponent`) para que consuman el estado de la cartera activa desde el `WalletContextService`, eliminando los IDs hardcodeados y haciendo la aplicación completamente dinámica.
+
+- **Implementación y Patrón Reactivo:**
+  - **Suscripción al Estado Central:** En el `ngOnInit` de cada componente, se establece una suscripción al `Observable` `walletContext.activeWallet$`.
+  - **Reacción a los Cambios:** Dentro de la suscripción, se implementó la lógica para que, en cuanto se reciba un objeto `Wallet` válido, se disparen los métodos de carga de datos correspondientes (ej. `loadDashboardData`, `loadTransactions`).
+  - **Resultado:** Este patrón crea una aplicación reactiva. Cualquier cambio en la cartera activa (que haremos en el siguiente paso con un selector) se propagará automáticamente a todos los componentes suscritos, que se actualizarán sin necesidad de lógica de comunicación compleja entre ellos.
+  - **Limpieza de Suscripciones (`ngOnDestroy`):** Se implementó el patrón `takeUntil(destroy$)` en todas las suscripciones de larga duración. En el `ngOnDestroy` del componente, se emite un valor en el `destroy$` Subject, lo que completa automáticamente todas las suscripciones activas. Esta es una práctica de nivel senior para prevenir fugas de memoria en aplicaciones SPA.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
