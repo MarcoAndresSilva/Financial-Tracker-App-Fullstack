@@ -9,6 +9,8 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { AuthService } from '../../services/auth.service';
+import { WalletContextService } from '../../../core/services/wallet-context.service';
+import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +22,7 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private WalletContext = inject(WalletContextService);
   private router = inject(Router);
 
   loginForm: FormGroup;
@@ -38,14 +41,17 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.invalid) return;
 
-    this.authService.login(this.loginForm.value).subscribe({
-      next: () => {
-        console.log('login exitoso guardado por el servicio');
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err) => {
-        console.error('error en login', err);
-      },
-    });
+    this.authService
+      .login(this.loginForm.value)
+      .pipe(switchMap(() => this.WalletContext.loadUserWallets()))
+      .subscribe({
+        next: () => {
+          console.log('login exitoso y carga de carteras exitosa');
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err) => {
+          console.error('error en login', err);
+        },
+      });
   }
 }

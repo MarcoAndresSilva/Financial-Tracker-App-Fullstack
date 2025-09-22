@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -9,9 +9,13 @@ import {
   debounceTime,
   distinctUntilChanged,
   filter,
+  Subject,
+  takeUntil,
 } from 'rxjs';
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { TransactionFormComponent } from '../../../transactions/components/transaction-form/transaction-form.component';
 
 import { TransactionService } from '../../../transactions/services/transaction.service';
 import {
@@ -26,9 +30,9 @@ import {
   Subcategory,
   SubcategoryService,
 } from '../../../subcategories/services/subcategory.service';
+import { WalletContextService } from '../../../core/services/wallet-context.service';
+import { Wallet } from '../../../user/types/user.types';
 import { MatDialog } from '@angular/material/dialog';
-import { TransactionFormComponent } from '../../../transactions/components/transaction-form/transaction-form.component';
-import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-transaction-list',
@@ -38,21 +42,24 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     ...MATERIAL_MODULES,
     LoadingSpinnerComponent,
     ReactiveFormsModule,
-    ConfirmDialogComponent,
   ],
   templateUrl: './transaction-list.component.html',
   styleUrls: ['./transaction-list.component.scss'],
 })
 export class TransactionListComponent implements OnInit {
   private transactionService = inject(TransactionService);
+  private WalletContext = inject(WalletContextService);
   private categoryService = inject(CategoryService);
   private subcategoryService = inject(SubcategoryService);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
 
-  // TODO: Obtener walletId dinámicamente.
-  private tempWalletId = '6c2c74ed-a407-4238-b176-c30648c279df';
+  private destroy$ = new Subject<void>();
 
+  // TODO: Obtener walletId dinámicamente.
+  // private tempWalletId = '6c2c74ed-a407-4238-b176-c30648c279df';
+
+  activeWallet: Wallet | null = null;
   transactions: Transaction[] = [];
   isLoading = true;
   filterForm: FormGroup;
@@ -71,53 +78,40 @@ export class TransactionListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadFilterData();
-    this.setupSubcategoryListener();
-
-    // Escuchamos los cambios en los filtros que NO son de fecha
-    this.filterForm
-      .get('type')!
-      .valueChanges.subscribe(() => this.loadTransactions());
-    this.filterForm
-      .get('categoryId')!
-      .valueChanges.subscribe(() => this.loadTransactions());
-    this.filterForm
-      .get('subcategoryId')!
-      .valueChanges.subscribe(() => this.loadTransactions());
-
-    // Escuchamos los cambios en la fecha de FIN para disparar la búsqueda de rango
-    this.filterForm
-      .get('endDate')!
-      .valueChanges.pipe(
-        // Solo continuamos si la fecha de fin no es nula
-        filter((endDate) => !!endDate)
-      )
-      .subscribe(() => {
-        this.loadTransactions();
+    this.WalletContext.activeWallet$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((wallet) => {
+        this.activeWallet = wallet;
+        if (wallet) {
+          this.loadFilterOptions();
+          this.loadTransactions();
+        }
       });
+    this.setupDependentFilters();
+    this.setupFilterFormListener();
+  }
 
-    this.loadTransactions(); // Carga inicial
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadTransactions(): void {
-    if (!this.tempWalletId) {
+    if (!this.activeWallet) {
       this.isLoading = false;
       return;
     }
     this.isLoading = true;
 
-    const formValues = this.filterForm.getRawValue(); // .getRawValue() incluye los campos deshabilitados (como subcategoryId)
-
+    const formValues = this.filterForm.getRawValue();
     const filters: GetTransactionsFilterDto = {
-      walletId: this.tempWalletId,
-      type: formValues.type,
-      categoryId: formValues.categoryId,
-      subcategoryId: formValues.subcategoryId,
+      walletId: this.activeWallet.id,
+      ...formValues,
       startDate: formValues.startDate
-        ? formatDate(formValues.startDate, 'yyyy-MM-dd', 'en-US')
+        ? formatDate(formValues.startDate, 'yyy-mm-dd', 'en-US')
         : undefined,
       endDate: formValues.endDate
-        ? formatDate(formValues.endDate, 'yyyy-MM-dd', 'en-US')
+        ? formatDate(formValues.endDate, 'yyy-mm-dd', 'en-US')
         : undefined,
     };
 
@@ -125,53 +119,54 @@ export class TransactionListComponent implements OnInit {
       .getTransactions(filters)
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: (data) => {
-          this.transactions = data;
+        next: (transactions) => {
+          this.transactions = transactions;
         },
-        error: (err) => {
-          console.error('Error al cargar transacciones:', err);
-        },
+        error: (err) => console.error('Error al obtener transacciones', err),
       });
   }
 
-  loadFilterData(): void {
-    if (!this.tempWalletId) return;
+  loadFilterOptions(): void {
+    if (!this.activeWallet) return;
     this.categoryService
-      .getCategoriesByWallet(this.tempWalletId)
+      .getCategoriesByWallet(this.activeWallet.id)
       .subscribe((data) => {
         this.categories = data;
       });
   }
 
-  setupSubcategoryListener(): void {
+  setupDependentFilters(): void {
     const categoryControl = this.filterForm.get('categoryId')!;
     const subcategoryControl = this.filterForm.get('subcategoryId')!;
 
     categoryControl.valueChanges
-      .pipe(
-        startWith(categoryControl.value),
-        switchMap((categoryId) => {
-          subcategoryControl.reset(null, { emitEvent: false });
-          if (categoryId) {
-            subcategoryControl.enable({ emitEvent: false });
-            return this.subcategoryService.getSubcategoriesByCategory(
-              categoryId
-            );
-          } else {
-            subcategoryControl.disable({ emitEvent: false });
-            return of([]);
-          }
-        })
-      )
-      .subscribe((subcategories) => {
-        this.subcategories = subcategories;
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((categoryId) => {
+        subcategoryControl.reset({ value: null, disabled: true });
+        if (categoryId) {
+          this.subcategoryService
+            .getSubcategoriesByCategory(categoryId)
+            .subscribe((subcategories) => {
+              this.subcategories = subcategories;
+              subcategoryControl.enable();
+            });
+        }
+      });
+  }
+
+  setupFilterFormListener(): void {
+    this.filterForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.loadTransactions();
       });
   }
 
   openTransactionForm(): void {
+    if (!this.activeWallet) return;
     const dialogRef = this.dialog.open(TransactionFormComponent, {
       width: '500px',
-      data: { walletId: this.tempWalletId },
+      data: { walletId: this.activeWallet.id },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -182,11 +177,12 @@ export class TransactionListComponent implements OnInit {
   }
 
   openEditForm(transaction: Transaction): void {
+    if (!this.activeWallet) return;
     console.log('Abriendo diálogo para editar:', transaction);
     const dialogRef = this.dialog.open(TransactionFormComponent, {
       width: '500px',
       data: {
-        walletId: this.tempWalletId,
+        walletId: this.activeWallet.id,
         transaction: transaction,
       },
       disableClose: true,
