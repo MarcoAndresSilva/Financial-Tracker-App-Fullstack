@@ -357,6 +357,24 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
     - Utiliza el operador `filter(result => result === true)` de RxJS para ejecutar la lógica de eliminación **solo si** el usuario confirmó la acción.
     - Tras una llamada exitosa al `deleteTransaction` del servicio, se vuelve a llamar a `loadTransactions()` para refrescar la UI, manteniendo la consistencia de los datos mostrados.
 
+### Paso 22: Gestión de Estado Central con un `WalletContextService`
+
+- **Objetivo:** Eliminar los `walletId` hardcodeados y crear un sistema centralizado y reactivo para gestionar la cartera activa del usuario.
+
+- **Decisión de Arquitectura: Servicio de Estado con `BehaviorSubject`:**
+  - En lugar de usar una librería de gestión de estado compleja (como NgRx o Redux), se optó por un enfoque más simple y nativo de Angular/RxJS para este caso de uso.
+  - Se creó un `WalletContextService` que actúa como la **única fuente de verdad** para la cartera activa.
+- **Implementación:**
+  - **`BehaviorSubject` (`activeWallet$`):** El servicio utiliza un `BehaviorSubject` de RxJS para almacenar y emitir la cartera activa. `BehaviorSubject` es ideal porque guarda el último valor emitido y se lo entrega inmediatamente a cualquier nuevo suscriptor.
+  - **Flujo de Inicialización:**
+    1.  Después de un login exitoso, el `LoginComponent` llama a `walletContext.loadUserWallets()`.
+    2.  Este método utiliza un `UserService` para llamar a `GET /users/me` y obtener todas las carteras del usuario.
+    3.  La primera cartera de la lista se establece como la activa por defecto emitiendo un valor a través del `BehaviorSubject` (`.next()`).
+  - **Consumo Reactivo en Componentes:**
+    - Componentes como `HomeComponent` y `TransactionListComponent` fueron refactorizados para **suscribirse** al `activeWallet$` del servicio.
+    - Cada vez que se emite una nueva cartera activa, la lógica dentro de la suscripción se dispara automáticamente, volviendo a cargar los datos (resúmenes, transacciones, etc.) correspondientes a la nueva cartera.
+- **Beneficio:** Este patrón desacopla los componentes entre sí. Ningún componente necesita saber "quién" cambió la cartera; solo necesitan "reaccionar" al cambio emitido por el servicio central. Esto hace que la aplicación sea increíblemente escalable y fácil de mantener.
+
 ---
 
 #### ** - Desafíos Enfrentados Durante la Conexión Frontend-Backend**
