@@ -25,7 +25,7 @@ Una aplicación full stack moderna para el seguimiento de finanzas personales, c
 | Área         | Tecnología                                                          |
 | ------------ | ------------------------------------------------------------------- |
 | **Backend**  | NestJS, Prisma, PostgreSQL, Passport.js (JWT)                       |
-| **Frontend** | Angular (Standalone Components), Angular Material, SCSS, ngx-charts |
+| **Frontend** | Angular (Standalone Components), RxJS, Angular Material, SCSS, ngx-charts |
 | **DevOps**   | Docker, Docker Compose, GitHub Actions (CI/CD)                      |
 
 ---
