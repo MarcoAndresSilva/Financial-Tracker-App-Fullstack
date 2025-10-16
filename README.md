@@ -4,7 +4,7 @@
 
 Una aplicación full stack moderna para el seguimiento de finanzas personales, construida con NestJS, Angular, PostgreSQL y Docker.
 
-## 🚀 Demo en Vivo (comming soon)
+## 🚀 Demo en Vivo
 
 **[Enlace a la aplicación desplegada]** (Próximamente disponible)
 
