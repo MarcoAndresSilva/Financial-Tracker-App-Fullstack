@@ -2,7 +2,7 @@
 
 ![Project Banner](URL_DEL_BANNER_AQUI) 
 
-Una aplicación full stack moderna para el seguimiento de finanzas personales, construida con NestJS, Angular, PostgreSQL y Docker.
+Una aplicación full stack moderna para el seguimiento de finanzas personales, construida con NestJS, Angular, PostgreSQL y Docker. Esta app nace por la necesidad de llevar un regstro diarioa de transacciones y nichos de gastos personales con el fin de definir estrategias de ahorro e inversión 
 
 ## 🚀 Demo en Vivo
 
