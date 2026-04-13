@@ -6,7 +6,7 @@ Una aplicación full stack moderna para el seguimiento de finanzas personales, c
 
 ## 🚀 Demo en Vivo
 
-**[Enlace a la aplicación desplegada]** (Próximamente disponible)
+**[aplicación desplegada]** (Próximamente)
 
 ---
 
