@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { User } from '../../user/types/user.types';
 
 // interface para la respuesta de la autenticación para tener tipado fuerte
 interface AuthResponse {
@@ -30,5 +31,13 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem('access_token');
+  }
+
+  signup(credentials: {
+    name: string;
+    email: string;
+    password: string;
+  }): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/auth/signup`, credentials);
   }
 }

@@ -1,1 +1,74 @@
-<p>register works!</p>
+<div class="login-container">
+  <mat-card class="login-card">
+    <div class="hero-image-container">
+      <img src="assets/images/dinerin.jpg" alt="Ilustración de finanzas" />
+    </div>
+
+    <mat-card-header>
+      <mat-card-title>Crear cuenta</mat-card-title>
+      <mat-card-subtitle
+        >Registrate para empezar a controlar tus finanzas</mat-card-subtitle
+      >
+    </mat-card-header>
+
+    <mat-card-content>
+      <form
+        class="login-form"
+        [formGroup]="registerForm"
+        (ngSubmit)="onSubmit()"
+      >
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre</mat-label>
+          <input
+            matInput
+            formControlName="name"
+            placeholder="Tu nombre"
+            type="text"
+            required
+          />
+          <mat-icon matSuffix>person</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            formControlName="email"
+            placeholder="ejemplo@email.com"
+            type="email"
+            required
+          />
+          <mat-icon matSuffix>alternate_email</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            formControlName="password"
+            placeholder="Mínimo 8 caracteres"
+            type="password"
+            required
+          />
+          <mat-icon matSuffix>lock</mat-icon>
+        </mat-form-field>
+
+        <button
+          mat-raised-button
+          color="primary"
+          class="login-button"
+          type="submit"
+          [disabled]="registerForm.invalid"
+        >
+          Crear cuenta
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <a class="register-link" routerLink="/auth/login"
+        >¿Ya tienes una cuenta? **Inicia sesión**</a
+      >
+    </mat-card-actions>
+  </mat-card>
+</div>
