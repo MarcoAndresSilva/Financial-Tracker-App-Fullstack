@@ -418,3 +418,12 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - **Sin cambios de backend:** los endpoints de dashboard/transacciones ya aceptaban `walletId` como query param desde los pasos anteriores, así que no fue necesario tocar el backend.
 
 - **Por qué no hizo falta tocar `HomeComponent` ni `TransactionListComponent`:** ambos ya estaban suscritos a `activeWallet$` desde el Paso 23 (con `takeUntil(destroy$)`). En cuanto `setActiveWallet()` emite un nuevo valor, esas suscripciones se disparan solas y recargan sus datos — el selector solo necesitó **producir** el evento, no propagarlo manualmente. Esto confirma en la práctica el beneficio de desacoplamiento descrito en el Paso 22.
+
+### Paso 25: Logout Funcional
+
+- **Objetivo:** El link "Cerrar Sesión" del sidenav existía visualmente desde el Paso 15 pero no tenía ningún handler — no había forma de cerrar sesión desde la UI.
+- **Implementación:**
+  - **`AuthService`:** se agregó `logout()`, que simplemente hace `localStorage.removeItem('access_token')`. Sigue el mismo principio de responsabilidad única que ya tenía `login()` (el servicio solo gestiona el token; no navega).
+  - **`DashboardLayoutComponent`:** se inyectan `AuthService` y `Router`; el nuevo método `logout()` llama a `authService.logout()` y luego navega a `/auth/login` con `router.navigate(...)`.
+  - **Plantilla:** el `<a mat-list-item>` de "Cerrar Sesión" ahora tiene `(click)="logout()"`.
+- **Por qué es seguro:** `authGuard` ya verificaba la presencia del token en `localStorage` antes de permitir el acceso a `/dashboard/*`; al borrarlo, cualquier intento de volver a una ruta protegida (o de recargar la página) redirige automáticamente a `/auth/login` sin lógica adicional.
