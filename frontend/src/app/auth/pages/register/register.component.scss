@@ -3,25 +3,48 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #fce8e6;
   padding: 16px;
+  background: linear-gradient(
+    160deg,
+    var(--mat-sys-primary-container),
+    var(--mat-sys-surface-container-low) 60%
+  );
 }
 
 .login-card {
   width: 100%;
   max-width: 400px;
   padding: 0 !important;
-  border-radius: 20px !important;
+  border-radius: 24px !important;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
 }
 
-.hero-image-container {
-  img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
+.hero-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1rem;
+  background: linear-gradient(
+    135deg,
+    var(--mat-sys-primary),
+    var(--mat-sys-tertiary)
+  );
+  color: var(--mat-sys-on-primary);
+}
+
+.hero-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.hero-brand {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 mat-card-header,
@@ -65,7 +88,7 @@ mat-card-actions {
 
 .register-link {
   margin-top: 1.5rem;
-  color: #3f51b5;
+  color: var(--mat-sys-primary);
   cursor: pointer;
   text-decoration: none;
   font-weight: 500;
