@@ -405,3 +405,16 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - **Síntoma:** Después de solucionar CORS, la petición de login recibía un error 404.
   - **Causa:** Una inconsistencia de nombres. El endpoint en el backend era `/auth/signin`, pero el `AuthService` de Angular estaba llamando a `/auth/login`.
   - **Solución:** Se alinearon los nombres, actualizando la ruta en el `AuthService` de Angular para que coincidiera con la ruta definida en el `AuthController` de NestJS.
+
+---
+
+### Paso 24: Selector de Wallet en el Toolbar
+
+- **Objetivo:** Cerrar el hueco dejado en el Paso 23 — permitir al usuario **cambiar** la cartera activa desde la UI, en lugar de quedar fijo siempre en la primera cartera devuelta por `GET /users/me`.
+
+- **Implementación:**
+  - **`WalletContextService`:** se agregó un segundo `BehaviorSubject` (`userWalletsSubject`, expuesto como `userWallets$`) que publica la lista completa de carteras del usuario — antes se guardaba en una propiedad privada sin forma de leerla desde fuera del servicio. También se agregó `setActiveWallet(wallet)`, que simplemente hace `.next()` sobre el `activeWalletSubject` ya existente.
+  - **`DashboardLayoutComponent`:** el shell (sidenav + toolbar) ahora inyecta `WalletContextService` y expone `activeWallet$`/`userWallets$` a la plantilla. En el `mat-toolbar` se agregó un botón con `matMenuTriggerFor` que muestra el nombre de la cartera activa; al hacer clic despliega un `mat-menu` con todas las carteras del usuario (usando `*ngFor` sobre `userWallets$ | async`), marcando con un ícono distinto la que está actualmente activa. Al seleccionar una cartera se llama a `onSelectWallet(wallet)`, que delega en `walletContext.setActiveWallet(wallet)`.
+  - **Sin cambios de backend:** los endpoints de dashboard/transacciones ya aceptaban `walletId` como query param desde los pasos anteriores, así que no fue necesario tocar el backend.
+
+- **Por qué no hizo falta tocar `HomeComponent` ni `TransactionListComponent`:** ambos ya estaban suscritos a `activeWallet$` desde el Paso 23 (con `takeUntil(destroy$)`). En cuanto `setActiveWallet()` emite un nuevo valor, esas suscripciones se disparan solas y recargan sus datos — el selector solo necesitó **producir** el evento, no propagarlo manualmente. Esto confirma en la práctica el beneficio de desacoplamiento descrito en el Paso 22.
