@@ -1,8 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterModule } from '@angular/router';
+import { Router, RouterOutlet, RouterModule } from '@angular/router';
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { WalletContextService } from '../../../core/services/wallet-context.service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { Wallet } from '../../../user/types/user.types';
 
 @Component({
@@ -14,6 +15,8 @@ import { Wallet } from '../../../user/types/user.types';
 })
 export class DashboardLayoutComponent {
   private walletContext = inject(WalletContextService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   isSidenavOpened = true;
   activeWallet$ = this.walletContext.activeWallet$;
@@ -21,5 +24,10 @@ export class DashboardLayoutComponent {
 
   onSelectWallet(wallet: Wallet): void {
     this.walletContext.setActiveWallet(wallet);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/auth/login']);
   }
 }

@@ -26,8 +26,7 @@
     </mat-nav-list>
 
     <div class="sidenav-footer">
-      <!-- Aquí podría ir el perfil del usuario o un botón de logout -->
-      <a mat-list-item>
+      <a mat-list-item (click)="logout()" style="cursor: pointer">
         <mat-icon matListItemIcon>logout</mat-icon>
         <span matListItemTitle>Cerrar Sesión</span>
       </a>
