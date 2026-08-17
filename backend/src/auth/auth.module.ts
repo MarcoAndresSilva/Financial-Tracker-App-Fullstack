@@ -9,7 +9,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
   imports: [
     PrismaModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule], //Le decimos que este módulo depende de ConfigModule
+      imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         //  useFactory es una función que se ejecutará para crear la configuración
         secret: configService.get<string>('JWT_SECRET'), // Leemos el secreto usando el servicio
