@@ -16,6 +16,9 @@ export class WalletContextService {
     this.activeWalletSubject.asObservable();
 
   private userWallets: Wallet[] = [];
+  private userWalletsSubject = new BehaviorSubject<Wallet[]>([]);
+  public userWallets$: Observable<Wallet[]> =
+    this.userWalletsSubject.asObservable();
 
   // Este método se llamará una sola vez, después del login.
   loadUserWallets() {
@@ -25,6 +28,7 @@ export class WalletContextService {
         this.userWallets = user.memberships.map(
           (membership) => membership.wallet
         );
+        this.userWalletsSubject.next(this.userWallets);
 
         // Si tiene carteras, ponemos la primera en el pizarrón como activa.
         if (this.userWallets.length > 0) {
@@ -38,5 +42,10 @@ export class WalletContextService {
   // Método para obtener la cartera activa en un momento dado.
   getActiveWallet(): Wallet | null {
     return this.activeWalletSubject.getValue();
+  }
+
+  // Permite cambiar manualmente la cartera activa (selector de wallet).
+  setActiveWallet(wallet: Wallet): void {
+    this.activeWalletSubject.next(wallet);
   }
 }

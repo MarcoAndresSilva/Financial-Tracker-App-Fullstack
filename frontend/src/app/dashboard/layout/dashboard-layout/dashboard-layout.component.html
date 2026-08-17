@@ -42,6 +42,29 @@
         <mat-icon>menu</mat-icon>
       </button>
       <span>Financial Tracker</span>
+
+      <span class="toolbar-spacer"></span>
+
+      <!-- SELECTOR DE WALLET -->
+      <ng-container *ngIf="activeWallet$ | async as activeWallet">
+        <button mat-button [matMenuTriggerFor]="walletMenu" class="wallet-selector">
+          <mat-icon>account_balance_wallet</mat-icon>
+          {{ activeWallet.name }}
+          <mat-icon>arrow_drop_down</mat-icon>
+        </button>
+        <mat-menu #walletMenu="matMenu">
+          <button
+            mat-menu-item
+            *ngFor="let wallet of userWallets$ | async"
+            (click)="onSelectWallet(wallet)"
+          >
+            <mat-icon>{{
+              wallet.id === activeWallet.id ? 'check_circle' : 'account_balance_wallet'
+            }}</mat-icon>
+            <span>{{ wallet.name }}</span>
+          </button>
+        </mat-menu>
+      </ng-container>
     </mat-toolbar>
 
     <!-- El espacio donde se dibujarán nuestras páginas -->

@@ -68,6 +68,16 @@ mat-toolbar {
   position: sticky;
   top: 0;
   z-index: 10;
+
+  .toolbar-spacer {
+    flex: 1 1 auto;
+  }
+
+  .wallet-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
 }
 
 // Estilos para el área principal donde va el router-outlet
