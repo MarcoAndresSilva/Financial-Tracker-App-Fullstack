@@ -18,4 +18,24 @@ export class SubcategoryService {
       `${this.apiUrl}/subcategories?categoryId=${categoryId}`
     );
   }
+
+  createSubcategory(payload: { name: string; categoryId: string }) {
+    return this.http.post<Subcategory>(
+      `${this.apiUrl}/subcategories`,
+      payload
+    );
+  }
+
+  updateSubcategory(subcategoryId: string, payload: { name: string }) {
+    return this.http.patch<Subcategory>(
+      `${this.apiUrl}/subcategories/${subcategoryId}`,
+      payload
+    );
+  }
+
+  deleteSubcategory(subcategoryId: string) {
+    return this.http.delete<void>(
+      `${this.apiUrl}/subcategories/${subcategoryId}`
+    );
+  }
 }

@@ -70,7 +70,9 @@ export class TransactionService {
     }
     return this.prisma.transaction.findMany({
       where: whereClause,
-      orderBy: { date: 'desc' },
+      // Desempata por fecha de creación: entre transacciones con la misma
+      // `date` (elegida por el usuario), la creada más recientemente aparece primero.
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
       include: {
         subcategory: {
           include: {

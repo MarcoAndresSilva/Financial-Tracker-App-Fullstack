@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -6,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSubcategoryDto, UpdateSubcategoryDto } from './dto';
 import { MembershipRole } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class SubcategoryService {
@@ -43,7 +45,7 @@ export class SubcategoryService {
 
     return this.prisma.subcategory.findMany({
       where: { categoryId },
-      orderBy: { name: 'asc' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -89,9 +91,21 @@ export class SubcategoryService {
       true,
     );
 
-    await this.prisma.subcategory.delete({
-      where: { id: subcategoryId },
-    });
+    try {
+      await this.prisma.subcategory.delete({
+        where: { id: subcategoryId },
+      });
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new ConflictException(
+          'No se puede eliminar: la subcategoría tiene transacciones asociadas.',
+        );
+      }
+      throw error;
+    }
 
     return { message: 'Subcategory deleted successfully' };
   }

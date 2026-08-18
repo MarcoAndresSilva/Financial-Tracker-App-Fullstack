@@ -19,4 +19,19 @@ export class CategoryService {
       `${this.apiUrl}/categories?walletId=${walletId}`
     );
   }
+
+  createCategory(payload: { name: string; walletId: string }) {
+    return this.http.post<Category>(`${this.apiUrl}/categories`, payload);
+  }
+
+  updateCategory(categoryId: string, payload: { name: string }) {
+    return this.http.patch<Category>(
+      `${this.apiUrl}/categories/${categoryId}`,
+      payload
+    );
+  }
+
+  deleteCategory(categoryId: string) {
+    return this.http.delete<void>(`${this.apiUrl}/categories/${categoryId}`);
+  }
 }

@@ -1,0 +1,98 @@
+<div class="categories-container">
+  <div class="page-header">
+    <h1>Categorías</h1>
+    <button mat-flat-button color="primary" (click)="addCategory()">
+      <mat-icon>add</mat-icon>
+      Nueva categoría
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>Cargando categorías...</p>
+  </div>
+
+  <div
+    *ngIf="!isLoading && categories.length === 0"
+    class="empty-state"
+  >
+    <mat-icon>category</mat-icon>
+    <p>Todavía no tenés categorías en esta cartera.</p>
+    <button mat-flat-button color="primary" (click)="addCategory()">
+      Crear la primera
+    </button>
+  </div>
+
+  <div *ngIf="!isLoading && categories.length > 0" class="categories-grid">
+    <mat-card
+      class="category-card"
+      appearance="outlined"
+      *ngFor="let category of categories"
+    >
+      <div class="category-card-header">
+        <span class="category-card-title">{{ category.name }}</span>
+        <span class="category-card-actions">
+          <button
+            mat-icon-button
+            matTooltip="Nueva subcategoría"
+            (click)="addSubcategory(category)"
+          >
+            <mat-icon>add_circle_outline</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            matTooltip="Editar categoría"
+            (click)="editCategory(category)"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            matTooltip="Eliminar categoría"
+            (click)="deleteCategory(category)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </span>
+      </div>
+
+      <div class="category-card-body">
+        <div *ngIf="loadingSubcategoriesFor[category.id]" class="loading-inline">
+          Cargando subcategorías...
+        </div>
+
+        <div
+          *ngIf="
+            !loadingSubcategoriesFor[category.id] &&
+            subcategoriesByCategory[category.id]?.length === 0
+          "
+          class="empty-subcategories"
+        >
+          Sin subcategorías todavía.
+        </div>
+
+        <div
+          class="subcategory-row"
+          *ngFor="let sub of subcategoriesByCategory[category.id]"
+        >
+          <span class="subcategory-name">{{ sub.name }}</span>
+          <span class="subcategory-actions">
+            <button
+              mat-icon-button
+              matTooltip="Editar subcategoría"
+              (click)="editSubcategory(category, sub)"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              matTooltip="Eliminar subcategoría"
+              (click)="deleteSubcategory(category, sub)"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</div>

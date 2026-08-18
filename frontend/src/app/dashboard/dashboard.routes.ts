@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { DashboardLayoutComponent } from './layout/dashboard-layout/dashboard-layout.component';
 import { TransactionListComponent } from './pages/transaction-list/transaction-list.component';
 import { HomeComponent } from './pages/home/home.component';
+import { CategoriesComponent } from './pages/categories/categories.component';
 
 export const DASHBOARD_ROUTES: Routes = [
   {
@@ -13,6 +14,7 @@ export const DASHBOARD_ROUTES: Routes = [
     children: [
       { path: 'home', component: HomeComponent },
       { path: 'transactions', component: TransactionListComponent },
+      { path: 'categories', component: CategoriesComponent },
 
       // Si el usuario va a /dashboard, lo redirigimos a /dashboard/home
       { path: '', redirectTo: 'home', pathMatch: 'full' },

@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSave()">
+  <div mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ data.label }}</mat-label>
+      <input matInput formControlName="name" cdkFocusInitial />
+    </mat-form-field>
+  </div>
+
+  <div mat-dialog-actions align="end">
+    <button mat-button type="button" [mat-dialog-close]="undefined">
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="form.invalid"
+    >
+      Guardar
+    </button>
+  </div>
+</form>

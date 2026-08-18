@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -6,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { MembershipRole } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class CategoryService {
@@ -44,10 +46,10 @@ export class CategoryService {
     // 1. Verificar que el usuario sea al menos MIEMBRO de la cartera.
     await this.checkWalletMembership(userId, walletId);
 
-    // 2. Devolver las categorías.
+    // 2. Devolver las categorías (la más reciente primero).
     return this.prisma.category.findMany({
       where: { walletId },
-      orderBy: { name: 'asc' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -128,10 +130,22 @@ export class CategoryService {
     // 2. Verificar que el usuario sea OWNER de esa cartera.
     await this.checkWalletMembership(userId, category.walletId, true);
 
-    // 3. Eliminar la categoría.
-    await this.prisma.category.delete({
-      where: { id: categoryId },
-    });
+    // 3. Eliminar la categoría (y sus subcategorías, en cascada).
+    try {
+      await this.prisma.category.delete({
+        where: { id: categoryId },
+      });
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new ConflictException(
+          'No se puede eliminar: la categoría (o alguna de sus subcategorías) tiene transacciones asociadas.',
+        );
+      }
+      throw error;
+    }
 
     return { message: 'Category deleted successfully' };
   }
