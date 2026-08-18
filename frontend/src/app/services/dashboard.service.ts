@@ -12,6 +12,12 @@ export interface ExpenseByCategory {
   value: number;
 }
 
+export interface MonthlySummary {
+  totalIncome: number;
+  totalExpense: number;
+  percentageSpent: number | null;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -30,6 +36,18 @@ export class DashboardService {
   getExpensesByCategory(walletId: string) {
     return this.http.get<ExpenseByCategory[]>(
       `${this.apiUrl}/dashboard/expenses-by-category?walletId=${walletId}`
+    );
+  }
+
+  getIncomeByCategory(walletId: string) {
+    return this.http.get<ExpenseByCategory[]>(
+      `${this.apiUrl}/dashboard/income-by-category?walletId=${walletId}`
+    );
+  }
+
+  getMonthlySummary(walletId: string) {
+    return this.http.get<MonthlySummary>(
+      `${this.apiUrl}/dashboard/monthly-summary?walletId=${walletId}`
     );
   }
 }

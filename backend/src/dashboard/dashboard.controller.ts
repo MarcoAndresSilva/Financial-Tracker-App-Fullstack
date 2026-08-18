@@ -32,6 +32,22 @@ export class DashboardController {
     return this.dashboardService.getExpensesByCategory(userId, walletId);
   }
 
+  @Get('income-by-category')
+  getIncomeByCategory(
+    @CurrentUser('id') userId: string,
+    @Query('walletId', ParseUUIDPipe) walletId: string,
+  ) {
+    return this.dashboardService.getIncomeByCategory(userId, walletId);
+  }
+
+  @Get('monthly-summary')
+  getMonthlySummary(
+    @CurrentUser('id') userId: string,
+    @Query('walletId', ParseUUIDPipe) walletId: string,
+  ) {
+    return this.dashboardService.getMonthlySummary(userId, walletId);
+  }
+
   //   @Get('cashflow-over-time')
   //   getCashflowOverTime(
   //     @CurrentUser('id') userId: string,

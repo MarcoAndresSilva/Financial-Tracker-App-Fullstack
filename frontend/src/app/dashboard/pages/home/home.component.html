@@ -1,86 +1,168 @@
 <div class="dashboard-container">
   <h1>Dashboard Principal</h1>
 
-  <!-- Contenedor del Resumen -->
-  <div *ngIf="summary" class="summary-cards">
-    <mat-card class="summary-card income" appearance="outlined">
-      <mat-card-content>
-        <div class="summary-icon income-icon">
-          <mat-icon>trending_up</mat-icon>
-        </div>
-        <div class="summary-text">
-          <span class="summary-label">Ingresos Totales</span>
-          <span class="summary-value">{{
-            summary.totalIncome | currency : "CLP" : "symbol-narrow" : "1.0-0"
-          }}</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="summary-card expense" appearance="outlined">
-      <mat-card-content>
-        <div class="summary-icon expense-icon">
-          <mat-icon>trending_down</mat-icon>
-        </div>
-        <div class="summary-text">
-          <span class="summary-label">Gastos Totales</span>
-          <span class="summary-value">{{
-            summary.totalExpense
-              | currency : "CLP" : "symbol-narrow" : "1.0-0"
-          }}</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="summary-card balance" appearance="outlined">
-      <mat-card-content>
-        <div class="summary-icon balance-icon">
-          <mat-icon>account_balance_wallet</mat-icon>
-        </div>
-        <div class="summary-text">
-          <span class="summary-label">Balance</span>
-          <span class="summary-value">{{
-            summary.balance | currency : "CLP" : "symbol-narrow" : "1.0-0"
-          }}</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-  <div *ngIf="!summary">
-    <p>Cargando resumen...</p>
-  </div>
-
-  <mat-card
-    *ngIf="categoryBars.length > 0"
-    class="chart-container"
-    appearance="outlined"
-  >
-    <h2>Gastos por Categoría</h2>
-
-    <div class="category-bars">
-      <div class="category-row" *ngFor="let cat of categoryBars">
-        <div class="category-label">
-          <span class="category-dot" [style.background]="cat.color"></span>
-          <span class="category-name">{{ cat.name }}</span>
-        </div>
-
-        <div class="category-bar-track">
-          <div
-            class="category-bar-fill"
-            [style.width.%]="cat.percentage"
-            [style.background]="cat.color"
-          ></div>
-        </div>
-
-        <div class="category-values">
-          <span class="category-amount">{{
-            cat.value | currency : "CLP" : "symbol-narrow" : "1.0-0"
-          }}</span>
-          <span class="category-percentage"
-            >{{ cat.percentage | number : "1.0-1" }}%</span
-          >
-        </div>
-      </div>
+  <!-- ======================= ESTE MES ======================= -->
+  <section class="dashboard-section">
+    <div class="section-heading">
+      <h2>{{ currentMonthLabel }}</h2>
+      <span class="section-caption">Movimiento del mes en curso</span>
     </div>
-  </mat-card>
+
+    <mat-card *ngIf="spendingMood" class="mood-card" appearance="outlined">
+      <mat-card-content>
+        <mat-icon class="mood-icon" [style.color]="spendingMood.color">{{
+          spendingMood.icon
+        }}</mat-icon>
+        <div class="mood-text">
+          <span class="mood-message">{{ spendingMood.message }}</span>
+          <span
+            *ngIf="monthlySummary?.percentageSpent !== null"
+            class="mood-detail"
+          >
+            Gastaste el
+            {{ monthlySummary?.percentageSpent | number : "1.0-0" }}% de lo
+            que entró en {{ currentMonthLabel }} ({{
+              monthlySummary?.totalExpense
+                | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}
+            de
+            {{
+              monthlySummary?.totalIncome
+                | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }})
+          </span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div *ngIf="monthlySummary" class="summary-cards">
+      <mat-card class="summary-card income" appearance="outlined">
+        <mat-card-content>
+          <div class="summary-icon income-icon">
+            <mat-icon>trending_up</mat-icon>
+          </div>
+          <div class="summary-text">
+            <span class="summary-label">Ingresos de {{ currentMonthLabel }}</span>
+            <span class="summary-value">{{
+              monthlySummary.totalIncome
+                | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card expense" appearance="outlined">
+        <mat-card-content>
+          <div class="summary-icon expense-icon">
+            <mat-icon>trending_down</mat-icon>
+          </div>
+          <div class="summary-text">
+            <span class="summary-label">Gastos de {{ currentMonthLabel }}</span>
+            <span class="summary-value">{{
+              monthlySummary.totalExpense
+                | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card balance" appearance="outlined">
+        <mat-card-content>
+          <div class="summary-icon balance-icon">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <div class="summary-text">
+            <span class="summary-label">Balance de {{ currentMonthLabel }}</span>
+            <span class="summary-value" [class.negative]="monthlyBalance < 0">{{
+              monthlyBalance | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+
+  <!-- ======================= HISTÓRICO ======================= -->
+  <section class="dashboard-section">
+    <div class="section-heading">
+      <h2>Histórico</h2>
+      <span class="section-caption">Desde que empezaste a usar esta cartera</span>
+    </div>
+
+    <div
+      *ngIf="showInvestmentTip"
+      class="investment-tip"
+    >
+      <mat-icon>lightbulb</mat-icon>
+      <span>
+        Tenés
+        {{ summary?.balance | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
+        ahorrados sin asignar a nada puntual. Podría valer la pena invertir
+        una parte.
+      </span>
+    </div>
+
+    <div *ngIf="summary" class="summary-cards">
+      <mat-card class="summary-card income" appearance="outlined">
+        <mat-card-content>
+          <div class="summary-icon income-icon">
+            <mat-icon>trending_up</mat-icon>
+          </div>
+          <div class="summary-text">
+            <span class="summary-label">Ingresos Totales</span>
+            <span class="summary-value">{{
+              summary.totalIncome | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card expense" appearance="outlined">
+        <mat-card-content>
+          <div class="summary-icon expense-icon">
+            <mat-icon>trending_down</mat-icon>
+          </div>
+          <div class="summary-text">
+            <span class="summary-label">Gastos Totales</span>
+            <span class="summary-value">{{
+              summary.totalExpense
+                | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card balance" appearance="outlined">
+        <mat-card-content>
+          <div class="summary-icon balance-icon">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <div class="summary-text">
+            <span class="summary-label">Balance Total</span>
+            <span
+              class="summary-value"
+              [class.negative]="summary.balance < 0"
+              >{{
+                summary.balance | currency : "CLP" : "symbol-narrow" : "1.0-0"
+              }}</span
+            >
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div *ngIf="!summary">
+      <p>Cargando resumen...</p>
+    </div>
+  </section>
+
+  <div class="category-breakdown-grid">
+    <app-category-bars
+      title="Gastos por Categoría"
+      [bars]="expenseCategoryBars"
+    ></app-category-bars>
+    <app-category-bars
+      title="Ingresos por Subcategoría"
+      [bars]="incomeCategoryBars"
+    ></app-category-bars>
+  </div>
 </div>

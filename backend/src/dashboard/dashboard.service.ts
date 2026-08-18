@@ -39,16 +39,69 @@ export class DashboardService {
     };
   }
 
-  // --- Gastos Agrupados por Categoría ---
-  async getExpensesByCategory(userId: string, walletId: string) {
+  // --- Resumen del Mes Actual (para la alerta de gasto vs. sueldo) ---
+  async getMonthlySummary(userId: string, walletId: string) {
     await this.checkWalletMembership(userId, walletId);
 
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [income, expense] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: {
+          walletId,
+          type: TransactionType.INCOME,
+          date: { gte: startOfMonth },
+        },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: {
+          walletId,
+          type: TransactionType.EXPENSE,
+          date: { gte: startOfMonth },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const totalIncome = income._sum.amount || 0;
+    const totalExpense = expense._sum.amount || 0;
+    const percentageSpent =
+      totalIncome > 0 ? (totalExpense / totalIncome) * 100 : null;
+
+    return { totalIncome, totalExpense, percentageSpent };
+  }
+
+  // --- Gastos Agrupados por Categoría ---
+  // Los gastos suelen concentrarse en pocas categorías grandes (Alimentación,
+  // Transporte, etc.), así que acá el nivel útil de detalle es la categoría.
+  async getExpensesByCategory(userId: string, walletId: string) {
+    await this.checkWalletMembership(userId, walletId);
+    return this.getAmountsBreakdown(walletId, TransactionType.EXPENSE, 'category');
+  }
+
+  // --- Ingresos Agrupados por Subcategoría ---
+  // Los ingresos suelen vivir todos bajo una sola categoría ("Ingresos"), con
+  // el detalle real (sueldo, extras, etc.) en las subcategorías — agrupar por
+  // categoría los mezclaría todos en un solo bloque sin decir nada útil.
+  async getIncomeByCategory(userId: string, walletId: string) {
+    await this.checkWalletMembership(userId, walletId);
+    return this.getAmountsBreakdown(walletId, TransactionType.INCOME, 'subcategory');
+  }
+
+  // --- Función Auxiliar: monto agrupado por categoría o subcategoría, para un tipo de transacción dado ---
+  private async getAmountsBreakdown(
+    walletId: string,
+    type: TransactionType,
+    groupLevel: 'category' | 'subcategory',
+  ) {
     // consulta avanzada de Prisma
-    const expenses = await this.prisma.transaction.groupBy({
-      by: ['subcategoryId'], // Agrupamos por subcategoría
+    const transactions = await this.prisma.transaction.groupBy({
+      by: ['subcategoryId'], // Siempre agrupamos por subcategoría primero
       where: {
         walletId,
-        type: TransactionType.EXPENSE,
+        type,
       },
       _sum: {
         amount: true, // Sumamos el monto para cada grupo
@@ -56,26 +109,30 @@ export class DashboardService {
     });
 
     // La consulta anterior nos da IDs, pero queremos nombres. Necesitamos "enriquecer" los datos.
-    const enrichedExpenses = await Promise.all(
-      expenses.map(async (expense) => {
+    const enriched = await Promise.all(
+      transactions.map(async (item) => {
         const subcategory = await this.prisma.subcategory.findUnique({
-          where: { id: expense.subcategoryId },
+          where: { id: item.subcategoryId },
           include: { category: true },
         });
+        const label =
+          groupLevel === 'subcategory'
+            ? subcategory.name
+            : subcategory.category.name;
         return {
-          categoryName: subcategory.category.name,
-          amount: expense._sum.amount,
+          label,
+          amount: item._sum.amount,
         };
       }),
     );
 
-    // Ahora, si tenemos múltiples subcategorías de la misma categoría, las sumamos. Ej: 'Supermercado' y 'Restaurante' son de la categoría 'Comida'.
-    const finalSummary = enrichedExpenses.reduce(
+    // Si el nivel elegido repite nombre (ej. dos subcategorías "Extras" en categorías distintas), sumamos.
+    const finalSummary = enriched.reduce(
       (acc, item) => {
-        if (!acc[item.categoryName]) {
-          acc[item.categoryName] = 0;
+        if (!acc[item.label]) {
+          acc[item.label] = 0;
         }
-        acc[item.categoryName] += item.amount;
+        acc[item.label] += item.amount;
         return acc;
       },
       {} as Record<string, number>,
