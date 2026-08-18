@@ -1,0 +1,36 @@
+<h2 mat-dialog-title>
+  {{ isEditMode ? "Editar meta" : "Nueva meta de ahorro" }}
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSave()">
+  <div mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre de la meta</mat-label>
+      <input
+        matInput
+        formControlName="name"
+        placeholder="Ej: Viaje, Fondo de emergencia"
+        cdkFocusInitial
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Monto objetivo</mat-label>
+      <input matInput formControlName="targetAmount" type="number" min="1" />
+    </mat-form-field>
+  </div>
+
+  <div mat-dialog-actions align="end">
+    <button mat-button type="button" [mat-dialog-close]="undefined">
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="form.invalid"
+    >
+      Guardar
+    </button>
+  </div>
+</form>

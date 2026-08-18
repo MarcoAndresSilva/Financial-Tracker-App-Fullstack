@@ -1,0 +1,87 @@
+<div class="goals-container">
+  <div class="page-header">
+    <h1>Metas de Ahorro</h1>
+    <button mat-flat-button color="primary" (click)="addGoal()">
+      <mat-icon>add</mat-icon>
+      Nueva meta
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>Cargando metas...</p>
+  </div>
+
+  <div *ngIf="!isLoading && goals.length === 0" class="empty-state">
+    <mat-icon>flag</mat-icon>
+    <p>Todavía no tenés metas de ahorro en esta cartera.</p>
+    <button mat-flat-button color="primary" (click)="addGoal()">
+      Crear la primera
+    </button>
+  </div>
+
+  <div *ngIf="!isLoading && goals.length > 0" class="goals-grid">
+    <mat-card
+      class="goal-card"
+      appearance="outlined"
+      *ngFor="let goal of goals"
+    >
+      <mat-card-content>
+        <div class="goal-header">
+          <span class="goal-name">{{ goal.name }}</span>
+          <mat-icon *ngIf="goal.isComplete" class="complete-icon"
+            >check_circle</mat-icon
+          >
+          <span class="goal-actions">
+            <button
+              mat-icon-button
+              matTooltip="Editar meta"
+              (click)="editGoal(goal)"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              matTooltip="Eliminar meta"
+              (click)="deleteGoal(goal)"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </span>
+        </div>
+
+        <div class="goal-bar-track">
+          <div
+            class="goal-bar-fill"
+            [class.complete]="goal.isComplete"
+            [style.width.%]="goal.percentage"
+          ></div>
+        </div>
+
+        <div class="goal-values">
+          <span
+            >{{
+              goal.currentAmount | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}
+            de
+            {{
+              goal.targetAmount | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}</span
+          >
+          <span class="goal-percentage"
+            >{{ goal.percentage | number : "1.0-0" }}%</span
+          >
+        </div>
+
+        <button
+          mat-stroked-button
+          color="primary"
+          class="contribute-button"
+          (click)="contribute(goal)"
+        >
+          <mat-icon>savings</mat-icon>
+          Agregar ahorro
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

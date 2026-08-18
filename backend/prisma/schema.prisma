@@ -52,6 +52,7 @@ model Wallet {
   memberships  WalletMembership[]
   categories   Category[]
   transactions Transaction[]
+  savingsGoals SavingsGoal[]
 }
 
 model WalletMembership {
@@ -111,4 +112,18 @@ model Transaction {
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
+}
+
+model SavingsGoal {
+  id            String   @id @default(uuid())
+  name          String
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@unique([walletId, name]) // El nombre de la meta debe ser único por cartera
 }

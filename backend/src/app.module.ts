@@ -10,6 +10,7 @@ import { SubcategoryModule } from './subcategory/subcategory.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { WalletModule } from './wallet/wallet.module';
+import { SavingsGoalModule } from './savings-goal/savings-goal.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { WalletModule } from './wallet/wallet.module';
     TransactionModule,
     DashboardModule,
     WalletModule,
+    SavingsGoalModule,
   ],
   controllers: [AppController],
   providers: [AppService],
