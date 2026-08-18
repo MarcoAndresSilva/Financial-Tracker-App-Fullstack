@@ -69,6 +69,11 @@
             }}</mat-icon>
             <span>{{ wallet.name }}</span>
           </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="createSharedWallet()">
+            <mat-icon>group_add</mat-icon>
+            <span>Nueva wallet compartida</span>
+          </button>
         </mat-menu>
       </ng-container>
     </mat-toolbar>

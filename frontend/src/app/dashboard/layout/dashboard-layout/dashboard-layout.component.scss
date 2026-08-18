@@ -38,33 +38,35 @@ $toolbar-height: 64px;
     }
   }
 
+  // Los mat-list-item pintan su texto/ícono con tokens propios de Material
+  // (--mdc-list-list-item-label-text-color, etc.), no con `color` heredado
+  // del <a> — por eso se pisan acá con la API de theming en vez de a mano.
+  // Se aplica a nivel .sidenav (no solo mat-nav-list) para que también
+  // alcance al link de "Cerrar Sesión" del sidenav-footer.
+  @include mat.list-overrides(
+    (
+      list-item-label-text-color: var(--mat-sys-inverse-on-surface),
+      list-item-label-text-weight: 500,
+      list-item-leading-icon-color: rgba(255, 255, 255, 0.65),
+      list-item-hover-label-text-color: white,
+      list-item-hover-leading-icon-color: white,
+      list-item-hover-state-layer-color: white,
+      list-item-hover-state-layer-opacity: 0.08,
+      list-item-focus-state-layer-color: white,
+      list-item-focus-state-layer-opacity: 0.1,
+    )
+  );
+
+  a {
+    border-radius: 0 24px 24px 0;
+    margin-right: 0.75rem;
+    transition: background-color 0.15s ease;
+  }
+
   // Estilos para la lista de navegación
   mat-nav-list {
     flex-grow: 1;
     padding-top: 1rem;
-
-    // Los mat-list-item pintan su texto/ícono con tokens propios de Material
-    // (--mdc-list-list-item-label-text-color, etc.), no con `color` heredado
-    // del <a> — por eso se pisan acá con la API de theming en vez de a mano.
-    @include mat.list-overrides(
-      (
-        list-item-label-text-color: var(--mat-sys-inverse-on-surface),
-        list-item-label-text-weight: 500,
-        list-item-leading-icon-color: rgba(255, 255, 255, 0.65),
-        list-item-hover-label-text-color: white,
-        list-item-hover-leading-icon-color: white,
-        list-item-hover-state-layer-color: white,
-        list-item-hover-state-layer-opacity: 0.08,
-        list-item-focus-state-layer-color: white,
-        list-item-focus-state-layer-opacity: 0.1,
-      )
-    );
-
-    a {
-      border-radius: 0 24px 24px 0;
-      margin-right: 0.75rem;
-      transition: background-color 0.15s ease;
-    }
 
     .active-link {
       background-color: rgba(255, 255, 255, 0.12);

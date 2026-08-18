@@ -9,6 +9,7 @@ import { CategoryModule } from './category/category.module';
 import { SubcategoryModule } from './subcategory/subcategory.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     SubcategoryModule,
     TransactionModule,
     DashboardModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],

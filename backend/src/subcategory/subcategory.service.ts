@@ -22,7 +22,7 @@ export class SubcategoryService {
       throw new NotFoundException('Parent category not found');
     }
 
-    await this.checkWalletMembership(userId, parentCategory.walletId, true);
+    await this.checkWalletMembership(userId, parentCategory.walletId);
 
     return this.prisma.subcategory.create({
       data: {
@@ -71,11 +71,7 @@ export class SubcategoryService {
   ) {
     const subcategory = await this.getSubcategoryById(userId, subcategoryId);
 
-    await this.checkWalletMembership(
-      userId,
-      subcategory.category.walletId,
-      true,
-    );
+    await this.checkWalletMembership(userId, subcategory.category.walletId);
 
     return this.prisma.subcategory.update({
       where: { id: subcategoryId },
@@ -85,11 +81,7 @@ export class SubcategoryService {
 
   async deleteSubcategoryById(userId: string, subcategoryId: string) {
     const subcategory = await this.getSubcategoryById(userId, subcategoryId);
-    await this.checkWalletMembership(
-      userId,
-      subcategory.category.walletId,
-      true,
-    );
+    await this.checkWalletMembership(userId, subcategory.category.walletId);
 
     try {
       await this.prisma.subcategory.delete({

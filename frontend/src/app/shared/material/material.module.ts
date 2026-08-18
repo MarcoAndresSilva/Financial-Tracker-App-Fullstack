@@ -13,6 +13,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 export const MATERIAL_MODULES = [
   MatButtonModule,
@@ -29,4 +31,6 @@ export const MATERIAL_MODULES = [
   MatDialogModule,
   MatMenuModule,
   MatTooltipModule,
+  MatDividerModule,
+  MatCheckboxModule,
 ];

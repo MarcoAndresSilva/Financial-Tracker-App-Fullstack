@@ -100,7 +100,7 @@ export class TransactionService {
     dto: UpdateTransactionDto,
   ) {
     const transaction = await this.getTransactionById(userId, transactionId);
-    await this.checkWalletMembership(userId, transaction.walletId, true);
+    await this.checkWalletMembership(userId, transaction.walletId);
     if (dto.subcategoryId) {
       const subcategory = await this.prisma.subcategory.findUnique({
         where: { id: dto.subcategoryId },
@@ -126,7 +126,7 @@ export class TransactionService {
 
   async deleteTransactionById(userId: string, transactionId: string) {
     const transaction = await this.getTransactionById(userId, transactionId);
-    await this.checkWalletMembership(userId, transaction.walletId, true);
+    await this.checkWalletMembership(userId, transaction.walletId);
     await this.prisma.transaction.delete({
       where: { id: transactionId },
     });

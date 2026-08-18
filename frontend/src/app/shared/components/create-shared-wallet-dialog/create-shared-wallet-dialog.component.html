@@ -1,0 +1,62 @@
+<h2 mat-dialog-title>Nueva wallet compartida</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSave()">
+  <div mat-dialog-content>
+    <p class="dialog-hint">
+      Se crea la wallet y se agrega directamente a la persona invitada —
+      necesita tener una cuenta creada en FinTrack.
+    </p>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre de la wallet</mat-label>
+      <input
+        matInput
+        formControlName="name"
+        placeholder="Ej: Casa, Familia"
+        cdkFocusInitial
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email de tu pareja</mat-label>
+      <input matInput formControlName="inviteEmail" type="email" />
+      <mat-error *ngIf="form.get('inviteEmail')?.hasError('email')">
+        Ingresá un email válido.
+      </mat-error>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="copyCategories" class="copy-checkbox">
+      Copiar categorías desde una wallet existente
+    </mat-checkbox>
+
+    <mat-form-field
+      *ngIf="form.get('copyCategories')?.value"
+      appearance="outline"
+      class="full-width"
+    >
+      <mat-label>Copiar categorías de</mat-label>
+      <mat-select formControlName="sourceWalletId">
+        <mat-option
+          *ngFor="let wallet of userWallets$ | async"
+          [value]="wallet.id"
+        >
+          {{ wallet.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div mat-dialog-actions align="end">
+    <button mat-button type="button" [mat-dialog-close]="undefined">
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="form.invalid"
+    >
+      Crear
+    </button>
+  </div>
+</form>

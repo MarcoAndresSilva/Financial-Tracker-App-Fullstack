@@ -15,14 +15,14 @@ export class CategoryService {
 
   /**
    * Crea una nueva categoría en una cartera específica.
-   * Solo el OWNER de la cartera puede crear categorías.
+   * Cualquier MIEMBRO de la cartera puede crear categorías.
    * @param userId - El ID del usuario que realiza la acción (del token JWT).
    * @param dto - Los datos para crear la categoría (nombre y walletId).
    * @returns La categoría recién creada.
    */
   async createCategory(userId: string, dto: CreateCategoryDto) {
-    // 1. Verificar que el usuario sea OWNER de la cartera.
-    await this.checkWalletMembership(userId, dto.walletId, true);
+    // 1. Verificar que el usuario sea al menos MIEMBRO de la cartera.
+    await this.checkWalletMembership(userId, dto.walletId);
 
     // 2. Crear la categoría.
     const category = await this.prisma.category.create({
@@ -80,7 +80,7 @@ export class CategoryService {
 
   /**
    * Actualiza una categoría por su ID.
-   * Solo el OWNER de la cartera puede actualizarla.
+   * Cualquier MIEMBRO de la cartera puede actualizarla.
    * @param userId - El ID del usuario que realiza la acción.
    * @param categoryId - El ID de la categoría a actualizar.
    * @param dto - Los datos a actualizar.
@@ -100,8 +100,8 @@ export class CategoryService {
       throw new NotFoundException('Category not found');
     }
 
-    // 2. Verificar que el usuario sea OWNER de esa cartera.
-    await this.checkWalletMembership(userId, category.walletId, true);
+    // 2. Verificar que el usuario sea al menos MIEMBRO de esa cartera.
+    await this.checkWalletMembership(userId, category.walletId);
 
     // 3. Actualizar la categoría.
     return this.prisma.category.update({
@@ -112,7 +112,7 @@ export class CategoryService {
 
   /**
    * Elimina una categoría por su ID.
-   * Solo el OWNER de la cartera puede eliminarla.
+   * Cualquier MIEMBRO de la cartera puede eliminarla.
    * @param userId - El ID del usuario que realiza la acción.
    * @param categoryId - El ID de la categoría a eliminar.
    * @returns Un mensaje de confirmación.
@@ -127,8 +127,8 @@ export class CategoryService {
       throw new NotFoundException('Category not found');
     }
 
-    // 2. Verificar que el usuario sea OWNER de esa cartera.
-    await this.checkWalletMembership(userId, category.walletId, true);
+    // 2. Verificar que el usuario sea al menos MIEMBRO de esa cartera.
+    await this.checkWalletMembership(userId, category.walletId);
 
     // 3. Eliminar la categoría (y sus subcategorías, en cascada).
     try {
