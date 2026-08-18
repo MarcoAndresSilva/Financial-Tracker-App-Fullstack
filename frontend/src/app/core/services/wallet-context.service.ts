@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { Wallet } from '../../user/types/user.types';
+import { User, Wallet } from '../../user/types/user.types';
 import { UserService } from '../../user/services/user.service';
 
 @Injectable({
@@ -20,10 +20,16 @@ export class WalletContextService {
   public userWallets$: Observable<Wallet[]> =
     this.userWalletsSubject.asObservable();
 
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  public currentUser$: Observable<User | null> =
+    this.currentUserSubject.asObservable();
+
   // Este método se llamará una sola vez, después del login.
   loadUserWallets() {
     return this.userService.getMe().pipe(
       tap((user) => {
+        this.currentUserSubject.next(user);
+
         // Guardamos todas las carteras del usuario
         this.userWallets = user.memberships.map(
           (membership) => membership.wallet

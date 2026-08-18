@@ -45,11 +45,17 @@
 
       <span class="toolbar-spacer"></span>
 
+      <!-- SALUDO AL USUARIO -->
+      <div class="user-greeting" *ngIf="currentUser$ | async as user">
+        <mat-icon>waving_hand</mat-icon>
+        <span>¡Hola, {{ user.name || user.email }}!</span>
+      </div>
+
       <!-- SELECTOR DE WALLET -->
       <ng-container *ngIf="activeWallet$ | async as activeWallet">
         <button mat-button [matMenuTriggerFor]="walletMenu" class="wallet-selector">
           <mat-icon>account_balance_wallet</mat-icon>
-          {{ activeWallet.name }}
+          <span>Cartera: {{ activeWallet.name }}</span>
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
         <mat-menu #walletMenu="matMenu">

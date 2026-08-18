@@ -21,6 +21,7 @@ export class DashboardLayoutComponent {
   isSidenavOpened = true;
   activeWallet$ = this.walletContext.activeWallet$;
   userWallets$ = this.walletContext.userWallets$;
+  currentUser$ = this.walletContext.currentUser$;
 
   onSelectWallet(wallet: Wallet): void {
     this.walletContext.setActiveWallet(wallet);
