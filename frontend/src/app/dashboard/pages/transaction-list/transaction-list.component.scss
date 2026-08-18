@@ -7,12 +7,30 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filters-toggle {
+  mat-icon {
+    margin: 0 0.15rem;
+  }
 }
 
 .fab-add-button-mobile {
-  position: absolute;
-  bottom: 2rem;
-  right: 2rem;
+  // `fixed`, no `absolute`: el host puede ser más alto que la pantalla
+  // (filtros + lista larga de transacciones), así que "absolute" lo dejaba
+  // pegado al fondo del contenido entero, no de lo que se ve en pantalla.
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
 }
 
 .add-button-desktop {

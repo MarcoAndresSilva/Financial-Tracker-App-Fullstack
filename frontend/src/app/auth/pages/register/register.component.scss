@@ -20,6 +20,41 @@
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
 }
 
+// En mobile la card ocupa toda la pantalla (look de app nativa) en vez de
+// flotar chica en el medio con fondo alrededor, como una "ventana minimizada".
+// El banner del gradiente crece para llenar todo el espacio libre de arriba
+// (no queda con altura fija) y el logo se agranda dentro de ese espacio.
+@media (max-width: 600px) {
+  .login-container {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .login-card {
+    max-width: none;
+    height: 85vh;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-banner {
+    flex: 1;
+    padding: 2rem 1rem;
+  }
+
+  .hero-icon {
+    font-size: 100px;
+    width: 100px;
+    height: 100px;
+  }
+
+  .hero-brand {
+    font-size: 2.25rem;
+  }
+}
+
 .hero-banner {
   display: flex;
   flex-direction: column;

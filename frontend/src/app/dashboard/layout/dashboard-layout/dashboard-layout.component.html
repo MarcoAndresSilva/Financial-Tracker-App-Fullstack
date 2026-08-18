@@ -2,7 +2,7 @@
   <!-- MENÚ LATERAL (SIDENAV) -->
   <mat-sidenav
     #sidenav
-    mode="side"
+    [mode]="(isMobile$ | async) ? 'over' : 'side'"
     [(opened)]="isSidenavOpened"
     class="sidenav"
   >
@@ -12,17 +12,41 @@
     </div>
 
     <mat-nav-list>
-      <a mat-list-item routerLink="home" routerLinkActive="active-link">
+      <a
+        mat-list-item
+        routerLink="home"
+        routerLinkActive="active-link"
+        (click)="onNavLinkClick(sidenav)"
+      >
         <mat-icon matListItemIcon>dashboard</mat-icon>
         <span matListItemTitle>Dashboard</span>
       </a>
-      <a mat-list-item routerLink="transactions" routerLinkActive="active-link">
+      <a
+        mat-list-item
+        routerLink="transactions"
+        routerLinkActive="active-link"
+        (click)="onNavLinkClick(sidenav)"
+      >
         <mat-icon matListItemIcon>receipt_long</mat-icon>
         <span matListItemTitle>Transacciones</span>
       </a>
-      <a mat-list-item routerLink="categories" routerLinkActive="active-link">
+      <a
+        mat-list-item
+        routerLink="categories"
+        routerLinkActive="active-link"
+        (click)="onNavLinkClick(sidenav)"
+      >
         <mat-icon matListItemIcon>category</mat-icon>
         <span matListItemTitle>Categorías</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="goals"
+        routerLinkActive="active-link"
+        (click)="onNavLinkClick(sidenav)"
+      >
+        <mat-icon matListItemIcon>flag</mat-icon>
+        <span matListItemTitle>Metas de Ahorro</span>
       </a>
     </mat-nav-list>
 
@@ -41,7 +65,10 @@
       <button mat-icon-button (click)="sidenav.toggle()">
         <mat-icon>menu</mat-icon>
       </button>
-      <span>Financial Tracker</span>
+      <div class="toolbar-brand">
+        <mat-icon>savings</mat-icon>
+        <span>FinTrack</span>
+      </div>
 
       <span class="toolbar-spacer"></span>
 

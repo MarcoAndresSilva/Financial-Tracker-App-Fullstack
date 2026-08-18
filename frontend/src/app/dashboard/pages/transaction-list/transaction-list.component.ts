@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import {
   finalize,
   startWith,
@@ -10,6 +11,7 @@ import {
   distinctUntilChanged,
   filter,
   Subject,
+  take,
   takeUntil,
 } from 'rxjs';
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
@@ -53,16 +55,18 @@ export class TransactionListComponent implements OnInit {
   private subcategoryService = inject(SubcategoryService);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
+  private breakpointObserver = inject(BreakpointObserver);
 
   private destroy$ = new Subject<void>();
-
-  // TODO: Obtener walletId dinámicamente.
-  // private tempWalletId = '6c2c74ed-a407-4238-b176-c30648c279df';
 
   activeWallet: Wallet | null = null;
   transactions: Transaction[] = [];
   isLoading = true;
   filterForm: FormGroup;
+
+  // En mobile arrancan colapsados para no tapar la lista; en desktop, visibles
+  // como siempre (se decide una sola vez al entrar, después el usuario lo maneja a mano).
+  showFilters = true;
 
   categories: Category[] = [];
   subcategories: Subcategory[] = [];
@@ -89,6 +93,17 @@ export class TransactionListComponent implements OnInit {
       });
     this.setupDependentFilters();
     this.setupFilterFormListener();
+
+    this.breakpointObserver
+      .observe(Breakpoints.Handset)
+      .pipe(take(1))
+      .subscribe((result) => {
+        this.showFilters = !result.matches;
+      });
+  }
+
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
   }
 
   ngOnDestroy(): void {

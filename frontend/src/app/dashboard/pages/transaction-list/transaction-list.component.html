@@ -1,19 +1,33 @@
 <div class="transaction-list-page">
   <div class="header-content">
     <h1>Mis Transacciones</h1>
-    <!-- Botón para DESKTOP -->
-    <button
-      mat-flat-button
-      color="primary"
-      class="add-button-desktop"
-      (click)="openTransactionForm()"
-    >
-      <mat-icon>add</mat-icon>
-      <span>Añadir Transacción</span>
-    </button>
+    <div class="header-actions">
+      <button
+        mat-stroked-button
+        type="button"
+        class="filters-toggle"
+        (click)="toggleFilters()"
+      >
+        <mat-icon>filter_list</mat-icon>
+        <span>Filtros</span>
+        <mat-icon>{{
+          showFilters ? "expand_less" : "expand_more"
+        }}</mat-icon>
+      </button>
+      <!-- Botón para DESKTOP -->
+      <button
+        mat-flat-button
+        color="primary"
+        class="add-button-desktop"
+        (click)="openTransactionForm()"
+      >
+        <mat-icon>add</mat-icon>
+        <span>Añadir Transacción</span>
+      </button>
+    </div>
   </div>
 
-  <section class="filter-section">
+  <section class="filter-section" *ngIf="showFilters">
     <!-- PANEL DE FILTROS! -->
     <form [formGroup]="filterForm" class="filter-panel">
       <!-- Filtro de Tipo (Ingreso/Gasto) -->

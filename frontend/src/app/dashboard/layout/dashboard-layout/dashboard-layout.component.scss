@@ -99,6 +99,15 @@ mat-toolbar {
   top: 0;
   z-index: 10;
 
+  .toolbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
   .toolbar-spacer {
     flex: 1 1 auto;
   }

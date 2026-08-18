@@ -1,7 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSidenav } from '@angular/material/sidenav';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { Subject, map, shareReplay, takeUntil } from 'rxjs';
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { WalletContextService } from '../../../core/services/wallet-context.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -17,21 +20,54 @@ import { CreateSharedWalletDialogComponent } from '../../../shared/components/cr
   templateUrl: './dashboard-layout.component.html',
   styleUrl: './dashboard-layout.component.scss',
 })
-export class DashboardLayoutComponent {
+export class DashboardLayoutComponent implements OnDestroy {
   private walletContext = inject(WalletContextService);
   private authService = inject(AuthService);
   private walletService = inject(WalletService);
   private notification = inject(NotificationService);
   private dialog = inject(MatDialog);
   private router = inject(Router);
+  private breakpointObserver = inject(BreakpointObserver);
+  private destroy$ = new Subject<void>();
 
-  isSidenavOpened = true;
   activeWallet$ = this.walletContext.activeWallet$;
   userWallets$ = this.walletContext.userWallets$;
   currentUser$ = this.walletContext.currentUser$;
 
+  // En mobile el sidenav es un overlay (mode="over"); en desktop es fijo
+  // y siempre visible (mode="side"). Se usa con el pipe async para el modo,
+  // que no tiene conflicto con el toggle manual del usuario.
+  isMobile$ = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
+    map((result) => result.matches),
+    shareReplay(1)
+  );
+
+  // `isSidenavOpened` sí necesita ser una propiedad (no un observable ligado
+  // directo al template) para no pisar el toggle manual del usuario en cada
+  // ciclo de detección de cambios — solo se recalcula cuando cambia el breakpoint.
+  isSidenavOpened = true;
+
+  constructor() {
+    this.isMobile$.pipe(takeUntil(this.destroy$)).subscribe((isMobile) => {
+      this.isSidenavOpened = !isMobile;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   onSelectWallet(wallet: Wallet): void {
     this.walletContext.setActiveWallet(wallet);
+  }
+
+  // Al navegar desde el menú, lo cerramos si es un overlay de mobile
+  // (en desktop, "side", no tiene sentido cerrarlo).
+  onNavLinkClick(sidenav: MatSidenav): void {
+    if (sidenav.mode === 'over') {
+      sidenav.close();
+    }
   }
 
   createSharedWallet(): void {
