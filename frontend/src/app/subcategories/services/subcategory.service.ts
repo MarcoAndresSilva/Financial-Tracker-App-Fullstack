@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 export interface Subcategory {
   id: string;
@@ -11,7 +12,7 @@ export interface Subcategory {
 })
 export class SubcategoryService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = environment.apiUrl;
 
   getSubcategoriesByCategory(categoryId: string) {
     return this.http.get<Subcategory[]>(

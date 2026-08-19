@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 export interface SavingsGoal {
   id: string;
@@ -13,7 +14,7 @@ export interface SavingsGoal {
 })
 export class SavingsGoalService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = environment.apiUrl;
 
   getSavingsGoalsByWallet(walletId: string) {
     return this.http.get<SavingsGoal[]>(

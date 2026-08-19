@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { User } from '../../user/types/user.types';
+import { environment } from '../../../environments/environment';
 
 // interface para la respuesta de la autenticación para tener tipado fuerte
 interface AuthResponse {
@@ -12,7 +13,7 @@ interface AuthResponse {
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

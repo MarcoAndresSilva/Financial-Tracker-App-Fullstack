@@ -1,7 +1,7 @@
 import {
   ApplicationConfig,
   provideZoneChangeDetection,
-  LOCALE_ID,
+  LOCALE_ID, isDevMode,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -15,6 +15,7 @@ import {
   MAT_DATE_LOCALE,
   provideNativeDateAdapter,
 } from '@angular/material/core';
+import { provideServiceWorker } from '@angular/service-worker';
 
 registerLocaleData(localeEsCL);
 
@@ -26,6 +27,13 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     { provide: LOCALE_ID, useValue: 'es-CL' },
     provideNativeDateAdapter(),
-    { provide: MAT_DATE_LOCALE, useValue: 'es-CL' },
+    { 
+      provide: MAT_DATE_LOCALE, 
+      useValue: 'es-CL' }, 
+      provideServiceWorker('ngsw-worker.js', 
+        {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+        }),
   ],
 };

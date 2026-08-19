@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 // Definimos un tipo para la categoría
 export interface Category {
@@ -12,7 +13,7 @@ export interface Category {
 })
 export class CategoryService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = environment.apiUrl;
 
   getCategoriesByWallet(walletId: string) {
     return this.http.get<Category[]>(

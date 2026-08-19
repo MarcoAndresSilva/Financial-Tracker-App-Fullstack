@@ -7,13 +7,14 @@ import {
   Transaction,
 } from './transaction.types';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TransactionService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = environment.apiUrl;
 
   getTransactions(
     filters: GetTransactionsFilterDto

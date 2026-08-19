@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 export interface WalletSummary {
   totalIncome: number;
@@ -23,7 +24,7 @@ export interface MonthlySummary {
 })
 export class DashboardService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = environment.apiUrl;
 
   constructor() {} // n oes encesario por que estoy usando el inject, la forma moderna
 

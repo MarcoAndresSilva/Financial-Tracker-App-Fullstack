@@ -27,6 +27,10 @@ COPY --from=build /usr/src/app/package*.json ./
 COPY --from=build /usr/src/app/node_modules ./node_modules
 # Copiamos el código compilado.
 COPY --from=build /usr/src/app/dist ./dist
+# Copiamos prisma/ (schema + migraciones) para poder aplicarlas al arrancar.
+COPY --from=build /usr/src/app/prisma ./prisma
 
-# El comando que se ejecutará cuando el contenedor se inicie.
-CMD ["node", "dist/main"]
+# Aplica las migraciones pendientes contra la base de datos de producción
+# (`migrate deploy`, no `migrate dev` — no genera migraciones nuevas ni pide
+# confirmación, solo aplica las que ya existen) y recién ahí arranca la app.
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
