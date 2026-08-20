@@ -14,7 +14,23 @@
     margin: 0;
     font-weight: 600;
     color: var(--mat-sys-primary);
+
+    &.page-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
   }
+}
+
+// Verde vivo (el mismo del sidenav/toolbar y del botón de agregar
+// transacción) y más grande que un ícono normal — la wallet es el concepto
+// central de toda la app y el título de cada sección lo debe dejar claro.
+.page-title-icon {
+  color: #4caf50;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 .header-actions {

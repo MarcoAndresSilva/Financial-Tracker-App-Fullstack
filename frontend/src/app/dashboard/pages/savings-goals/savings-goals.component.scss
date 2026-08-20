@@ -8,11 +8,24 @@
     margin: 0;
     font-weight: 600;
     color: var(--mat-sys-primary);
+
+    &.page-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
   }
 
   button mat-icon {
     margin-right: 0.25rem;
   }
+}
+
+.page-title-icon {
+  color: #4caf50;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 .loading,

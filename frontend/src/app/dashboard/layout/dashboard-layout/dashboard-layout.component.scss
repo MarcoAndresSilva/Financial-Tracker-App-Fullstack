@@ -4,6 +4,12 @@
 $sidenav-width: 250px;
 $toolbar-height: 64px;
 
+// Mismo verde que ya se usa en la app para "positivo" (botón de agregar
+// transacción, montos de ingreso) — se reutiliza acá para que los íconos
+// del menú lateral contrasten bien contra el fondo oscuro y mantengan el
+// mismo lenguaje visual en vez de un blanco/gris genérico.
+$sidenav-accent-green: #4caf50;
+
 .sidenav-container {
   height: 100vh;
 }
@@ -47,15 +53,25 @@ $toolbar-height: 64px;
     (
       list-item-label-text-color: var(--mat-sys-inverse-on-surface),
       list-item-label-text-weight: 500,
-      list-item-leading-icon-color: rgba(255, 255, 255, 0.65),
+      list-item-leading-icon-color: $sidenav-accent-green,
       list-item-hover-label-text-color: white,
-      list-item-hover-leading-icon-color: white,
+      list-item-hover-leading-icon-color: $sidenav-accent-green,
       list-item-hover-state-layer-color: white,
       list-item-hover-state-layer-opacity: 0.08,
       list-item-focus-state-layer-color: white,
       list-item-focus-state-layer-opacity: 0.1,
     )
   );
+
+  // En mobile bajamos un poco el tamaño de letra de "Home", "Transacciones",
+  // etc. — el texto se sentía grande para ser un ítem de menú en pantallas angostas.
+  @media (max-width: 700px) {
+    @include mat.list-overrides(
+      (
+        list-item-label-text-size: 0.85rem,
+      )
+    );
+  }
 
   a {
     border-radius: 0 24px 24px 0;
@@ -70,12 +86,12 @@ $toolbar-height: 64px;
 
     .active-link {
       background-color: rgba(255, 255, 255, 0.12);
-      border-left: 3px solid var(--mat-sys-inverse-primary);
+      border-left: 3px solid $sidenav-accent-green;
 
       @include mat.list-overrides(
         (
-          list-item-label-text-color: var(--mat-sys-inverse-primary),
-          list-item-leading-icon-color: var(--mat-sys-inverse-primary),
+          list-item-label-text-color: $sidenav-accent-green,
+          list-item-leading-icon-color: $sidenav-accent-green,
         )
       );
     }
@@ -100,6 +116,10 @@ mat-toolbar {
   // aparte, que nunca se agregó. Se pinta a mano con los tokens del tema;
   // el ícono del menú, el ícono/texto de marca, saludo y selector de wallet
   // heredan `color` normalmente, así que no hace falta tocarlos aparte.
+  // `color="primary"` en el template no alcanza: `mat.theme(...)` (la API
+  // de theming del proyecto) no genera la regla `.mat-toolbar.mat-primary`
+  // que pinta el fondo — eso requeriría además un `mat.toolbar-theme(...)`
+  // aparte, que nunca se agregó. Se pinta a mano con los tokens del tema.
   height: $toolbar-height;
   position: sticky;
   top: 0;
@@ -144,6 +164,15 @@ mat-toolbar {
     align-items: center;
     gap: 0.25rem;
     font-size: 1.05rem;
+
+    // Café bien oscuro (cuero), no el café medio anterior — contra el verde
+    // opaco del toolbar necesita más contraste para leerse como billetera.
+    .wallet-icon {
+      color: #3e2723;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
   }
 }
 

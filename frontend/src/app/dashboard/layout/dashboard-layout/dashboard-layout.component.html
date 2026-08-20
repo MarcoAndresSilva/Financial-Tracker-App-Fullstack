@@ -18,8 +18,8 @@
         routerLinkActive="active-link"
         (click)="onNavLinkClick(sidenav)"
       >
-        <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Dashboard</span>
+        <mat-icon matListItemIcon>home</mat-icon>
+        <span matListItemTitle>Home</span>
       </a>
       <a
         mat-list-item
@@ -81,7 +81,7 @@
       <!-- SELECTOR DE WALLET -->
       <ng-container *ngIf="activeWallet$ | async as activeWallet">
         <button mat-button [matMenuTriggerFor]="walletMenu" class="wallet-selector">
-          <mat-icon>account_balance_wallet</mat-icon>
+          <mat-icon class="wallet-icon">account_balance_wallet</mat-icon>
           <span>Cartera: {{ activeWallet.name }}</span>
           <mat-icon>arrow_drop_down</mat-icon>
         </button>

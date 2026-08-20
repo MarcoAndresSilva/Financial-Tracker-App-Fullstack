@@ -3,7 +3,20 @@
     font-weight: 600;
     margin-bottom: 1.5rem;
     color: var(--mat-sys-primary);
+
+    &.page-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
   }
+}
+
+.page-title-icon {
+  color: #4caf50;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 .dashboard-section {
