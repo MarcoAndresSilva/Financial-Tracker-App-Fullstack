@@ -151,3 +151,19 @@ mat-toolbar {
 .main-content {
   padding: 2rem;
 }
+
+// Fila del selector de wallet: el mat-menu-item y el botón de eliminar son
+// hermanos (no anidados — un botón no puede ir dentro de otro botón).
+.wallet-menu-row {
+  display: flex;
+  align-items: center;
+
+  .wallet-menu-item {
+    flex: 1;
+  }
+
+  .wallet-delete-button {
+    margin-right: 0.5rem;
+    color: var(--mat-sys-error, #c62828);
+  }
+}

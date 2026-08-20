@@ -86,16 +86,27 @@
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
         <mat-menu #walletMenu="matMenu">
-          <button
-            mat-menu-item
-            *ngFor="let wallet of userWallets$ | async"
-            (click)="onSelectWallet(wallet)"
-          >
-            <mat-icon>{{
-              wallet.id === activeWallet.id ? 'check_circle' : 'account_balance_wallet'
-            }}</mat-icon>
-            <span>{{ wallet.name }}</span>
-          </button>
+          <div class="wallet-menu-row" *ngFor="let wallet of myWallets">
+            <button
+              mat-menu-item
+              class="wallet-menu-item"
+              (click)="onSelectWallet(wallet)"
+            >
+              <mat-icon>{{
+                wallet.id === activeWallet.id ? 'check_circle' : 'account_balance_wallet'
+              }}</mat-icon>
+              <span>{{ wallet.name }}</span>
+            </button>
+            <button
+              *ngIf="wallet.role === 'OWNER' && myWallets.length > 1"
+              mat-icon-button
+              class="wallet-delete-button"
+              matTooltip="Eliminar wallet"
+              (click)="deleteWallet(wallet, $event)"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
           <mat-divider></mat-divider>
           <button mat-menu-item (click)="createSharedWallet()">
             <mat-icon>group_add</mat-icon>
