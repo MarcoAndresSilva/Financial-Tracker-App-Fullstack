@@ -26,12 +26,12 @@ export class WalletService {
 
     if (!invitedUser) {
       throw new NotFoundException(
-        'Ese email todavía no tiene una cuenta. Pedile que se registre primero.',
+        'Ese email todavía no tiene una cuenta. Pídele que se registre primero.',
       );
     }
 
     if (invitedUser.id === userId) {
-      throw new ConflictException('No podés invitarte a vos mismo.');
+      throw new ConflictException('No puedes invitarte a ti mismo.');
     }
 
     const categoriesToCopy = dto.copyCategoriesFromWalletId
@@ -74,7 +74,7 @@ export class WalletService {
 
     if (!membership) {
       throw new ForbiddenException(
-        'No podés copiar categorías de una wallet a la que no pertenecés.',
+        'No puedes copiar categorías de una wallet a la que no perteneces.',
       );
     }
 

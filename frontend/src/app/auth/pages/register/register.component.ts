@@ -43,7 +43,7 @@ export class RegisterComponent {
     this.authService.signup(this.registerForm.value).subscribe({
       next: () => {
         this.notification
-          .success('Tu cuenta fue creada con éxito. Ya podés iniciar sesión.', 'Cuenta creada')
+          .success('Tu cuenta fue creada con éxito. Ya puedes iniciar sesión.', 'Cuenta creada')
           .afterClosed()
           .subscribe(() => this.router.navigate(['/auth/login']));
       },

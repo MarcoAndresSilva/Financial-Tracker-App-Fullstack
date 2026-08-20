@@ -52,7 +52,7 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
     return {
       icon: 'sentiment_neutral',
       color: STATUS_COLORS.neutral,
-      message: 'Registrá tus ingresos del mes para activar esta alerta.',
+      message: 'Registra tus ingresos del mes para activar esta alerta.',
     };
   }
   if (percentage < 50) {
@@ -66,7 +66,7 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
     return {
       icon: 'sentiment_satisfied',
       color: STATUS_COLORS.warning,
-      message: 'Vas bien, pero empezá a prestar atención al resto del mes.',
+      message: 'Vas bien, pero empieza a prestar atención al resto del mes.',
     };
   }
   if (percentage <= 100) {
