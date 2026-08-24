@@ -1,19 +1,26 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ContributeDto, CreateSavingsGoalDto, UpdateSavingsGoalDto } from './dto';
+import {
+  ContributeDto,
+  CreateSavingsGoalDto,
+  UpdateSavingsGoalDto,
+} from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { PermissionsService } from '../common/permissions/permissions.service';
 
 @Injectable()
 export class SavingsGoalService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private permissions: PermissionsService,
+  ) {}
 
   async createSavingsGoal(userId: string, dto: CreateSavingsGoalDto) {
-    await this.checkWalletMembership(userId, dto.walletId);
+    await this.permissions.checkWalletMembership(userId, dto.walletId);
 
     try {
       return await this.prisma.savingsGoal.create({
@@ -29,7 +36,7 @@ export class SavingsGoalService {
   }
 
   async getSavingsGoalsByWallet(userId: string, walletId: string) {
-    await this.checkWalletMembership(userId, walletId);
+    await this.permissions.checkWalletMembership(userId, walletId);
     return this.prisma.savingsGoal.findMany({
       where: { walletId },
       orderBy: { createdAt: 'desc' },
@@ -42,7 +49,7 @@ export class SavingsGoalService {
     dto: UpdateSavingsGoalDto,
   ) {
     const goal = await this.getSavingsGoalOrThrow(goalId);
-    await this.checkWalletMembership(userId, goal.walletId);
+    await this.permissions.checkWalletMembership(userId, goal.walletId);
 
     try {
       return await this.prisma.savingsGoal.update({
@@ -57,7 +64,7 @@ export class SavingsGoalService {
   // Suma un aporte al monto actual de la meta (nunca se edita currentAmount a mano).
   async contributeToGoal(userId: string, goalId: string, dto: ContributeDto) {
     const goal = await this.getSavingsGoalOrThrow(goalId);
-    await this.checkWalletMembership(userId, goal.walletId);
+    await this.permissions.checkWalletMembership(userId, goal.walletId);
 
     return this.prisma.savingsGoal.update({
       where: { id: goalId },
@@ -67,7 +74,7 @@ export class SavingsGoalService {
 
   async deleteSavingsGoalById(userId: string, goalId: string) {
     const goal = await this.getSavingsGoalOrThrow(goalId);
-    await this.checkWalletMembership(userId, goal.walletId);
+    await this.permissions.checkWalletMembership(userId, goal.walletId);
 
     await this.prisma.savingsGoal.delete({ where: { id: goalId } });
     return { message: 'Savings goal deleted successfully' };
@@ -93,17 +100,5 @@ export class SavingsGoalService {
       );
     }
     return error;
-  }
-
-  // Cualquier MIEMBRO de la cartera puede crear/editar/aportar/borrar metas
-  // (mismo criterio parejo que categorías y transacciones, Paso 35).
-  private async checkWalletMembership(userId: string, walletId: string) {
-    const membership = await this.prisma.walletMembership.findUnique({
-      where: { userId_walletId: { userId, walletId } },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException('You do not have access to this wallet');
-    }
   }
 }

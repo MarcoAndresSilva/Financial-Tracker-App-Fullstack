@@ -1,17 +1,19 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSubcategoryDto, UpdateSubcategoryDto } from './dto';
-import { MembershipRole } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { PermissionsService } from '../common/permissions/permissions.service';
 
 @Injectable()
 export class SubcategoryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private permissions: PermissionsService,
+  ) {}
 
   async createSubcategory(userId: string, dto: CreateSubcategoryDto) {
     const parentCategory = await this.prisma.category.findUnique({
@@ -22,7 +24,10 @@ export class SubcategoryService {
       throw new NotFoundException('Parent category not found');
     }
 
-    await this.checkWalletMembership(userId, parentCategory.walletId);
+    await this.permissions.checkWalletMembership(
+      userId,
+      parentCategory.walletId,
+    );
 
     return this.prisma.subcategory.create({
       data: {
@@ -41,7 +46,10 @@ export class SubcategoryService {
       throw new NotFoundException('Parent category not found');
     }
 
-    await this.checkWalletMembership(userId, parentCategory.walletId);
+    await this.permissions.checkWalletMembership(
+      userId,
+      parentCategory.walletId,
+    );
 
     return this.prisma.subcategory.findMany({
       where: { categoryId },
@@ -59,7 +67,10 @@ export class SubcategoryService {
       throw new NotFoundException('Subcategory not found');
     }
 
-    await this.checkWalletMembership(userId, subcategory.category.walletId);
+    await this.permissions.checkWalletMembership(
+      userId,
+      subcategory.category.walletId,
+    );
 
     return subcategory;
   }
@@ -71,7 +82,10 @@ export class SubcategoryService {
   ) {
     const subcategory = await this.getSubcategoryById(userId, subcategoryId);
 
-    await this.checkWalletMembership(userId, subcategory.category.walletId);
+    await this.permissions.checkWalletMembership(
+      userId,
+      subcategory.category.walletId,
+    );
 
     return this.prisma.subcategory.update({
       where: { id: subcategoryId },
@@ -81,7 +95,10 @@ export class SubcategoryService {
 
   async deleteSubcategoryById(userId: string, subcategoryId: string) {
     const subcategory = await this.getSubcategoryById(userId, subcategoryId);
-    await this.checkWalletMembership(userId, subcategory.category.walletId);
+    await this.permissions.checkWalletMembership(
+      userId,
+      subcategory.category.walletId,
+    );
 
     try {
       await this.prisma.subcategory.delete({
@@ -100,25 +117,5 @@ export class SubcategoryService {
     }
 
     return { message: 'Subcategory deleted successfully' };
-  }
-
-  private async checkWalletMembership(
-    userId: string,
-    walletId: string,
-    ownerRequired = false,
-  ) {
-    const membership = await this.prisma.walletMembership.findUnique({
-      where: { userId_walletId: { userId, walletId } },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException('You do not have access to this wallet');
-    }
-
-    if (ownerRequired && membership.role !== MembershipRole.OWNER) {
-      throw new ForbiddenException(
-        'You must be an owner to perform this action',
-      );
-    }
   }
 }

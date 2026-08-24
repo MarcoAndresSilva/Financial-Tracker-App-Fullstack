@@ -60,9 +60,7 @@ export class WalletService {
     });
 
     if (walletCount <= 1) {
-      throw new ConflictException(
-        'No puedes eliminar tu única wallet.',
-      );
+      throw new ConflictException('No puedes eliminar tu única wallet.');
     }
 
     await this.prisma.wallet.delete({ where: { id: walletId } });
@@ -93,10 +91,7 @@ export class WalletService {
     }
 
     const categoriesToCopy = dto.copyCategoriesFromWalletId
-      ? await this.getCategoryStructure(
-          userId,
-          dto.copyCategoriesFromWalletId,
-        )
+      ? await this.getCategoryStructure(userId, dto.copyCategoriesFromWalletId)
       : [];
 
     return this.prisma.wallet.create({

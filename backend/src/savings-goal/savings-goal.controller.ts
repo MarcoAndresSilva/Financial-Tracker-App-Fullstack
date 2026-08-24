@@ -14,7 +14,11 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { SavingsGoalService } from './savings-goal.service';
-import { ContributeDto, CreateSavingsGoalDto, UpdateSavingsGoalDto } from './dto';
+import {
+  ContributeDto,
+  CreateSavingsGoalDto,
+  UpdateSavingsGoalDto,
+} from './dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @UseGuards(AuthGuard('jwt'))

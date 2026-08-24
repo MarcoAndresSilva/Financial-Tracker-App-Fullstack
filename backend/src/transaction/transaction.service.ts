@@ -9,14 +9,18 @@ import {
   GetTransactionsFilterDto,
   UpdateTransactionDto,
 } from './dto';
-import { MembershipRole, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { PermissionsService } from '../common/permissions/permissions.service';
 
 @Injectable()
 export class TransactionService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private permissions: PermissionsService,
+  ) {}
 
   async createTransaction(userId: string, dto: CreateTransactionDto) {
-    await this.checkWalletMembership(userId, dto.walletId);
+    await this.permissions.checkWalletMembership(userId, dto.walletId);
     const subcategory = await this.prisma.subcategory.findUnique({
       where: { id: dto.subcategoryId },
       include: { category: true },
@@ -45,7 +49,7 @@ export class TransactionService {
   ) {
     const { walletId, startDate, endDate, type, categoryId, subcategoryId } =
       filterDto;
-    await this.checkWalletMembership(userId, walletId);
+    await this.permissions.checkWalletMembership(userId, walletId);
     const whereClause: Prisma.TransactionWhereInput = {
       walletId,
     };
@@ -90,7 +94,7 @@ export class TransactionService {
     if (!transaction) {
       throw new NotFoundException('Transaction not found');
     }
-    await this.checkWalletMembership(userId, transaction.walletId);
+    await this.permissions.checkWalletMembership(userId, transaction.walletId);
     return transaction;
   }
 
@@ -100,7 +104,7 @@ export class TransactionService {
     dto: UpdateTransactionDto,
   ) {
     const transaction = await this.getTransactionById(userId, transactionId);
-    await this.checkWalletMembership(userId, transaction.walletId);
+    await this.permissions.checkWalletMembership(userId, transaction.walletId);
     if (dto.subcategoryId) {
       const subcategory = await this.prisma.subcategory.findUnique({
         where: { id: dto.subcategoryId },
@@ -126,28 +130,10 @@ export class TransactionService {
 
   async deleteTransactionById(userId: string, transactionId: string) {
     const transaction = await this.getTransactionById(userId, transactionId);
-    await this.checkWalletMembership(userId, transaction.walletId);
+    await this.permissions.checkWalletMembership(userId, transaction.walletId);
     await this.prisma.transaction.delete({
       where: { id: transactionId },
     });
     return { message: 'Transaction deleted successfully' };
-  }
-
-  private async checkWalletMembership(
-    userId: string,
-    walletId: string,
-    ownerRequired = false,
-  ) {
-    const membership = await this.prisma.walletMembership.findUnique({
-      where: { userId_walletId: { userId, walletId } },
-    });
-    if (!membership) {
-      throw new ForbiddenException('You do not have access to this wallet');
-    }
-    if (ownerRequired && membership.role !== MembershipRole.OWNER) {
-      throw new ForbiddenException(
-        'You must be an owner to perform this action',
-      );
-    }
   }
 }

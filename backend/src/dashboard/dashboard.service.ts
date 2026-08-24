@@ -1,15 +1,19 @@
 // backend/src/dashboard/dashboard.service.ts
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionType } from '@prisma/client';
+import { PermissionsService } from '../common/permissions/permissions.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private permissions: PermissionsService,
+  ) {}
 
   // --- Resumen General de la Cartera ---
   async getWalletSummary(userId: string, walletId: string) {
-    await this.checkWalletMembership(userId, walletId);
+    await this.permissions.checkWalletMembership(userId, walletId);
 
     // Hacemos dos cálculos en paralelo para más eficiencia
     const [income, expense] = await Promise.all([
@@ -41,7 +45,7 @@ export class DashboardService {
 
   // --- Resumen del Mes Actual (para la alerta de gasto vs. sueldo) ---
   async getMonthlySummary(userId: string, walletId: string) {
-    await this.checkWalletMembership(userId, walletId);
+    await this.permissions.checkWalletMembership(userId, walletId);
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -77,8 +81,12 @@ export class DashboardService {
   // Los gastos suelen concentrarse en pocas categorías grandes (Alimentación,
   // Transporte, etc.), así que acá el nivel útil de detalle es la categoría.
   async getExpensesByCategory(userId: string, walletId: string) {
-    await this.checkWalletMembership(userId, walletId);
-    return this.getAmountsBreakdown(walletId, TransactionType.EXPENSE, 'category');
+    await this.permissions.checkWalletMembership(userId, walletId);
+    return this.getAmountsBreakdown(
+      walletId,
+      TransactionType.EXPENSE,
+      'category',
+    );
   }
 
   // --- Ingresos Agrupados por Subcategoría ---
@@ -86,8 +94,12 @@ export class DashboardService {
   // el detalle real (sueldo, extras, etc.) en las subcategorías — agrupar por
   // categoría los mezclaría todos en un solo bloque sin decir nada útil.
   async getIncomeByCategory(userId: string, walletId: string) {
-    await this.checkWalletMembership(userId, walletId);
-    return this.getAmountsBreakdown(walletId, TransactionType.INCOME, 'subcategory');
+    await this.permissions.checkWalletMembership(userId, walletId);
+    return this.getAmountsBreakdown(
+      walletId,
+      TransactionType.INCOME,
+      'subcategory',
+    );
   }
 
   // --- Función Auxiliar: monto agrupado por categoría o subcategoría, para un tipo de transacción dado ---
@@ -143,16 +155,5 @@ export class DashboardService {
       name,
       value,
     }));
-  }
-
-  // --- Función Auxiliar de Permisos --- (La movemos aquí también)
-  private async checkWalletMembership(userId: string, walletId: string) {
-    const membership = await this.prisma.walletMembership.findUnique({
-      where: { userId_walletId: { userId, walletId } },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException('You do not have access to this wallet');
-    }
   }
 }

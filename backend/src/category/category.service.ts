@@ -1,17 +1,19 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
-import { MembershipRole } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { PermissionsService } from '../common/permissions/permissions.service';
 
 @Injectable()
 export class CategoryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private permissions: PermissionsService,
+  ) {}
 
   /**
    * Crea una nueva categoría en una cartera específica.
@@ -22,7 +24,7 @@ export class CategoryService {
    */
   async createCategory(userId: string, dto: CreateCategoryDto) {
     // 1. Verificar que el usuario sea al menos MIEMBRO de la cartera.
-    await this.checkWalletMembership(userId, dto.walletId);
+    await this.permissions.checkWalletMembership(userId, dto.walletId);
 
     // 2. Crear la categoría.
     const category = await this.prisma.category.create({
@@ -44,7 +46,7 @@ export class CategoryService {
    */
   async getCategoriesByWallet(userId: string, walletId: string) {
     // 1. Verificar que el usuario sea al menos MIEMBRO de la cartera.
-    await this.checkWalletMembership(userId, walletId);
+    await this.permissions.checkWalletMembership(userId, walletId);
 
     // 2. Devolver las categorías (la más reciente primero).
     return this.prisma.category.findMany({
@@ -72,7 +74,7 @@ export class CategoryService {
     }
 
     // 3. Verificar que el usuario sea MIEMBRO de la cartera a la que pertenece la categoría.
-    await this.checkWalletMembership(userId, category.walletId);
+    await this.permissions.checkWalletMembership(userId, category.walletId);
 
     // 4. Devolver la categoría.
     return category;
@@ -101,7 +103,7 @@ export class CategoryService {
     }
 
     // 2. Verificar que el usuario sea al menos MIEMBRO de esa cartera.
-    await this.checkWalletMembership(userId, category.walletId);
+    await this.permissions.checkWalletMembership(userId, category.walletId);
 
     // 3. Actualizar la categoría.
     return this.prisma.category.update({
@@ -128,7 +130,7 @@ export class CategoryService {
     }
 
     // 2. Verificar que el usuario sea al menos MIEMBRO de esa cartera.
-    await this.checkWalletMembership(userId, category.walletId);
+    await this.permissions.checkWalletMembership(userId, category.walletId);
 
     // 3. Eliminar la categoría (y sus subcategorías, en cascada).
     try {
@@ -148,37 +150,5 @@ export class CategoryService {
     }
 
     return { message: 'Category deleted successfully' };
-  }
-
-  /**
-   * Función auxiliar para verificar la membresía y los permisos de un usuario en una cartera.
-   * Reutilizable en todos los métodos del CRUD.
-   * @param userId - El ID del usuario a verificar.
-   * @param walletId - El ID de la cartera a verificar.
-   * @param ownerRequired - Si es true, verifica que el usuario sea OWNER. Por defecto es false.
-   */
-  private async checkWalletMembership(
-    userId: string,
-    walletId: string,
-    ownerRequired = false,
-  ) {
-    const membership = await this.prisma.walletMembership.findUnique({
-      where: {
-        userId_walletId: {
-          userId,
-          walletId,
-        },
-      },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException('You do not have access to this wallet');
-    }
-
-    if (ownerRequired && membership.role !== MembershipRole.OWNER) {
-      throw new ForbiddenException(
-        'You must be an owner to perform this action',
-      );
-    }
   }
 }
