@@ -12,6 +12,40 @@
   }
 }
 
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+
+  h1.page-title {
+    margin-bottom: 0;
+  }
+}
+
+// Alta rápida de transacción, en el header al lado opuesto del título: el mismo
+// FAB circular de TransactionListComponent replicado en el Home para mobile, y
+// un botón con texto en desktop. El FAB va anclado al header (no `position:
+// fixed` al fondo como en Transacciones) porque acá se pidió expresamente
+// arriba, frente a "Home".
+.add-transaction-desktop {
+  display: none;
+}
+
+.add-transaction-mobile {
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .add-transaction-desktop {
+    display: inline-flex;
+  }
+  .add-transaction-mobile {
+    display: none;
+  }
+}
+
 .page-title-icon {
   color: #4caf50;
   font-size: 32px;
@@ -48,6 +82,37 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+// Encabezado del bloque "Resumen": título + caption a la izquierda, toggle
+// mes/histórico a la derecha.
+.summary-heading {
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.section-heading__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.summary-toggle {
+  --mat-standard-button-toggle-height: 34px;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 600px) {
+  .summary-toggle {
+    width: 100%;
+
+    mat-button-toggle {
+      flex: 1;
+    }
+  }
+}
+
 .investment-tip {
   display: flex;
   align-items: center;
@@ -64,39 +129,170 @@
   }
 }
 
+// Card dividida: panel de estado (anillo + carita) | panel de info.
 .mood-card {
   border-radius: 16px !important;
   margin-top: 0.5rem;
+  padding: 0 !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 
-  mat-card-content {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    padding: 1.25rem 1.5rem !important;
+  &:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-2px);
   }
 }
 
-.mood-icon {
-  font-size: 56px;
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
-}
-
-.mood-text {
+.mood-state {
+  flex: 1 1 50%;
+  min-width: 0;
+  padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: color-mix(in srgb, var(--mood-color) 12%, var(--mat-sys-surface));
+}
+
+.mood-state__meta {
+  display: contents;
+}
+
+.mood-ring {
+  position: relative;
+  width: 104px;
+  height: 104px;
+}
+
+.mood-ring__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.mood-ring__track,
+.mood-ring__arc {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+}
+
+.mood-ring__track {
+  stroke: color-mix(in srgb, var(--mood-color) 22%, var(--mat-sys-surface));
+}
+
+.mood-ring__arc {
+  stroke: var(--mood-color);
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.mood-card--over .mood-ring__arc {
+  filter: drop-shadow(0 0 3px var(--mood-color));
+}
+
+.mood-ring__icon {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+  color: var(--mood-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mood-pct {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--mood-color);
+}
+
+.mood-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--mood-color);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.mood-info {
+  flex: 1 1 50%;
+  min-width: 0;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.4rem;
 }
 
 .mood-message {
+  margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
+  color: var(--mat-sys-primary);
 }
 
-.mood-detail {
-  font-size: 0.85rem;
-  color: var(--mat-sys-on-surface-variant);
+.mood-amounts {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--mat-sys-on-surface);
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 600px) {
+  .mood-card {
+    flex-direction: column;
+  }
+
+  .mood-state {
+    flex: none;
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .mood-info {
+    flex: none;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .mood-state__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .mood-ring {
+    width: 76px;
+    height: 76px;
+    flex-shrink: 0;
+  }
+
+  .mood-ring__icon {
+    width: 34px;
+    height: 34px;
+    font-size: 34px;
+  }
+
+  .mood-info {
+    padding: 1rem 1.25rem;
+  }
 }
 
 .summary-cards {

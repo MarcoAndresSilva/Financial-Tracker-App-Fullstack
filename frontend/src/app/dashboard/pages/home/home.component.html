@@ -1,99 +1,130 @@
 <div class="dashboard-container">
-  <h1 class="page-title">
-    <mat-icon class="page-title-icon">home</mat-icon>
-    Home
-  </h1>
+  <div class="page-header">
+    <h1 class="page-title">
+      <mat-icon class="page-title-icon">home</mat-icon>
+      Home
+    </h1>
+    <!-- Alta rápida de transacción: botón con texto en desktop, FAB en mobile -->
+    <button
+      mat-flat-button
+      color="primary"
+      class="add-transaction-desktop"
+      (click)="openTransactionForm()"
+    >
+      <mat-icon>add</mat-icon>
+      <span>Añadir transacción</span>
+    </button>
+    <button
+      mat-fab
+      color="primary"
+      class="add-transaction-mobile"
+      aria-label="Añadir transacción"
+      (click)="openTransactionForm()"
+    >
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
 
-  <!-- ======================= ESTE MES ======================= -->
+  <!-- ======================= ALERTA DE GASTO DEL MES ======================= -->
   <section class="dashboard-section">
     <div class="section-heading">
       <h2>{{ currentMonthLabel }}</h2>
-      <span class="section-caption">Movimiento del mes en curso</span>
+      <span class="section-caption">Cómo vas con el gasto del mes</span>
     </div>
 
-    <mat-card *ngIf="spendingMood" class="mood-card" appearance="outlined">
-      <mat-card-content>
-        <mat-icon class="mood-icon" [style.color]="spendingMood.color">{{
-          spendingMood.icon
-        }}</mat-icon>
-        <div class="mood-text">
-          <span class="mood-message">{{ spendingMood.message }}</span>
+    <mat-card
+      *ngIf="spendingMood"
+      class="mood-card"
+      appearance="outlined"
+      [style.--mood-color]="spendingMood.color"
+      [class.mood-card--over]="isOverspent"
+    >
+      <!-- Panel de estado -->
+      <div class="mood-state">
+        <div
+          class="mood-ring"
+          role="progressbar"
+          [attr.aria-valuenow]="monthlySummary?.percentageSpent ?? null"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-label]="'Gasto del mes: ' + spendingMood.label"
+        >
+          <svg viewBox="0 0 100 100" class="mood-ring__svg" aria-hidden="true">
+            <circle
+              class="mood-ring__track"
+              cx="50"
+              cy="50"
+              r="44"
+              pathLength="100"
+            ></circle>
+            <circle
+              *ngIf="monthlySummary?.percentageSpent !== null"
+              class="mood-ring__arc"
+              cx="50"
+              cy="50"
+              r="44"
+              pathLength="100"
+              [style.stroke-dashoffset]="100 - moodRingPct"
+            ></circle>
+          </svg>
+          <mat-icon class="mood-ring__icon">{{ spendingMood.icon }}</mat-icon>
+        </div>
+
+        <div class="mood-state__meta">
           <span
             *ngIf="monthlySummary?.percentageSpent !== null"
-            class="mood-detail"
+            class="mood-pct"
           >
-            Gastaste el
-            {{ monthlySummary?.percentageSpent | number : "1.0-0" }}% de lo
-            que entró en {{ currentMonthLabel }} ({{
-              monthlySummary?.totalExpense
-                | currency : "CLP" : "symbol-narrow" : "1.0-0"
-            }}
-            de
-            {{
-              monthlySummary?.totalIncome
-                | currency : "CLP" : "symbol-narrow" : "1.0-0"
-            }})
+            {{ monthlySummary?.percentageSpent | number : "1.0-0" }}%
           </span>
+          <span class="mood-label">{{ spendingMood.label }}</span>
         </div>
-      </mat-card-content>
+      </div>
+
+      <!-- Panel de info -->
+      <div class="mood-info">
+        <p class="mood-message">{{ spendingMood.message }}</p>
+        <p
+          *ngIf="monthlySummary?.percentageSpent !== null"
+          class="mood-amounts"
+        >
+          <strong>{{
+            monthlySummary?.totalExpense
+              | currency : "CLP" : "symbol-narrow" : "1.0-0"
+          }}</strong>
+          gastados de
+          <strong>{{
+            monthlySummary?.totalIncome
+              | currency : "CLP" : "symbol-narrow" : "1.0-0"
+          }}</strong>
+          este {{ currentMonthLabel }}
+        </p>
+      </div>
     </mat-card>
 
-    <div *ngIf="monthlySummary" class="summary-cards">
-      <mat-card class="summary-card income" appearance="outlined">
-        <mat-card-content>
-          <div class="summary-icon income-icon">
-            <mat-icon>trending_up</mat-icon>
-          </div>
-          <div class="summary-text">
-            <span class="summary-label">Ingresos de {{ currentMonthLabel }}</span>
-            <span class="summary-value">{{
-              monthlySummary.totalIncome
-                | currency : "CLP" : "symbol-narrow" : "1.0-0"
-            }}</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="summary-card expense" appearance="outlined">
-        <mat-card-content>
-          <div class="summary-icon expense-icon">
-            <mat-icon>trending_down</mat-icon>
-          </div>
-          <div class="summary-text">
-            <span class="summary-label">Gastos de {{ currentMonthLabel }}</span>
-            <span class="summary-value">{{
-              monthlySummary.totalExpense
-                | currency : "CLP" : "symbol-narrow" : "1.0-0"
-            }}</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="summary-card balance" appearance="outlined">
-        <mat-card-content>
-          <div class="summary-icon balance-icon">
-            <mat-icon>account_balance_wallet</mat-icon>
-          </div>
-          <div class="summary-text">
-            <span class="summary-label">Balance de {{ currentMonthLabel }}</span>
-            <span class="summary-value" [class.negative]="monthlyBalance < 0">{{
-              monthlyBalance | currency : "CLP" : "symbol-narrow" : "1.0-0"
-            }}</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
   </section>
 
-  <!-- ======================= HISTÓRICO ======================= -->
+  <!-- ======================= RESUMEN (mes / histórico) ======================= -->
   <section class="dashboard-section">
-    <div class="section-heading">
-      <h2>Histórico</h2>
-      <span class="section-caption">Desde que empezaste a usar esta cartera</span>
+    <div class="section-heading summary-heading">
+      <div class="section-heading__title">
+        <h2>Resumen</h2>
+        <span class="section-caption">{{ summaryCaption }}</span>
+      </div>
+      <mat-button-toggle-group
+        class="summary-toggle"
+        [value]="summaryView"
+        (change)="summaryView = $event.value"
+        hideSingleSelectionIndicator
+        aria-label="Periodo del resumen"
+      >
+        <mat-button-toggle value="mes">Este mes</mat-button-toggle>
+        <mat-button-toggle value="historico">Histórico</mat-button-toggle>
+      </mat-button-toggle-group>
     </div>
 
     <div
-      *ngIf="showInvestmentTip"
+      *ngIf="summaryView === 'historico' && showInvestmentTip"
       class="investment-tip"
     >
       <mat-icon>lightbulb</mat-icon>
@@ -105,16 +136,16 @@
       </span>
     </div>
 
-    <div *ngIf="summary" class="summary-cards">
+    <div *ngIf="activeSummary as s; else loadingSummary" class="summary-cards">
       <mat-card class="summary-card income" appearance="outlined">
         <mat-card-content>
           <div class="summary-icon income-icon">
             <mat-icon>trending_up</mat-icon>
           </div>
           <div class="summary-text">
-            <span class="summary-label">Ingresos Totales</span>
+            <span class="summary-label">Ingresos</span>
             <span class="summary-value">{{
-              summary.totalIncome | currency : "CLP" : "symbol-narrow" : "1.0-0"
+              s.income | currency : "CLP" : "symbol-narrow" : "1.0-0"
             }}</span>
           </div>
         </mat-card-content>
@@ -126,10 +157,9 @@
             <mat-icon>trending_down</mat-icon>
           </div>
           <div class="summary-text">
-            <span class="summary-label">Gastos Totales</span>
+            <span class="summary-label">Gastos</span>
             <span class="summary-value">{{
-              summary.totalExpense
-                | currency : "CLP" : "symbol-narrow" : "1.0-0"
+              s.expense | currency : "CLP" : "symbol-narrow" : "1.0-0"
             }}</span>
           </div>
         </mat-card-content>
@@ -141,21 +171,17 @@
             <mat-icon>account_balance_wallet</mat-icon>
           </div>
           <div class="summary-text">
-            <span class="summary-label">Balance Total</span>
-            <span
-              class="summary-value"
-              [class.negative]="summary.balance < 0"
-              >{{
-                summary.balance | currency : "CLP" : "symbol-narrow" : "1.0-0"
-              }}</span
-            >
+            <span class="summary-label">Balance</span>
+            <span class="summary-value" [class.negative]="s.balance < 0">{{
+              s.balance | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}</span>
           </div>
         </mat-card-content>
       </mat-card>
     </div>
-    <div *ngIf="!summary">
+    <ng-template #loadingSummary>
       <p>Cargando resumen...</p>
-    </div>
+    </ng-template>
   </section>
 
   <div class="category-breakdown-grid">
@@ -168,4 +194,5 @@
       [bars]="incomeCategoryBars"
     ></app-category-bars>
   </div>
+
 </div>

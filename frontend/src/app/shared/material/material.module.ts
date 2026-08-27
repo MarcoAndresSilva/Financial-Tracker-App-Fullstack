@@ -1,5 +1,6 @@
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,6 +19,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 export const MATERIAL_MODULES = [
   MatButtonModule,
+  MatButtonToggleModule,
   MatFormFieldModule,
   MatInputModule,
   MatIconModule,

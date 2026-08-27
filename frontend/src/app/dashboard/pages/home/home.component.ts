@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
+import { TransactionFormComponent } from '../../../transactions/components/transaction-form/transaction-form.component';
 import {
   DashboardService,
   ExpenseByCategory,
@@ -44,6 +46,7 @@ const STATUS_COLORS = {
 export interface SpendingMood {
   icon: string;
   color: string;
+  label: string;
   message: string;
 }
 
@@ -52,6 +55,7 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
     return {
       icon: 'sentiment_neutral',
       color: STATUS_COLORS.neutral,
+      label: 'Sin datos',
       message: 'Registra tus ingresos del mes para activar esta alerta.',
     };
   }
@@ -59,6 +63,7 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
     return {
       icon: 'sentiment_very_satisfied',
       color: STATUS_COLORS.good,
+      label: 'Vas tranquilo',
       message: 'Vas tranquilo, todavía te queda bastante margen este mes.',
     };
   }
@@ -66,6 +71,7 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
     return {
       icon: 'sentiment_satisfied',
       color: STATUS_COLORS.warning,
+      label: 'Atención',
       message: 'Vas bien, pero empieza a prestar atención al resto del mes.',
     };
   }
@@ -73,12 +79,14 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
     return {
       icon: 'sentiment_dissatisfied',
       color: STATUS_COLORS.serious,
+      label: 'Cuidado',
       message: 'Cuidado, estás cerca de gastar todo lo que entró este mes.',
     };
   }
   return {
     icon: 'sentiment_very_dissatisfied',
     color: STATUS_COLORS.critical,
+    label: 'Te pasaste',
     message: 'Te pasaste de lo que ganaste este mes.',
   };
 }
@@ -93,11 +101,18 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
 export class HomeComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private walletContext = inject(WalletContextService);
+  private dialog = inject(MatDialog);
   private destroy$ = new Subject<void>();
 
+  activeWallet: Wallet | null = null;
   summary?: WalletSummary;
   monthlySummary?: MonthlySummary;
   monthlyBalance = 0;
+
+  // Lente del bloque "Resumen": el mes en curso o todo el histórico de la wallet.
+  // Antes eran dos filas de cards idénticas una debajo de otra — al empezar
+  // mostraban los mismos números y se veía repetido.
+  summaryView: 'mes' | 'historico' = 'mes';
   spendingMood?: SpendingMood;
   showInvestmentTip = false;
   expenseCategoryBars: CategoryBar[] = [];
@@ -110,14 +125,69 @@ export class HomeComponent implements OnInit {
     return month.charAt(0).toUpperCase() + month.slice(1);
   })();
 
+  // Arco del anillo de gasto: el % real puede pasar de 100, pero el arco se llena al tope.
+  get moodRingPct(): number {
+    const p = this.monthlySummary?.percentageSpent ?? 0;
+    return Math.max(0, Math.min(p, 100));
+  }
+
+  get isOverspent(): boolean {
+    return (this.monthlySummary?.percentageSpent ?? 0) > 100;
+  }
+
+  get summaryCaption(): string {
+    return this.summaryView === 'mes'
+      ? `Movimiento de ${this.currentMonthLabel}`
+      : 'Desde que empezaste a usar esta cartera';
+  }
+
+  // La terna Ingresos/Gastos/Balance según el lente activo. `null` mientras
+  // la llamada correspondiente todavía no responde.
+  get activeSummary(): { income: number; expense: number; balance: number } | null {
+    if (this.summaryView === 'mes') {
+      return this.monthlySummary
+        ? {
+            income: this.monthlySummary.totalIncome,
+            expense: this.monthlySummary.totalExpense,
+            balance: this.monthlyBalance,
+          }
+        : null;
+    }
+    return this.summary
+      ? {
+          income: this.summary.totalIncome,
+          expense: this.summary.totalExpense,
+          balance: this.summary.balance,
+        }
+      : null;
+  }
+
   ngOnInit(): void {
     this.walletContext.activeWallet$
       .pipe(takeUntil(this.destroy$))
       .subscribe((activeWallet) => {
+        this.activeWallet = activeWallet;
         if (activeWallet) {
           this.loadDashboardData(activeWallet);
         }
       });
+  }
+
+  // Alta rápida de transacción sin salir del Home: mismo diálogo que usa
+  // TransactionListComponent. Al cerrarse con éxito se recargan los agregados
+  // del dashboard (resumen del mes, carita, barras) para reflejar el movimiento.
+  openTransactionForm(): void {
+    if (!this.activeWallet) return;
+    const dialogRef = this.dialog.open(TransactionFormComponent, {
+      width: '500px',
+      data: { walletId: this.activeWallet.id },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result && this.activeWallet) {
+        this.loadDashboardData(this.activeWallet);
+      }
+    });
   }
 
   ngOnDestroy(): void {
