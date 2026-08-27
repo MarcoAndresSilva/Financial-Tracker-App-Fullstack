@@ -193,7 +193,6 @@ export class TransactionListComponent implements OnInit {
 
   openEditForm(transaction: Transaction): void {
     if (!this.activeWallet) return;
-    console.log('Abriendo diálogo para editar:', transaction);
     const dialogRef = this.dialog.open(TransactionFormComponent, {
       width: '500px',
       data: {
@@ -226,7 +225,6 @@ export class TransactionListComponent implements OnInit {
       .subscribe(() => {
         this.transactionService.deleteTransaction(transactionId).subscribe({
           next: () => {
-            console.log('Transacción eliminada con éxito');
             this.loadTransactions();
           },
           error: (err) => {
