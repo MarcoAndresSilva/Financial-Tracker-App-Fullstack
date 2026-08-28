@@ -85,7 +85,29 @@
           <span>Cartera: {{ activeWallet.name }}</span>
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
-        <mat-menu #walletMenu="matMenu">
+        <mat-menu #walletMenu="matMenu" class="wallet-menu">
+          <!-- MIEMBROS — solo si la wallet activa es compartida -->
+          <ng-container
+            *ngIf="activeWallet.type === 'SHARED' && activeWalletMembers.length"
+          >
+            <div class="wallet-members-title">Miembros</div>
+            <div class="wallet-member" *ngFor="let member of activeWalletMembers">
+              <mat-icon class="wallet-member-icon">person</mat-icon>
+              <span class="wallet-member-name">
+                {{ member.name || member.email }}
+                <span
+                  class="wallet-member-you"
+                  *ngIf="member.id === (currentUser$ | async)?.id"
+                  >(tú)</span
+                >
+              </span>
+              <span class="wallet-member-role">
+                {{ member.role === 'OWNER' ? 'Dueño' : 'Miembro' }}
+              </span>
+            </div>
+            <mat-divider></mat-divider>
+          </ng-container>
+
           <div class="wallet-menu-row" *ngFor="let wallet of myWallets">
             <button
               mat-menu-item

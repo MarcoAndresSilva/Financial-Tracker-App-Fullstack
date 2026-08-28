@@ -25,6 +25,14 @@ export class WalletController {
     return this.walletService.getMyWallets(userId);
   }
 
+  @Get(':id/members')
+  getWalletMembers(
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) walletId: string,
+  ) {
+    return this.walletService.getWalletMembers(userId, walletId);
+  }
+
   @Post('shared')
   createSharedWallet(
     @CurrentUser('id') userId: string,

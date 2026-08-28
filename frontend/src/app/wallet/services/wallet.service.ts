@@ -8,6 +8,13 @@ export interface MyWallet extends Wallet {
   transactionCount: number;
 }
 
+export interface WalletMember {
+  id: string;
+  name: string | null;
+  email: string;
+  role: 'OWNER' | 'MEMBER';
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -17,6 +24,12 @@ export class WalletService {
 
   getMyWallets() {
     return this.http.get<MyWallet[]>(`${this.apiUrl}/wallets`);
+  }
+
+  getWalletMembers(walletId: string) {
+    return this.http.get<WalletMember[]>(
+      `${this.apiUrl}/wallets/${walletId}/members`,
+    );
   }
 
   createSharedWallet(payload: {

@@ -20,7 +20,11 @@ import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { WalletContextService } from '../../../core/services/wallet-context.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { AuthService } from '../../../auth/services/auth.service';
-import { MyWallet, WalletService } from '../../../wallet/services/wallet.service';
+import {
+  MyWallet,
+  WalletMember,
+  WalletService,
+} from '../../../wallet/services/wallet.service';
 import { Wallet } from '../../../user/types/user.types';
 import { CreateSharedWalletDialogComponent } from '../../../shared/components/create-shared-wallet-dialog/create-shared-wallet-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -56,6 +60,10 @@ export class DashboardLayoutComponent implements OnDestroy {
   // resto de la app sigue usando `userWallets$` (más liviano).
   myWallets: MyWallet[] = [];
 
+  // Miembros de la wallet activa — solo se cargan cuando es SHARED. Se muestran
+  // en una sección "Miembros" arriba del menú del selector de wallet.
+  activeWalletMembers: WalletMember[] = [];
+
   // En mobile el sidenav es un overlay (mode="over"); en desktop es fijo
   // y siempre visible (mode="side"). Se usa con el pipe async para el modo,
   // que no tiene conflicto con el toggle manual del usuario.
@@ -75,6 +83,23 @@ export class DashboardLayoutComponent implements OnDestroy {
     });
     this.watchInactivity();
     this.loadMyWallets();
+    this.watchActiveWalletMembers();
+  }
+
+  // Cada vez que cambia la wallet activa: si es compartida, trae sus miembros;
+  // si es personal, limpia la lista (la sección "Miembros" no se muestra).
+  private watchActiveWalletMembers(): void {
+    this.walletContext.activeWallet$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((wallet) => {
+        if (wallet?.type === 'SHARED') {
+          this.walletService
+            .getWalletMembers(wallet.id)
+            .subscribe((members) => (this.activeWalletMembers = members));
+        } else {
+          this.activeWalletMembers = [];
+        }
+      });
   }
 
   private loadMyWallets(): void {

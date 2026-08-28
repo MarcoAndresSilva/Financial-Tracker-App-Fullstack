@@ -7,10 +7,34 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSharedWalletDto } from './dto';
 import { MembershipRole, WalletType } from '@prisma/client';
+import { PermissionsService } from '../common/permissions/permissions.service';
 
 @Injectable()
 export class WalletService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private permissions: PermissionsService,
+  ) {}
+
+  // Miembros de una wallet (nombre, email y rol). Cualquier miembro puede
+  // verlos — se usa en el frontend para mostrar quién participa de una wallet
+  // compartida.
+  async getWalletMembers(userId: string, walletId: string) {
+    await this.permissions.checkWalletMembership(userId, walletId);
+
+    const memberships = await this.prisma.walletMembership.findMany({
+      where: { walletId },
+      include: { user: { select: { id: true, name: true, email: true } } },
+      orderBy: { role: 'asc' }, // OWNER antes que MEMBER (orden del enum)
+    });
+
+    return memberships.map((membership) => ({
+      id: membership.user.id,
+      name: membership.user.name,
+      email: membership.user.email,
+      role: membership.role,
+    }));
+  }
 
   // Wallets del usuario con su rol y cantidad de transacciones — usado por
   // la UI para decidir quién puede borrar cada wallet y con qué advertencia.

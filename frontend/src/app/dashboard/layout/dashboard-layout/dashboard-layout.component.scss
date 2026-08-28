@@ -181,6 +181,49 @@ mat-toolbar {
   padding: 2rem;
 }
 
+// Sección "Miembros" arriba del menú del selector — solo aparece cuando la
+// wallet activa es compartida. Son filas informativas, no `mat-menu-item`
+// (no navegables con teclado, no accionables).
+.wallet-members-title {
+  padding: 0.5rem 1rem 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.wallet-member {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 1rem;
+  font-size: 0.9rem;
+
+  .wallet-member-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .wallet-member-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .wallet-member-you {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .wallet-member-role {
+    font-size: 0.75rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
 // Fila del selector de wallet: el mat-menu-item y el botón de eliminar son
 // hermanos (no anidados — un botón no puede ir dentro de otro botón).
 .wallet-menu-row {
