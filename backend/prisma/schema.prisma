@@ -99,7 +99,10 @@ model Transaction {
   id          String          @id @default(uuid())
   amount      Float
   type        TransactionType
-  date        DateTime
+  // Solo la fecha (sin hora): una transacción ocurre "un día", no "un instante".
+  // Guardarla como timestamp provocaba corrimientos de día al renderizar en un
+  // huso horario distinto al del servidor (ver Paso 51).
+  date        DateTime        @db.Date
   description String
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt

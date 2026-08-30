@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule, formatDate } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import {
@@ -35,6 +35,7 @@ import {
 import { WalletContextService } from '../../../core/services/wallet-context.service';
 import { Wallet } from '../../../user/types/user.types';
 import { MatDialog } from '@angular/material/dialog';
+import { dateToApiString } from '../../../shared/utils/date.util';
 
 @Component({
   selector: 'app-transaction-list',
@@ -123,10 +124,10 @@ export class TransactionListComponent implements OnInit {
       walletId: this.activeWallet.id,
       ...formValues,
       startDate: formValues.startDate
-        ? formatDate(formValues.startDate, 'yyy-mm-dd', 'en-US')
+        ? dateToApiString(formValues.startDate)
         : undefined,
       endDate: formValues.endDate
-        ? formatDate(formValues.endDate, 'yyy-mm-dd', 'en-US')
+        ? dateToApiString(formValues.endDate)
         : undefined,
     };
 

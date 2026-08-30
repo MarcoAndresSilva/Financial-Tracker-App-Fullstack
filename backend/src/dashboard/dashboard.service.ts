@@ -47,8 +47,13 @@ export class DashboardService {
   async getMonthlySummary(userId: string, walletId: string) {
     await this.permissions.checkWalletMembership(userId, walletId);
 
+    // Límite en UTC explícito: la columna `date` es `@db.Date` y Prisma la
+    // compara contra medianoche UTC. Calcularlo con el huso local del proceso
+    // provocaría desajustes de un día según dónde corra el servidor.
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonth = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+    );
 
     const [income, expense] = await Promise.all([
       this.prisma.transaction.aggregate({

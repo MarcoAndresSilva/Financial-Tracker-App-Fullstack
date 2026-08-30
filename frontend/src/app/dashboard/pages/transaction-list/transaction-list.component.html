@@ -120,7 +120,7 @@
             {{ transaction.description }}
           </div>
           <div matListItemLine class="transaction-details">
-            <span>{{ transaction.date | date : "dd MMM yyyy" }}</span>
+            <span>{{ transaction.date | date : "dd MMM yyyy" : "UTC" }}</span>
             <span>&bull;</span>
             <span
               >{{ transaction.subcategory.category.name }} >

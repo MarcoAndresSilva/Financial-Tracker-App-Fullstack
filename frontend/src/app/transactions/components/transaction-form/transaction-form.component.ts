@@ -8,8 +8,12 @@ import {
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { startWith, switchMap, of } from 'rxjs';
 
-import { CommonModule, formatDate } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
+import {
+  isoToLocalDate,
+  dateToApiString,
+} from '../../../shared/utils/date.util';
 import { TransactionService } from '../../../transactions/services/transaction.service';
 import {
   CreateTransactionDto,
@@ -76,7 +80,7 @@ export class TransactionFormComponent implements OnInit {
         amount: transactionToEdit.amount,
         type: transactionToEdit.type,
         description: transactionToEdit.description,
-        date: new Date(transactionToEdit.date), // Convertimos el string a objeto Date
+        date: isoToLocalDate(transactionToEdit.date), // ISO de la API → día local (sin corrimiento de huso)
         categoryId: transactionToEdit.subcategory.categoryId,
       });
 
@@ -143,7 +147,7 @@ export class TransactionFormComponent implements OnInit {
     const transactionData = {
       ...formData,
       walletId: this.data.walletId,
-      date: formatDate(formData.date, 'yyyy-MM-dd', 'en-US'),
+      date: dateToApiString(formData.date),
     };
 
     const finalData: CreateTransactionDto | UpdateTransactionDto =
