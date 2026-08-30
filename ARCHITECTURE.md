@@ -713,3 +713,17 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - **Card "Ahorro" en el Home** (sección propia entre la carita y el Resumen): tres filas — "Remanente al iniciar {mes}", "Ahorro de {mes}" (verde si ≥ 0, rojo si < 0, con signo), y separador + "Saldo acumulado" destacado en el verde de marca. Se pide con `getSavings(walletId, period)` y sigue el mes del navegador (Paso 52).
   - La carita (`buildSpendingMood` / `percentageSpent`) **no cambia** — vuelve a reflejar la realidad sola en cuanto se borra el ingreso falso.
 - **Acción pendiente del usuario (dato en producción):** borrar la transacción "Saldo mes anterior" cargada a mano y poner ese monto en "Saldo inicial" desde el nuevo diálogo. Es una sola transacción, no amerita script de migración.
+
+### Paso 54: Acciones en Lote sobre Transacciones (Copiar / Mover a otra fecha)
+
+- **Objetivo:** al reemplazar la planilla Excel, todos los meses se repiten las mismas cuentas fijas (arriendo, suscripciones, etc.). Recargarlas a mano una por una es tedioso. El caso principal es **copiar** un lote del mes pasado al mes nuevo; el secundario es **mover** (corregir la fecha de varias de una vez). Al terminar, la vista salta al mes destino para revisar.
+- **Backend:**
+  - **`PATCH /transactions/bulk-move`** — `BulkMoveTransactionsDto` (`walletId`, `transactionIds: uuid[]` con `@ArrayNotEmpty`, `date`). `bulkMove` verifica membresía una vez y hace un único `updateMany({ where: { id: { in: ids }, walletId }, data: { date } })` — el `walletId` en el `where` garantiza no tocar transacciones de otra wallet aunque venga un id ajeno. Devuelve `{ count }`.
+  - **`POST /transactions/bulk-copy`** — `BulkCopyTransactionsDto` (mismo shape). `bulkCopy` trae las originales (filtradas por `walletId`), y hace un `createMany` con copias que llevan `amount`/`type`/`description`/`subcategoryId` iguales, `date` = la fecha elegida, y `authorId` = quien copia. Las originales quedan intactas.
+  - `bulk-move` se declara **antes** de `@Patch(':id')` para que la ruta literal gane sobre el parámetro; `bulk-copy` es `POST` y no colisiona.
+- **Frontend — `TransactionListComponent`:**
+  - `selectionMode` + `selectedIds: Set<string>`. Botón "Seleccionar / Salir de selección" en el header; al entrar, cada `mat-list-item` muestra un `mat-checkbox` (en lugar del ícono de tipo) y toda la fila es clickeable. El menú `more_vert` se oculta en ese modo.
+  - Barra de acción (`.selection-bar`) sobre la lista: "N seleccionadas" + **"Copiar a un mes"** (primario) + **"Mover"** (secundario).
+  - **`BulkTransactionsDialogComponent`** (`transactions/components/bulk-transactions-dialog/`, nuevo): un solo diálogo con `data: { count, mode: 'move' | 'copy' }` — título, texto de ayuda y label del botón se adaptan al modo. Datepicker con atajo "1 del mes que viene". Devuelve un `Date`.
+  - `openBulkDialog(mode)` elige `bulkCopy` o `bulkMove` según el modo; en el `next` hace `periodContext.setPeriod(añoDestino, mesDestino)` (el `combineLatest` del Paso 52 recarga la lista solo), limpia la selección y muestra `NotificationService.success`.
+- **Sobre el ahorro (aclaración de comportamiento, no bug):** al **mover** un gasto de un mes anterior al mes que se está viendo, "Remanente al iniciar {mes}" sube y "Ahorro de {mes}" baja en el mismo monto — el "Saldo acumulado" no cambia, porque esa plata salió del bolsillo igual. Al **borrar** un gasto, el acumulado sube (esa plata no se gastó). Ambos son correctos; la card de Ahorro (Paso 53) se mantiene con las tres líneas.
