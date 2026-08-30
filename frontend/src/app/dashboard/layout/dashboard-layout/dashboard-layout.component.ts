@@ -28,6 +28,10 @@ import {
 import { Wallet } from '../../../user/types/user.types';
 import { CreateSharedWalletDialogComponent } from '../../../shared/components/create-shared-wallet-dialog/create-shared-wallet-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  WalletSettingsDialogComponent,
+  WalletSettingsResult,
+} from '../../../shared/components/wallet-settings-dialog/wallet-settings-dialog.component';
 
 // Si no hay actividad del usuario en la app por este tiempo, se cierra la
 // sesión sola — más corto que el vencimiento del JWT (60 min, Paso 3), para
@@ -170,6 +174,32 @@ export class DashboardLayoutComponent implements OnDestroy {
           error: (err) => {
             const message =
               err?.error?.message ?? 'No se pudo crear la wallet compartida.';
+            this.notification.error(message);
+          },
+        });
+      });
+  }
+
+  openWalletSettings(wallet: MyWallet, event: Event): void {
+    event.stopPropagation();
+
+    this.dialog
+      .open(WalletSettingsDialogComponent, {
+        width: '400px',
+        data: { name: wallet.name, saldoInicial: wallet.saldoInicial ?? 0 },
+      })
+      .afterClosed()
+      .subscribe((result: WalletSettingsResult | undefined) => {
+        if (!result) return;
+        this.walletService.updateWallet(wallet.id, result).subscribe({
+          next: () => {
+            this.notification.success('Ajustes de la wallet guardados.');
+            this.loadMyWallets();
+            this.walletContext.loadUserWallets().subscribe();
+          },
+          error: (err) => {
+            const message =
+              err?.error?.message ?? 'No se pudieron guardar los ajustes.';
             this.notification.error(message);
           },
         });

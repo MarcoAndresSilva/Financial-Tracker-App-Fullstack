@@ -401,6 +401,60 @@
   }
 }
 
+// --- Card de Ahorro / remanente ---
+.savings-card {
+  max-width: 480px;
+
+  mat-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-top: 0.5rem;
+  }
+
+  mat-divider {
+    margin: 0.2rem 0;
+  }
+}
+
+.savings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+
+  &--total {
+    margin-top: 0.1rem;
+  }
+}
+
+.savings-label {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.95rem;
+}
+
+.savings-row--total .savings-label {
+  color: var(--mat-sys-on-surface);
+  font-weight: 600;
+}
+
+.savings-value {
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.positive {
+    color: #2e7d32;
+  }
+  &.negative {
+    color: #c62828;
+  }
+}
+
+.savings-row--total .savings-value {
+  font-size: 1.3rem;
+  color: var(--mat-sys-primary);
+}
+
 .category-breakdown-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));

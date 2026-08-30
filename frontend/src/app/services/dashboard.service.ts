@@ -19,6 +19,13 @@ export interface MonthlySummary {
   percentageSpent: number | null;
 }
 
+export interface SavingsSummary {
+  saldoInicial: number;
+  remanenteEntrante: number; // lo que traés de meses anteriores
+  ahorroDelMes: number; // ingresos − gastos de este mes (puede ser negativo)
+  saldoAcumulado: number; // remanenteEntrante + ahorroDelMes
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -78,5 +85,11 @@ export class DashboardService {
       `${this.apiUrl}/dashboard/monthly-summary`,
       { params: this.walletParams(walletId, period) }
     );
+  }
+
+  getSavings(walletId: string, period?: { year: number; month: number }) {
+    return this.http.get<SavingsSummary>(`${this.apiUrl}/dashboard/savings`, {
+      params: this.walletParams(walletId, period),
+    });
   }
 }

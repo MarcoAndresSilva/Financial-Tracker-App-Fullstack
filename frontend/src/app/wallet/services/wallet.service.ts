@@ -40,6 +40,16 @@ export class WalletService {
     return this.http.post<Wallet>(`${this.apiUrl}/wallets/shared`, payload);
   }
 
+  updateWallet(
+    walletId: string,
+    payload: { name?: string; saldoInicial?: number },
+  ) {
+    return this.http.patch<Wallet>(
+      `${this.apiUrl}/wallets/${walletId}`,
+      payload,
+    );
+  }
+
   deleteWallet(walletId: string) {
     return this.http.delete<void>(`${this.apiUrl}/wallets/${walletId}`);
   }

@@ -106,6 +106,63 @@ export class DashboardService {
     return { totalIncome, totalExpense, percentageSpent };
   }
 
+  // --- Ahorro / remanente de un mes ---
+  // El "saldo ahorrado" NO es una transacción ni afecta los totales del mes:
+  //   - ahorroDelMes      = ingresos − gastos DEL mes
+  //   - remanenteEntrante = saldoInicial + (ingresos − gastos de TODO lo anterior al mes)
+  //   - saldoAcumulado    = remanenteEntrante + ahorroDelMes
+  async getSavings(
+    userId: string,
+    walletId: string,
+    year?: number,
+    month?: number,
+  ) {
+    await this.permissions.checkWalletMembership(userId, walletId);
+
+    const range = this.monthRange(year, month);
+
+    const [wallet, incMonth, expMonth, incBefore, expBefore] =
+      await Promise.all([
+        this.prisma.wallet.findUnique({
+          where: { id: walletId },
+          select: { saldoInicial: true },
+        }),
+        this.prisma.transaction.aggregate({
+          where: { walletId, type: TransactionType.INCOME, date: range },
+          _sum: { amount: true },
+        }),
+        this.prisma.transaction.aggregate({
+          where: { walletId, type: TransactionType.EXPENSE, date: range },
+          _sum: { amount: true },
+        }),
+        this.prisma.transaction.aggregate({
+          where: {
+            walletId,
+            type: TransactionType.INCOME,
+            date: { lt: range.gte },
+          },
+          _sum: { amount: true },
+        }),
+        this.prisma.transaction.aggregate({
+          where: {
+            walletId,
+            type: TransactionType.EXPENSE,
+            date: { lt: range.gte },
+          },
+          _sum: { amount: true },
+        }),
+      ]);
+
+    const saldoInicial = wallet?.saldoInicial ?? 0;
+    const ahorroDelMes =
+      (incMonth._sum.amount || 0) - (expMonth._sum.amount || 0);
+    const remanenteEntrante =
+      saldoInicial + (incBefore._sum.amount || 0) - (expBefore._sum.amount || 0);
+    const saldoAcumulado = remanenteEntrante + ahorroDelMes;
+
+    return { saldoInicial, remanenteEntrante, ahorroDelMes, saldoAcumulado };
+  }
+
   // --- Gastos Agrupados por Categoría ---
   // Los gastos suelen concentrarse en pocas categorías grandes (Alimentación,
   // Transporte, etc.), así que acá el nivel útil de detalle es la categoría.

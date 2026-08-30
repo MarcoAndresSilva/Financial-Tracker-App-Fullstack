@@ -7,6 +7,7 @@ import {
   DashboardService,
   ExpenseByCategory,
   MonthlySummary,
+  SavingsSummary,
   WalletSummary,
 } from '../../../services/dashboard.service';
 import { WalletContextService } from '../../../core/services/wallet-context.service';
@@ -120,6 +121,7 @@ export class HomeComponent implements OnInit {
   summary?: WalletSummary;
   monthlySummary?: MonthlySummary;
   monthlyBalance = 0;
+  savings?: SavingsSummary;
 
   // Lente del bloque "Resumen": el mes en curso o todo el histórico de la wallet.
   // Antes eran dos filas de cards idénticas una debajo de otra — al empezar
@@ -229,6 +231,10 @@ export class HomeComponent implements OnInit {
         this.monthlyBalance = data.totalIncome - data.totalExpense;
         this.spendingMood = buildSpendingMood(data.percentageSpent);
       });
+
+    this.dashboardService
+      .getSavings(wallet.id, period)
+      .subscribe((data) => (this.savings = data));
 
     this.dashboardService
       .getExpensesByCategory(wallet.id, period)

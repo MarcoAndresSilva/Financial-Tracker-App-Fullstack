@@ -7,12 +7,13 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { WalletService } from './wallet.service';
-import { CreateSharedWalletDto } from './dto';
+import { CreateSharedWalletDto, UpdateWalletDto } from './dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @UseGuards(AuthGuard('jwt'))
@@ -39,6 +40,15 @@ export class WalletController {
     @Body() dto: CreateSharedWalletDto,
   ) {
     return this.walletService.createSharedWallet(userId, dto);
+  }
+
+  @Patch(':id')
+  updateWallet(
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) walletId: string,
+    @Body() dto: UpdateWalletDto,
+  ) {
+    return this.walletService.updateWallet(userId, walletId, dto);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)

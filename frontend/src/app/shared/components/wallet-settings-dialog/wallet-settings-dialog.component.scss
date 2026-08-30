@@ -1,0 +1,7 @@
+.full-width {
+  width: 100%;
+}
+
+.full-width + .full-width {
+  margin-top: 0.5rem;
+}

@@ -234,6 +234,10 @@ mat-toolbar {
     flex: 1;
   }
 
+  .wallet-settings-button {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
   .wallet-delete-button {
     margin-right: 0.5rem;
     color: var(--mat-sys-error, #c62828);

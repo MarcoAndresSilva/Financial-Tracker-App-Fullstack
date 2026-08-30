@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>Ajustes de la wallet</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSave()">
+  <div mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" cdkFocusInitial />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Saldo inicial / ahorro previo</mat-label>
+      <input matInput formControlName="saldoInicial" type="number" min="0" />
+      <span matTextPrefix>$&nbsp;</span>
+      <mat-hint
+        >Lo que ya tenías ahorrado antes de empezar a registrar acá. No cuenta
+        como ingreso de ningún mes.</mat-hint
+      >
+    </mat-form-field>
+  </div>
+
+  <div mat-dialog-actions align="end">
+    <button mat-button type="button" [mat-dialog-close]="undefined">
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="form.invalid"
+    >
+      Guardar
+    </button>
+  </div>
+</form>

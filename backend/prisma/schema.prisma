@@ -46,6 +46,10 @@ model Wallet {
   id        String     @id @default(uuid())
   name      String
   type      WalletType @default(PERSONAL)
+  // Lo que ya tenías ahorrado antes de empezar a registrar en la app. Sirve de
+  // punto de partida para el "saldo acumulado" del panel de Ahorro (Paso 53);
+  // no es un ingreso ni afecta los totales de ningún mes.
+  saldoInicial Float    @default(0)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 

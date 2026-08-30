@@ -65,6 +65,16 @@ export class DashboardController {
     return this.dashboardService.getMonthlySummary(userId, walletId, year, month);
   }
 
+  @Get('savings')
+  getSavings(
+    @CurrentUser('id') userId: string,
+    @Query('walletId', ParseUUIDPipe) walletId: string,
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+    @Query('month', new ParseIntPipe({ optional: true })) month?: number,
+  ) {
+    return this.dashboardService.getSavings(userId, walletId, year, month);
+  }
+
   //   @Get('cashflow-over-time')
   //   getCashflowOverTime(
   //     @CurrentUser('id') userId: string,

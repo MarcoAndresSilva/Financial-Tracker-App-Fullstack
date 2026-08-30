@@ -120,6 +120,15 @@
               <span>{{ wallet.name }}</span>
             </button>
             <button
+              *ngIf="wallet.role === 'OWNER'"
+              mat-icon-button
+              class="wallet-settings-button"
+              matTooltip="Ajustes de la wallet"
+              (click)="openWalletSettings(wallet, $event)"
+            >
+              <mat-icon>settings</mat-icon>
+            </button>
+            <button
               *ngIf="wallet.role === 'OWNER' && myWallets.length > 1"
               mat-icon-button
               class="wallet-delete-button"

@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateSharedWalletDto } from './dto';
+import { CreateSharedWalletDto, UpdateWalletDto } from './dto';
 import { MembershipRole, WalletType } from '@prisma/client';
 import { PermissionsService } from '../common/permissions/permissions.service';
 
@@ -54,9 +54,28 @@ export class WalletService {
       id: membership.wallet.id,
       name: membership.wallet.name,
       type: membership.wallet.type,
+      saldoInicial: membership.wallet.saldoInicial,
       role: membership.role,
       transactionCount: membership.wallet._count.transactions,
     }));
+  }
+
+  /**
+   * Actualiza datos de la wallet (nombre, saldo inicial). Solo el OWNER puede
+   * hacerlo — un MEMBER de una wallet compartida no toca su configuración.
+   */
+  async updateWallet(userId: string, walletId: string, dto: UpdateWalletDto) {
+    await this.permissions.checkWalletMembership(userId, walletId, true);
+
+    return this.prisma.wallet.update({
+      where: { id: walletId },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.saldoInicial !== undefined && {
+          saldoInicial: dto.saldoInicial,
+        }),
+      },
+    });
   }
 
   /**
