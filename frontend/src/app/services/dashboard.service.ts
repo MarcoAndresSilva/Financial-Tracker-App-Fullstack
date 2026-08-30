@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 
@@ -28,27 +28,55 @@ export class DashboardService {
 
   constructor() {} // n oes encesario por que estoy usando el inject, la forma moderna
 
+  // Arma `?walletId=...&year=...&month=...`; year/month solo van si se pasan.
+  private walletParams(
+    walletId: string,
+    period?: { year: number; month: number }
+  ): HttpParams {
+    let params = new HttpParams().set('walletId', walletId);
+    if (period) {
+      params = params
+        .set('year', String(period.year))
+        .set('month', String(period.month));
+    }
+    return params;
+  }
+
   getWalletSummary(walletId: string) {
-    return this.http.get<WalletSummary>(
-      `${this.apiUrl}/dashboard/summary?walletId=${walletId}`
-    );
+    return this.http.get<WalletSummary>(`${this.apiUrl}/dashboard/summary`, {
+      params: this.walletParams(walletId),
+    });
   }
 
-  getExpensesByCategory(walletId: string) {
+  // Sin `period` → todo el histórico de la cartera; con `period` → solo ese mes.
+  getExpensesByCategory(
+    walletId: string,
+    period?: { year: number; month: number }
+  ) {
     return this.http.get<ExpenseByCategory[]>(
-      `${this.apiUrl}/dashboard/expenses-by-category?walletId=${walletId}`
+      `${this.apiUrl}/dashboard/expenses-by-category`,
+      { params: this.walletParams(walletId, period) }
     );
   }
 
-  getIncomeByCategory(walletId: string) {
+  getIncomeByCategory(
+    walletId: string,
+    period?: { year: number; month: number }
+  ) {
     return this.http.get<ExpenseByCategory[]>(
-      `${this.apiUrl}/dashboard/income-by-category?walletId=${walletId}`
+      `${this.apiUrl}/dashboard/income-by-category`,
+      { params: this.walletParams(walletId, period) }
     );
   }
 
-  getMonthlySummary(walletId: string) {
+  // Sin `period` → mes en curso; con `period` → el mes pedido.
+  getMonthlySummary(
+    walletId: string,
+    period?: { year: number; month: number }
+  ) {
     return this.http.get<MonthlySummary>(
-      `${this.apiUrl}/dashboard/monthly-summary?walletId=${walletId}`
+      `${this.apiUrl}/dashboard/monthly-summary`,
+      { params: this.walletParams(walletId, period) }
     );
   }
 }

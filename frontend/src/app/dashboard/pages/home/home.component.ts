@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, combineLatest, takeUntil } from 'rxjs';
 import { TransactionFormComponent } from '../../../transactions/components/transaction-form/transaction-form.component';
 import {
   DashboardService,
@@ -10,9 +10,14 @@ import {
   WalletSummary,
 } from '../../../services/dashboard.service';
 import { WalletContextService } from '../../../core/services/wallet-context.service';
+import {
+  Period,
+  PeriodContextService,
+} from '../../../core/services/period-context.service';
 import { Wallet } from '../../../user/types/user.types';
 
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
+import { MonthSelectorComponent } from '../../../shared/components/month-selector/month-selector.component';
 import {
   CategoryBar,
   CategoryBarsComponent,
@@ -94,17 +99,24 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ...MATERIAL_MODULES, CategoryBarsComponent],
+  imports: [
+    CommonModule,
+    ...MATERIAL_MODULES,
+    CategoryBarsComponent,
+    MonthSelectorComponent,
+  ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private walletContext = inject(WalletContextService);
+  private periodContext = inject(PeriodContextService);
   private dialog = inject(MatDialog);
   private destroy$ = new Subject<void>();
 
   activeWallet: Wallet | null = null;
+  activePeriod: Period = this.periodContext.getPeriod();
   summary?: WalletSummary;
   monthlySummary?: MonthlySummary;
   monthlyBalance = 0;
@@ -119,11 +131,12 @@ export class HomeComponent implements OnInit {
   incomeCategoryBars: CategoryBar[] = [];
   isLoading = true;
 
-  // Ej: "Agosto" — usado en los labels de la sección "Este mes".
-  currentMonthLabel = (() => {
-    const month = formatDate(new Date(), 'MMMM', 'es-CL');
+  // Ej: "Agosto" — nombre del mes del período activo (no siempre el mes en curso).
+  get periodLabel(): string {
+    const d = new Date(this.activePeriod.year, this.activePeriod.month - 1, 1);
+    const month = formatDate(d, 'MMMM', 'es-CL');
     return month.charAt(0).toUpperCase() + month.slice(1);
-  })();
+  }
 
   // Arco del anillo de gasto: el % real puede pasar de 100, pero el arco se llena al tope.
   get moodRingPct(): number {
@@ -137,7 +150,7 @@ export class HomeComponent implements OnInit {
 
   get summaryCaption(): string {
     return this.summaryView === 'mes'
-      ? `Movimiento de ${this.currentMonthLabel}`
+      ? `Movimiento de ${this.periodLabel} ${this.activePeriod.year}`
       : 'Desde que empezaste a usar esta cartera';
   }
 
@@ -163,12 +176,16 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.walletContext.activeWallet$
+    combineLatest([
+      this.walletContext.activeWallet$,
+      this.periodContext.activePeriod$,
+    ])
       .pipe(takeUntil(this.destroy$))
-      .subscribe((activeWallet) => {
+      .subscribe(([activeWallet, period]) => {
         this.activeWallet = activeWallet;
+        this.activePeriod = period;
         if (activeWallet) {
-          this.loadDashboardData(activeWallet);
+          this.loadDashboardData(activeWallet, period);
         }
       });
   }
@@ -185,7 +202,7 @@ export class HomeComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result && this.activeWallet) {
-        this.loadDashboardData(this.activeWallet);
+        this.loadDashboardData(this.activeWallet, this.activePeriod);
       }
     });
   }
@@ -195,28 +212,36 @@ export class HomeComponent implements OnInit {
     this.destroy$.complete();
   }
 
-  loadDashboardData(Wallet: Wallet): void {
+  loadDashboardData(wallet: Wallet, period: Period): void {
     this.isLoading = true;
 
-    this.dashboardService.getWalletSummary(Wallet.id).subscribe((data) => {
+    // El "Histórico" (resumen general + tip de inversión) no depende del mes.
+    this.dashboardService.getWalletSummary(wallet.id).subscribe((data) => {
       this.summary = data;
       this.showInvestmentTip = data.balance > INVESTMENT_TIP_THRESHOLD;
     });
 
-    this.dashboardService.getMonthlySummary(Wallet.id).subscribe((data) => {
-      this.monthlySummary = data;
-      this.monthlyBalance = data.totalIncome - data.totalExpense;
-      this.spendingMood = buildSpendingMood(data.percentageSpent);
-    });
+    // Todo lo demás se acota al mes del período activo.
+    this.dashboardService
+      .getMonthlySummary(wallet.id, period)
+      .subscribe((data) => {
+        this.monthlySummary = data;
+        this.monthlyBalance = data.totalIncome - data.totalExpense;
+        this.spendingMood = buildSpendingMood(data.percentageSpent);
+      });
 
-    this.dashboardService.getExpensesByCategory(Wallet.id).subscribe((data) => {
-      this.expenseCategoryBars = this.buildCategoryBars(data);
-      this.isLoading = false;
-    });
+    this.dashboardService
+      .getExpensesByCategory(wallet.id, period)
+      .subscribe((data) => {
+        this.expenseCategoryBars = this.buildCategoryBars(data);
+        this.isLoading = false;
+      });
 
-    this.dashboardService.getIncomeByCategory(Wallet.id).subscribe((data) => {
-      this.incomeCategoryBars = this.buildCategoryBars(data);
-    });
+    this.dashboardService
+      .getIncomeByCategory(wallet.id, period)
+      .subscribe((data) => {
+        this.incomeCategoryBars = this.buildCategoryBars(data);
+      });
   }
 
   private buildCategoryBars(data: ExpenseByCategory[]): CategoryBar[] {

@@ -16,11 +16,30 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 
   h1.page-title {
     margin-bottom: 0;
+  }
+}
+
+// En mobile el selector de mes baja a su propia fila, centrado (arriba quedan
+// el título y el FAB). En desktop va en línea, entre el título y el botón.
+.page-header__month {
+  order: 3;
+  flex-basis: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .page-header__month {
+    order: 0;
+    flex-basis: auto;
+    margin-top: 0;
   }
 }
 

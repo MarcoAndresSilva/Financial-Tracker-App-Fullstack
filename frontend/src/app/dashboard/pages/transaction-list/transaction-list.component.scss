@@ -33,15 +33,44 @@
   height: 32px;
 }
 
+// En mobile el selector de mes baja a su propia fila, centrado; en desktop
+// va en línea entre el título y las acciones.
+.header-month {
+  order: 3;
+  flex-basis: 100%;
+  display: flex;
+  justify-content: center;
+  transition: opacity 0.15s ease;
+
+  &--muted {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+}
+
 .header-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-.filters-toggle {
+.filters-toggle,
+.all-months-toggle {
   mat-icon {
     margin: 0 0.15rem;
+  }
+}
+
+.all-months-toggle--active {
+  color: var(--mat-sys-primary);
+  border-color: var(--mat-sys-primary);
+}
+
+@media (min-width: 768px) {
+  .header-month {
+    order: 0;
+    flex-basis: auto;
   }
 }
 

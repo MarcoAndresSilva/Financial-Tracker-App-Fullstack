@@ -1,0 +1,56 @@
+<div class="month-selector">
+  <button
+    mat-icon-button
+    type="button"
+    class="month-selector__arrow"
+    (click)="prev()"
+    aria-label="Mes anterior"
+  >
+    <mat-icon>chevron_left</mat-icon>
+  </button>
+
+  <button
+    mat-button
+    type="button"
+    class="month-selector__label"
+    (click)="picker.open()"
+  >
+    <span>{{ label$ | async }}</span>
+    <mat-icon class="month-selector__caret">arrow_drop_down</mat-icon>
+  </button>
+
+  <button
+    mat-icon-button
+    type="button"
+    class="month-selector__arrow"
+    (click)="next()"
+    aria-label="Mes siguiente"
+  >
+    <mat-icon>chevron_right</mat-icon>
+  </button>
+
+  <button
+    *ngIf="!(isCurrent$ | async)"
+    mat-button
+    type="button"
+    class="month-selector__today"
+    (click)="today()"
+  >
+    Ir a hoy
+  </button>
+
+  <!-- Input oculto: solo ancla el calendario, que usamos para elegir mes/año -->
+  <input
+    class="month-selector__hidden-input"
+    [matDatepicker]="picker"
+    [value]="pickerValue$ | async"
+    readonly
+    tabindex="-1"
+    aria-hidden="true"
+  />
+  <mat-datepicker
+    #picker
+    startView="multi-year"
+    (monthSelected)="onMonthSelected($event, picker)"
+  ></mat-datepicker>
+</div>

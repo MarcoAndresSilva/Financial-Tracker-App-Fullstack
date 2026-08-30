@@ -1,0 +1,53 @@
+.month-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+}
+
+.month-selector__arrow {
+  flex: none;
+}
+
+.month-selector__label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+  min-width: 9.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.month-selector__caret {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.month-selector__today {
+  font-size: 0.8rem;
+  margin-left: 4px;
+}
+
+// El input solo sirve para anclar el overlay del calendario; no debe verse
+// ni ocupar espacio ni recibir foco.
+.month-selector__hidden-input {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .month-selector__label {
+    font-size: 0.95rem;
+    min-width: 8rem;
+  }
+}

@@ -4,6 +4,7 @@
       <mat-icon class="page-title-icon">home</mat-icon>
       Home
     </h1>
+    <app-month-selector class="page-header__month"></app-month-selector>
     <!-- Alta rápida de transacción: botón con texto en desktop, FAB en mobile -->
     <button
       mat-flat-button
@@ -28,7 +29,7 @@
   <!-- ======================= ALERTA DE GASTO DEL MES ======================= -->
   <section class="dashboard-section">
     <div class="section-heading">
-      <h2>{{ currentMonthLabel }}</h2>
+      <h2>{{ periodLabel }} {{ activePeriod.year }}</h2>
       <span class="section-caption">Cómo vas con el gasto del mes</span>
     </div>
 
@@ -97,7 +98,7 @@
             monthlySummary?.totalIncome
               | currency : "CLP" : "symbol-narrow" : "1.0-0"
           }}</strong>
-          este {{ currentMonthLabel }}
+          en {{ periodLabel }}
         </p>
       </div>
     </mat-card>
@@ -118,7 +119,7 @@
         hideSingleSelectionIndicator
         aria-label="Periodo del resumen"
       >
-        <mat-button-toggle value="mes">Este mes</mat-button-toggle>
+        <mat-button-toggle value="mes">Del mes</mat-button-toggle>
         <mat-button-toggle value="historico">Histórico</mat-button-toggle>
       </mat-button-toggle-group>
     </div>

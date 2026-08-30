@@ -43,24 +43,48 @@ export class DashboardService {
     };
   }
 
-  // --- Resumen del Mes Actual (para la alerta de gasto vs. sueldo) ---
-  async getMonthlySummary(userId: string, walletId: string) {
+  // --- Rango de un mes en UTC explícito ---
+  // La columna `date` es `@db.Date` y Prisma la compara contra medianoche UTC;
+  // calcular el límite con el huso local del proceso provocaría desajustes de un
+  // día según dónde corra el servidor. `month` es 1–12. Sin año/mes → mes actual.
+  private monthRange(year?: number, month?: number): { gte: Date; lt: Date } {
+    const now = new Date();
+    const y = year ?? now.getUTCFullYear();
+    const m = month ?? now.getUTCMonth() + 1;
+    return {
+      gte: new Date(Date.UTC(y, m - 1, 1)),
+      lt: new Date(Date.UTC(y, m, 1)),
+    };
+  }
+
+  // Igual que `monthRange` pero devuelve `undefined` si no se pidió un mes
+  // concreto — para los breakdowns, que sin mes agregan todo el histórico.
+  private optionalMonthRange(
+    year?: number,
+    month?: number,
+  ): { gte: Date; lt: Date } | undefined {
+    if (!year || !month) return undefined;
+    return this.monthRange(year, month);
+  }
+
+  // --- Resumen de un mes (para la alerta de gasto vs. sueldo) ---
+  // Sin `year`/`month` devuelve el mes en curso; con ellos, el mes pedido.
+  async getMonthlySummary(
+    userId: string,
+    walletId: string,
+    year?: number,
+    month?: number,
+  ) {
     await this.permissions.checkWalletMembership(userId, walletId);
 
-    // Límite en UTC explícito: la columna `date` es `@db.Date` y Prisma la
-    // compara contra medianoche UTC. Calcularlo con el huso local del proceso
-    // provocaría desajustes de un día según dónde corra el servidor.
-    const now = new Date();
-    const startOfMonth = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-    );
+    const range = this.monthRange(year, month);
 
     const [income, expense] = await Promise.all([
       this.prisma.transaction.aggregate({
         where: {
           walletId,
           type: TransactionType.INCOME,
-          date: { gte: startOfMonth },
+          date: range,
         },
         _sum: { amount: true },
       }),
@@ -68,7 +92,7 @@ export class DashboardService {
         where: {
           walletId,
           type: TransactionType.EXPENSE,
-          date: { gte: startOfMonth },
+          date: range,
         },
         _sum: { amount: true },
       }),
@@ -85,12 +109,19 @@ export class DashboardService {
   // --- Gastos Agrupados por Categoría ---
   // Los gastos suelen concentrarse en pocas categorías grandes (Alimentación,
   // Transporte, etc.), así que acá el nivel útil de detalle es la categoría.
-  async getExpensesByCategory(userId: string, walletId: string) {
+  // Sin `year`/`month` agrega todo el histórico de la cartera; con ellos, solo ese mes.
+  async getExpensesByCategory(
+    userId: string,
+    walletId: string,
+    year?: number,
+    month?: number,
+  ) {
     await this.permissions.checkWalletMembership(userId, walletId);
     return this.getAmountsBreakdown(
       walletId,
       TransactionType.EXPENSE,
       'category',
+      this.optionalMonthRange(year, month),
     );
   }
 
@@ -98,12 +129,18 @@ export class DashboardService {
   // Los ingresos suelen vivir todos bajo una sola categoría ("Ingresos"), con
   // el detalle real (sueldo, extras, etc.) en las subcategorías — agrupar por
   // categoría los mezclaría todos en un solo bloque sin decir nada útil.
-  async getIncomeByCategory(userId: string, walletId: string) {
+  async getIncomeByCategory(
+    userId: string,
+    walletId: string,
+    year?: number,
+    month?: number,
+  ) {
     await this.permissions.checkWalletMembership(userId, walletId);
     return this.getAmountsBreakdown(
       walletId,
       TransactionType.INCOME,
       'subcategory',
+      this.optionalMonthRange(year, month),
     );
   }
 
@@ -112,6 +149,7 @@ export class DashboardService {
     walletId: string,
     type: TransactionType,
     groupLevel: 'category' | 'subcategory',
+    dateRange?: { gte: Date; lt: Date },
   ) {
     // consulta avanzada de Prisma
     const transactions = await this.prisma.transaction.groupBy({
@@ -119,6 +157,7 @@ export class DashboardService {
       where: {
         walletId,
         type,
+        ...(dateRange && { date: dateRange }),
       },
       _sum: {
         amount: true, // Sumamos el monto para cada grupo

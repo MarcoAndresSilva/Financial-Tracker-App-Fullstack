@@ -7,6 +7,7 @@ import {
   startWith,
   switchMap,
   of,
+  combineLatest,
   debounceTime,
   distinctUntilChanged,
   filter,
@@ -33,9 +34,14 @@ import {
   SubcategoryService,
 } from '../../../subcategories/services/subcategory.service';
 import { WalletContextService } from '../../../core/services/wallet-context.service';
+import {
+  Period,
+  PeriodContextService,
+} from '../../../core/services/period-context.service';
 import { Wallet } from '../../../user/types/user.types';
 import { MatDialog } from '@angular/material/dialog';
 import { dateToApiString } from '../../../shared/utils/date.util';
+import { MonthSelectorComponent } from '../../../shared/components/month-selector/month-selector.component';
 
 @Component({
   selector: 'app-transaction-list',
@@ -45,6 +51,7 @@ import { dateToApiString } from '../../../shared/utils/date.util';
     ...MATERIAL_MODULES,
     LoadingSpinnerComponent,
     ReactiveFormsModule,
+    MonthSelectorComponent,
   ],
   templateUrl: './transaction-list.component.html',
   styleUrls: ['./transaction-list.component.scss'],
@@ -52,6 +59,7 @@ import { dateToApiString } from '../../../shared/utils/date.util';
 export class TransactionListComponent implements OnInit {
   private transactionService = inject(TransactionService);
   private WalletContext = inject(WalletContextService);
+  private periodContext = inject(PeriodContextService);
   private categoryService = inject(CategoryService);
   private subcategoryService = inject(SubcategoryService);
   private fb = inject(FormBuilder);
@@ -61,6 +69,10 @@ export class TransactionListComponent implements OnInit {
   private destroy$ = new Subject<void>();
 
   activeWallet: Wallet | null = null;
+  activePeriod: Period = this.periodContext.getPeriod();
+  // Por defecto la lista muestra solo el mes del período; el usuario puede
+  // pasar a "todos los meses" o fijar un rango manual en el panel de filtros.
+  showAllMonths = false;
   transactions: Transaction[] = [];
   isLoading = true;
   filterForm: FormGroup;
@@ -83,12 +95,17 @@ export class TransactionListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.WalletContext.activeWallet$
+    combineLatest([
+      this.WalletContext.activeWallet$,
+      this.periodContext.activePeriod$,
+    ])
       .pipe(takeUntil(this.destroy$))
-      .subscribe((wallet) => {
+      .subscribe(([wallet, period]) => {
+        const walletChanged = wallet?.id !== this.activeWallet?.id;
         this.activeWallet = wallet;
+        this.activePeriod = period;
         if (wallet) {
-          this.loadFilterOptions();
+          if (walletChanged) this.loadFilterOptions();
           this.loadTransactions();
         }
       });
@@ -107,6 +124,11 @@ export class TransactionListComponent implements OnInit {
     this.showFilters = !this.showFilters;
   }
 
+  toggleAllMonths(): void {
+    this.showAllMonths = !this.showAllMonths;
+    this.loadTransactions();
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -120,15 +142,29 @@ export class TransactionListComponent implements OnInit {
     this.isLoading = true;
 
     const formValues = this.filterForm.getRawValue();
+
+    // Prioridad de la ventana de fechas:
+    //  1. rango manual del panel de filtros (si el usuario puso alguno)
+    //  2. el mes del período activo (comportamiento por defecto)
+    //  3. sin límite, si el usuario activó "todos los meses"
+    let startDate = formValues.startDate
+      ? dateToApiString(formValues.startDate)
+      : undefined;
+    let endDate = formValues.endDate
+      ? dateToApiString(formValues.endDate)
+      : undefined;
+
+    if (!startDate && !endDate && !this.showAllMonths) {
+      const { year, month } = this.activePeriod;
+      startDate = dateToApiString(new Date(year, month - 1, 1));
+      endDate = dateToApiString(new Date(year, month, 0)); // último día del mes
+    }
+
     const filters: GetTransactionsFilterDto = {
       walletId: this.activeWallet.id,
       ...formValues,
-      startDate: formValues.startDate
-        ? dateToApiString(formValues.startDate)
-        : undefined,
-      endDate: formValues.endDate
-        ? dateToApiString(formValues.endDate)
-        : undefined,
+      startDate,
+      endDate,
     };
 
     this.transactionService

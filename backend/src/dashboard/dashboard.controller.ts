@@ -4,6 +4,7 @@ import {
   Get,
   Query,
   ParseUUIDPipe,
+  ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -28,24 +29,40 @@ export class DashboardController {
   getExpensesByCategory(
     @CurrentUser('id') userId: string,
     @Query('walletId', ParseUUIDPipe) walletId: string,
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+    @Query('month', new ParseIntPipe({ optional: true })) month?: number,
   ) {
-    return this.dashboardService.getExpensesByCategory(userId, walletId);
+    return this.dashboardService.getExpensesByCategory(
+      userId,
+      walletId,
+      year,
+      month,
+    );
   }
 
   @Get('income-by-category')
   getIncomeByCategory(
     @CurrentUser('id') userId: string,
     @Query('walletId', ParseUUIDPipe) walletId: string,
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+    @Query('month', new ParseIntPipe({ optional: true })) month?: number,
   ) {
-    return this.dashboardService.getIncomeByCategory(userId, walletId);
+    return this.dashboardService.getIncomeByCategory(
+      userId,
+      walletId,
+      year,
+      month,
+    );
   }
 
   @Get('monthly-summary')
   getMonthlySummary(
     @CurrentUser('id') userId: string,
     @Query('walletId', ParseUUIDPipe) walletId: string,
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+    @Query('month', new ParseIntPipe({ optional: true })) month?: number,
   ) {
-    return this.dashboardService.getMonthlySummary(userId, walletId);
+    return this.dashboardService.getMonthlySummary(userId, walletId, year, month);
   }
 
   //   @Get('cashflow-over-time')

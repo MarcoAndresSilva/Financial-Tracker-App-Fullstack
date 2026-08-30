@@ -4,7 +4,23 @@
       <mat-icon class="page-title-icon">receipt_long</mat-icon>
       Mis Transacciones
     </h1>
+
+    <app-month-selector
+      class="header-month"
+      [class.header-month--muted]="showAllMonths"
+    ></app-month-selector>
+
     <div class="header-actions">
+      <button
+        mat-stroked-button
+        type="button"
+        class="all-months-toggle"
+        [class.all-months-toggle--active]="showAllMonths"
+        (click)="toggleAllMonths()"
+      >
+        <mat-icon>{{ showAllMonths ? "event_available" : "date_range" }}</mat-icon>
+        <span>{{ showAllMonths ? "Todos los meses" : "Solo este mes" }}</span>
+      </button>
       <button
         mat-stroked-button
         type="button"
