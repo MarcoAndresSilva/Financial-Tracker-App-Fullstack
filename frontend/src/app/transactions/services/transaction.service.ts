@@ -4,6 +4,8 @@ import {
   GetTransactionsFilterDto,
   CreateTransactionDto,
   UpdateTransactionDto,
+  BulkMoveTransactionsDto,
+  BulkCopyTransactionsDto,
   Transaction,
 } from './transaction.types';
 import { Observable } from 'rxjs';
@@ -56,6 +58,20 @@ export class TransactionService {
   deleteTransaction(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(
       `${this.apiUrl}/transactions/${id}`
+    );
+  }
+
+  bulkMove(dto: BulkMoveTransactionsDto): Observable<{ count: number }> {
+    return this.http.patch<{ count: number }>(
+      `${this.apiUrl}/transactions/bulk-move`,
+      dto
+    );
+  }
+
+  bulkCopy(dto: BulkCopyTransactionsDto): Observable<{ count: number }> {
+    return this.http.post<{ count: number }>(
+      `${this.apiUrl}/transactions/bulk-copy`,
+      dto
     );
   }
 }

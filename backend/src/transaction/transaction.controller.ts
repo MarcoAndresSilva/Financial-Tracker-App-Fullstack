@@ -15,6 +15,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { TransactionService } from './transaction.service';
 import {
+  BulkCopyTransactionsDto,
+  BulkMoveTransactionsDto,
   CreateTransactionDto,
   UpdateTransactionDto,
   GetTransactionsFilterDto,
@@ -43,6 +45,25 @@ export class TransactionController {
     @Query() filterDto: GetTransactionsFilterDto,
   ) {
     return this.transactionService.getTransactionsByWallet(userId, filterDto);
+  }
+
+  // --- MOVER LOTE (reasignar fecha) ---
+  // Antes de `:id` para que la ruta literal gane sobre el parámetro.
+  @Patch('bulk-move')
+  bulkMove(
+    @CurrentUser('id') userId: string,
+    @Body() dto: BulkMoveTransactionsDto,
+  ) {
+    return this.transactionService.bulkMove(userId, dto);
+  }
+
+  // --- COPIAR LOTE a otra fecha (deja las originales) ---
+  @Post('bulk-copy')
+  bulkCopy(
+    @CurrentUser('id') userId: string,
+    @Body() dto: BulkCopyTransactionsDto,
+  ) {
+    return this.transactionService.bulkCopy(userId, dto);
   }
 
   // --- READ ONE BY ID ---

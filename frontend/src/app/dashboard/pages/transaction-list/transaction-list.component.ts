@@ -19,8 +19,13 @@ import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { TransactionFormComponent } from '../../../transactions/components/transaction-form/transaction-form.component';
+import {
+  BulkTransactionsDialogComponent,
+  BulkTransactionsMode,
+} from '../../../transactions/components/bulk-transactions-dialog/bulk-transactions-dialog.component';
 
 import { TransactionService } from '../../../transactions/services/transaction.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import {
   GetTransactionsFilterDto,
   Transaction,
@@ -64,6 +69,7 @@ export class TransactionListComponent implements OnInit {
   private subcategoryService = inject(SubcategoryService);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
+  private notification = inject(NotificationService);
   private breakpointObserver = inject(BreakpointObserver);
 
   private destroy$ = new Subject<void>();
@@ -76,6 +82,10 @@ export class TransactionListComponent implements OnInit {
   transactions: Transaction[] = [];
   isLoading = true;
   filterForm: FormGroup;
+
+  // Modo de selección múltiple para mover un lote de transacciones a otra fecha.
+  selectionMode = false;
+  selectedIds = new Set<string>();
 
   // En mobile arrancan colapsados para no tapar la lista; en desktop, visibles
   // como siempre (se decide una sola vez al entrar, después el usuario lo maneja a mano).
@@ -127,6 +137,77 @@ export class TransactionListComponent implements OnInit {
   toggleAllMonths(): void {
     this.showAllMonths = !this.showAllMonths;
     this.loadTransactions();
+  }
+
+  // --- Selección múltiple / acciones en lote ---
+
+  toggleSelectionMode(): void {
+    this.selectionMode = !this.selectionMode;
+    if (!this.selectionMode) this.selectedIds.clear();
+  }
+
+  toggleSelected(id: string): void {
+    if (this.selectedIds.has(id)) {
+      this.selectedIds.delete(id);
+    } else {
+      this.selectedIds.add(id);
+    }
+  }
+
+  isSelected(id: string): boolean {
+    return this.selectedIds.has(id);
+  }
+
+  // `mode`:
+  //  - 'copy': crea copias en la fecha elegida (para no recargar las cuentas
+  //            fijas cada mes), deja las originales
+  //  - 'move': les cambia la fecha a todas
+  openBulkDialog(mode: BulkTransactionsMode): void {
+    if (!this.activeWallet || this.selectedIds.size === 0) return;
+    const walletId = this.activeWallet.id;
+    const ids = [...this.selectedIds];
+
+    this.dialog
+      .open(BulkTransactionsDialogComponent, {
+        width: '400px',
+        data: { count: ids.length, mode },
+      })
+      .afterClosed()
+      .subscribe((targetDate: Date | undefined) => {
+        if (!targetDate) return;
+        const payload = {
+          walletId,
+          transactionIds: ids,
+          date: dateToApiString(targetDate),
+        };
+        const request$ =
+          mode === 'copy'
+            ? this.transactionService.bulkCopy(payload)
+            : this.transactionService.bulkMove(payload);
+
+        request$.subscribe({
+          next: ({ count }) => {
+            // Quedamos parados en el mes destino para revisar el resultado.
+            this.periodContext.setPeriod(
+              targetDate.getFullYear(),
+              targetDate.getMonth() + 1,
+            );
+            this.selectedIds.clear();
+            this.selectionMode = false;
+            const verb = mode === 'copy' ? 'copiada' : 'movida';
+            this.notification.success(
+              `${count} transacci${count === 1 ? 'ón ' + verb : 'ones ' + verb + 's'}.`,
+            );
+            // El cambio de período ya dispara loadTransactions vía combineLatest.
+          },
+          error: (err) => {
+            const message =
+              err?.error?.message ??
+              `No se pudieron ${mode === 'copy' ? 'copiar' : 'mover'} las transacciones.`;
+            this.notification.error(message);
+          },
+        });
+      });
   }
 
   ngOnDestroy(): void {

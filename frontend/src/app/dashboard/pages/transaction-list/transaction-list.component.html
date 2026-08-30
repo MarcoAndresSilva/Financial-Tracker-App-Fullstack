@@ -33,6 +33,16 @@
           showFilters ? "expand_less" : "expand_more"
         }}</mat-icon>
       </button>
+      <button
+        mat-stroked-button
+        type="button"
+        class="select-toggle"
+        [class.select-toggle--active]="selectionMode"
+        (click)="toggleSelectionMode()"
+      >
+        <mat-icon>{{ selectionMode ? "close" : "checklist" }}</mat-icon>
+        <span>{{ selectionMode ? "Salir de selección" : "Seleccionar" }}</span>
+      </button>
       <!-- Botón para DESKTOP -->
       <button
         mat-flat-button
@@ -44,6 +54,32 @@
         <span>Añadir Transacción</span>
       </button>
     </div>
+  </div>
+
+  <!-- Barra de acción del modo selección -->
+  <div class="selection-bar" *ngIf="selectionMode">
+    <span class="selection-count">
+      {{ selectedIds.size }}
+      seleccionada{{ selectedIds.size === 1 ? "" : "s" }}
+    </span>
+    <span class="selection-spacer"></span>
+    <button
+      mat-flat-button
+      color="primary"
+      [disabled]="selectedIds.size === 0"
+      (click)="openBulkDialog('copy')"
+    >
+      <mat-icon>content_copy</mat-icon>
+      <span>Copiar a un mes</span>
+    </button>
+    <button
+      mat-stroked-button
+      [disabled]="selectedIds.size === 0"
+      (click)="openBulkDialog('move')"
+    >
+      <mat-icon>calendar_month</mat-icon>
+      <span>Mover</span>
+    </button>
   </div>
 
   <section class="filter-section" *ngIf="showFilters">
@@ -118,8 +154,26 @@
     ></app-loading-spinner>
 
     <mat-list *ngIf="!isLoading && transactions.length > 0" role="list">
-      <mat-list-item *ngFor="let transaction of transactions" role="listitem">
-        <div matListItemIcon class="transaction-icon-container">
+      <mat-list-item
+        *ngFor="let transaction of transactions"
+        role="listitem"
+        [class.row-selectable]="selectionMode"
+        [class.row-selected]="isSelected(transaction.id)"
+        (click)="selectionMode ? toggleSelected(transaction.id) : null"
+      >
+        <mat-checkbox
+          *ngIf="selectionMode"
+          matListItemIcon
+          class="row-checkbox"
+          [checked]="isSelected(transaction.id)"
+          (click)="$event.stopPropagation()"
+          (change)="toggleSelected(transaction.id)"
+        ></mat-checkbox>
+        <div
+          *ngIf="!selectionMode"
+          matListItemIcon
+          class="transaction-icon-container"
+        >
           <mat-icon
             [ngClass]="
               transaction.type === 'INCOME' ? 'income-icon' : 'expense-icon'
@@ -159,6 +213,7 @@
             }}
           </div>
           <button
+            *ngIf="!selectionMode"
             mat-icon-button
             [matMenuTriggerFor]="transactionMenu"
             [matMenuTriggerData]="{ tx: transaction }"

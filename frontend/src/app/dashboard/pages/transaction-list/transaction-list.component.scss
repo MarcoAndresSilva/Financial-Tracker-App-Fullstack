@@ -62,9 +62,40 @@
   }
 }
 
-.all-months-toggle--active {
+.all-months-toggle--active,
+.select-toggle--active {
   color: var(--mat-sys-primary);
   border-color: var(--mat-sys-primary);
+}
+
+.selection-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background-color: var(--mat-sys-surface-container-high);
+}
+
+.selection-count {
+  font-weight: 600;
+}
+
+.selection-spacer {
+  flex: 1;
+}
+
+.row-selectable {
+  cursor: pointer;
+}
+
+.row-selected {
+  background-color: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}
+
+.row-checkbox {
+  margin-right: 0.5rem;
 }
 
 @media (min-width: 768px) {

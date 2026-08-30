@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  BulkCopyTransactionsDto,
+  BulkMoveTransactionsDto,
   CreateTransactionDto,
   GetTransactionsFilterDto,
   UpdateTransactionDto,
@@ -126,6 +128,58 @@ export class TransactionService {
         ...(dto.date && { date: new Date(dto.date) }),
       },
     });
+  }
+
+  /**
+   * Reasigna la fecha de varias transacciones de una vez (mover un lote a otro
+   * mes). El `walletId` en el `where` del `updateMany` garantiza que solo se
+   * toquen transacciones de esa wallet, aunque en `transactionIds` viniera un
+   * id ajeno.
+   */
+  async bulkMove(userId: string, dto: BulkMoveTransactionsDto) {
+    await this.permissions.checkWalletMembership(userId, dto.walletId);
+
+    const result = await this.prisma.transaction.updateMany({
+      where: {
+        id: { in: dto.transactionIds },
+        walletId: dto.walletId,
+      },
+      data: { date: new Date(dto.date) },
+    });
+
+    return { count: result.count };
+  }
+
+  /**
+   * Duplica un lote de transacciones a una fecha dada, dejando las originales
+   * intactas. Sirve para no recargar a mano las cuentas fijas cada mes. Solo se
+   * copian las transacciones que realmente pertenecen a la wallet indicada.
+   */
+  async bulkCopy(userId: string, dto: BulkCopyTransactionsDto) {
+    await this.permissions.checkWalletMembership(userId, dto.walletId);
+
+    const originals = await this.prisma.transaction.findMany({
+      where: { id: { in: dto.transactionIds }, walletId: dto.walletId },
+    });
+
+    if (originals.length === 0) {
+      return { count: 0 };
+    }
+
+    const date = new Date(dto.date);
+    const result = await this.prisma.transaction.createMany({
+      data: originals.map((tx) => ({
+        amount: tx.amount,
+        type: tx.type,
+        description: tx.description,
+        date,
+        walletId: tx.walletId,
+        subcategoryId: tx.subcategoryId,
+        authorId: userId,
+      })),
+    });
+
+    return { count: result.count };
   }
 
   async deleteTransactionById(userId: string, transactionId: string) {

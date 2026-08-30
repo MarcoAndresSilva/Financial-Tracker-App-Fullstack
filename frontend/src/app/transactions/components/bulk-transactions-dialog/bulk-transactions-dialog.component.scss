@@ -1,0 +1,17 @@
+.full-width {
+  width: 100%;
+}
+
+.bulk-hint {
+  margin: 0 0 1rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.9rem;
+}
+
+.shortcut-button {
+  margin-top: 0.25rem;
+
+  mat-icon {
+    margin-right: 0.35rem;
+  }
+}

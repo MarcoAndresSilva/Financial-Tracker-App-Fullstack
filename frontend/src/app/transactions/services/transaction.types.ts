@@ -37,3 +37,12 @@ export interface CreateTransactionDto {
 }
 
 export type UpdateTransactionDto = Partial<CreateTransactionDto>;
+
+export interface BulkMoveTransactionsDto {
+  walletId: string;
+  transactionIds: string[];
+  date: string; // 'YYYY-MM-DD'
+}
+
+// Mismo shape que mover, pero crea copias en esa fecha y deja las originales.
+export type BulkCopyTransactionsDto = BulkMoveTransactionsDto;
