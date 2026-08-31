@@ -24,7 +24,7 @@
 }
 
 .page-title-icon {
-  color: #4caf50;
+  color: var(--app-accent);
   font-size: 26px;
   width: 26px;
   height: 26px;
@@ -169,7 +169,7 @@
 }
 
 mat-list-item {
-  background-color: white;
+  background-color: var(--mat-sys-surface);
   border-radius: 12px;
   margin-bottom: 0.6rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
@@ -195,12 +195,12 @@ mat-list-item {
   flex-shrink: 0;
 }
 .income-icon {
-  background-color: #e8f5e9;
-  color: #4caf50;
+  background-color: var(--app-income-surface);
+  color: var(--app-income);
 }
 .expense-icon {
-  background-color: #ffebee;
-  color: #f44336;
+  background-color: var(--app-expense-surface);
+  color: var(--app-expense);
 }
 
 .transaction-info {
@@ -211,11 +211,11 @@ mat-list-item {
 }
 .transaction-description {
   font-weight: 500;
-  color: #212121;
+  color: var(--app-text-strong);
 }
 .transaction-details {
   font-size: 0.8rem;
-  color: #757575;
+  color: var(--app-text-muted);
 }
 
 .transaction-amount {
@@ -229,16 +229,16 @@ mat-list-item {
   margin-left: 16px;
 }
 .income-amount {
-  color: #4caf50;
+  color: var(--app-income);
 }
 .expense-amount {
-  color: #f44336;
+  color: var(--app-expense);
 }
 
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  color: #757575;
+  color: var(--app-text-muted);
   mat-icon {
     font-size: 64px;
     width: 64px;

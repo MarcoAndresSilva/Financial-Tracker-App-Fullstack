@@ -66,7 +66,7 @@
 }
 
 .page-title-icon {
-  color: #4caf50;
+  color: var(--app-accent);
   font-size: 32px;
   width: 32px;
   height: 32px;
@@ -357,12 +357,12 @@
 }
 
 .income-icon {
-  background-color: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
+  background-color: var(--app-income-surface);
+  color: var(--app-income);
 }
 .expense-icon {
-  background-color: #ffebee;
-  color: #c62828;
+  background-color: var(--app-expense-surface);
+  color: var(--app-expense);
 }
 .balance-icon {
   background-color: var(--mat-sys-tertiary-container);
@@ -388,16 +388,16 @@
 }
 
 .income .summary-value {
-  color: #2e7d32;
+  color: var(--app-income);
 }
 .expense .summary-value {
-  color: #c62828;
+  color: var(--app-expense);
 }
 .balance .summary-value {
   color: var(--mat-sys-primary);
 
   &.negative {
-    color: #c62828;
+    color: var(--app-expense);
   }
 }
 
@@ -443,10 +443,10 @@
   white-space: nowrap;
 
   &.positive {
-    color: #2e7d32;
+    color: var(--app-income);
   }
   &.negative {
-    color: #c62828;
+    color: var(--app-expense);
   }
 }
 

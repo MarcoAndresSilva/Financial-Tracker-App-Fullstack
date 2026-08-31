@@ -14,11 +14,11 @@
 }
 
 .alert-dialog.success .alert-icon {
-  color: #2e7d32;
+  color: var(--app-income);
 }
 
 .alert-dialog.error .alert-icon {
-  color: #c62828;
+  color: var(--app-expense);
 }
 
 h2[mat-dialog-title] {

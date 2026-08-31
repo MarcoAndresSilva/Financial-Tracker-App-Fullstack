@@ -105,47 +105,6 @@
 
   </section>
 
-  <!-- ======================= AHORRO / REMANENTE ======================= -->
-  <section class="dashboard-section" *ngIf="savings as sv">
-    <div class="section-heading">
-      <h2>Ahorro</h2>
-      <span class="section-caption">
-        Tu saldo ahorrado — aparte de los ingresos y gastos del mes
-      </span>
-    </div>
-
-    <mat-card class="savings-card" appearance="outlined">
-      <mat-card-content>
-        <div class="savings-row">
-          <span class="savings-label"
-            >Remanente al iniciar {{ periodLabel }}</span
-          >
-          <span class="savings-value">{{
-            sv.remanenteEntrante | currency : "CLP" : "symbol-narrow" : "1.0-0"
-          }}</span>
-        </div>
-        <div class="savings-row">
-          <span class="savings-label">Ahorro de {{ periodLabel }}</span>
-          <span
-            class="savings-value"
-            [class.positive]="sv.ahorroDelMes >= 0"
-            [class.negative]="sv.ahorroDelMes < 0"
-          >
-            {{ sv.ahorroDelMes >= 0 ? "+" : ""
-            }}{{ sv.ahorroDelMes | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
-          </span>
-        </div>
-        <mat-divider></mat-divider>
-        <div class="savings-row savings-row--total">
-          <span class="savings-label">Saldo acumulado</span>
-          <span class="savings-value">{{
-            sv.saldoAcumulado | currency : "CLP" : "symbol-narrow" : "1.0-0"
-          }}</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </section>
-
   <!-- ======================= RESUMEN (mes / histórico) ======================= -->
   <section class="dashboard-section">
     <div class="section-heading summary-heading">
@@ -210,7 +169,7 @@
       <mat-card class="summary-card balance" appearance="outlined">
         <mat-card-content>
           <div class="summary-icon balance-icon">
-            <mat-icon>account_balance_wallet</mat-icon>
+            <mat-icon svgIcon="wallet"></mat-icon>
           </div>
           <div class="summary-text">
             <span class="summary-label">Balance</span>
@@ -224,6 +183,47 @@
     <ng-template #loadingSummary>
       <p>Cargando resumen...</p>
     </ng-template>
+  </section>
+
+  <!-- ======================= AHORRO / REMANENTE ======================= -->
+  <section class="dashboard-section" *ngIf="savings as sv">
+    <div class="section-heading">
+      <h2>Ahorro</h2>
+      <span class="section-caption">
+        Tu saldo ahorrado — aparte de los ingresos y gastos del mes
+      </span>
+    </div>
+
+    <mat-card class="savings-card" appearance="outlined">
+      <mat-card-content>
+        <div class="savings-row">
+          <span class="savings-label"
+            >Remanente al iniciar {{ periodLabel }}</span
+          >
+          <span class="savings-value">{{
+            sv.remanenteEntrante | currency : "CLP" : "symbol-narrow" : "1.0-0"
+          }}</span>
+        </div>
+        <div class="savings-row">
+          <span class="savings-label">Ahorro de {{ periodLabel }}</span>
+          <span
+            class="savings-value"
+            [class.positive]="sv.ahorroDelMes >= 0"
+            [class.negative]="sv.ahorroDelMes < 0"
+          >
+            {{ sv.ahorroDelMes >= 0 ? "+" : ""
+            }}{{ sv.ahorroDelMes | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
+          </span>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="savings-row savings-row--total">
+          <span class="savings-label">Saldo acumulado</span>
+          <span class="savings-value">{{
+            sv.saldoAcumulado | currency : "CLP" : "symbol-narrow" : "1.0-0"
+          }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </section>
 
   <div class="category-breakdown-grid">

@@ -24,6 +24,9 @@ import {
   CategoryBarsComponent,
 } from '../../../shared/components/category-bars/category-bars.component';
 
+// NOTA: estos dos arrays (categórico y de estado) son la única excepción a la
+// regla "todos los colores viven en src/styles/_tokens.scss" — la skill de
+// dataviz manda que las paletas categóricas y de estado NO sigan la marca.
 // Paleta categórica validada (8 tonos, orden fijo, CVD-safe) — ver dataviz skill.
 const CATEGORY_COLORS = [
   '#2a78d6', // azul

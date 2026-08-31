@@ -1,0 +1,55 @@
+// ============================================================================
+//  PALETA DEL PROYECTO — fuente única de verdad de los colores de FinTrack
+// ============================================================================
+//
+//  Cómo funciona el tema (ver también Paso 10 y Paso 56 en ARCHITECTURE.md):
+//
+//   1. `_theme-colors.scss` — rampas tonales M3 generadas con
+//      `ng generate @angular/material:m3-theme` desde:
+//        primary  #243B53  (azul marino mate)
+//        tertiary #B08D57  (dorado apagado)
+//      NO se edita a mano: para cambiar el navy/dorado se regenera el schematic.
+//
+//   2. `mat.theme(...)` en `styles.scss` toma esas rampas y expone los tokens
+//      `--mat-sys-*` (primary, surface, on-surface, outline, inverse-*, etc.)
+//      que consume casi todo el chrome (toolbar, sidenav, títulos, links).
+//
+//   3. Este archivo:
+//        a) fija algunos `--mat-sys-*` al valor exacto de marca (M3 mapea el
+//           seed a un tono más claro; acá lo dejamos como se eligió), y
+//        b) define los `--app-*`: colores que NO son de Material — la semántica
+//           financiera (ingreso/gasto) y el acento de marca.
+//
+//  Regla: ningún componente hardcodea un color. Usa `--mat-sys-*` para el
+//  chrome y `--app-*` para lo de acá. Únicas excepciones (skill de dataviz):
+//  `STATUS_COLORS` y `CATEGORY_COLORS` en home.component.ts — status y
+//  categóricos nunca siguen la marca.
+// ============================================================================
+
+:root {
+  /* ---- Marca / chrome: valores exactos elegidos ---- */
+  // M3 aclara el seed al mapearlo al rol "primary" (tono 40). Lo fijamos al
+  // navy que se eligió para que el toolbar y los botones primary sean ese color.
+  --mat-sys-primary: #243b53;
+  --mat-sys-on-primary: #ffffff;
+
+  // Sidenav oscuro en navy profundo (en vez del gris neutro por defecto).
+  --mat-sys-inverse-surface: #1b2a3d;
+  --mat-sys-inverse-on-surface: #e9f1ff;
+
+  /* ---- Acento de marca: detalles que antes eran verdes ---- */
+  // Íconos de título de sección, ítem activo del menú lateral, remates.
+  --app-accent: #b08d57; // dorado apagado
+  --app-accent-strong: #8a6d40; // para texto/bordes sobre fondo claro
+  --app-accent-contrast: #ffffff;
+
+  /* ---- Semántica financiera (CONVENCIÓN — no sigue la marca) ---- */
+  --app-income: #2e7d32;
+  --app-income-surface: #e8f5e9;
+  --app-expense: #c62828;
+  --app-expense-surface: #ffebee;
+
+  /* ---- Alias de texto legibles sobre los tokens de Material ---- */
+  --app-text-strong: var(--mat-sys-on-surface);
+  --app-text-muted: var(--mat-sys-on-surface-variant);
+}

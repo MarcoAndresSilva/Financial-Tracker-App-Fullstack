@@ -1,6 +1,8 @@
 // frontend/src/app/app.component.ts
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -11,4 +13,14 @@ import { RouterOutlet } from '@angular/router';
 })
 export class AppComponent {
   title = 'frontend';
+
+  constructor() {
+    // Ícono SVG propio de billetera para el selector de wallet (public/icons/).
+    const registry = inject(MatIconRegistry);
+    const sanitizer = inject(DomSanitizer);
+    registry.addSvgIcon(
+      'wallet',
+      sanitizer.bypassSecurityTrustResourceUrl('icons/wallet.svg'),
+    );
+  }
 }

@@ -22,7 +22,7 @@
 }
 
 .page-title-icon {
-  color: #4caf50;
+  color: var(--app-accent);
   font-size: 32px;
   width: 32px;
   height: 32px;
@@ -74,7 +74,7 @@
 }
 
 .complete-icon {
-  color: #0ca30c;
+  color: var(--app-income);
 }
 
 .goal-actions {
@@ -98,7 +98,7 @@
   transition: width 0.4s ease;
 
   &.complete {
-    background-color: #0ca30c;
+    background-color: var(--app-income);
   }
 }
 

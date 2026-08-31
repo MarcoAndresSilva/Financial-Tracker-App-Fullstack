@@ -1,20 +1,22 @@
-// Custom Theming for Angular Material
-// For more information: https://material.angular.dev/guide/theming
+// Tema de Angular Material — ver src/styles/_tokens.scss para la paleta completa
+// y cómo cambiarla. https://material.angular.dev/guide/theming
 @use "@angular/material" as mat;
+@use "./styles/theme-colors" as brand;
+@use "./styles/tokens"; // side-effect: define --mat-sys-* fijados y --app-*
 
 html {
   @include mat.theme(
     (
       color: (
         theme-type: light,
-        primary: mat.$green-palette,
-        tertiary: mat.$violet-palette,
+        primary: brand.$primary-palette,
+        tertiary: brand.$tertiary-palette,
       ),
       typography: Roboto,
       density: 0,
     )
   );
-} /* You can add global styles to this file, and also import other style files */
+}
 
 html,
 body {

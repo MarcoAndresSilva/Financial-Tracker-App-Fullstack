@@ -4,11 +4,10 @@
 $sidenav-width: 250px;
 $toolbar-height: 64px;
 
-// Mismo verde que ya se usa en la app para "positivo" (botón de agregar
-// transacción, montos de ingreso) — se reutiliza acá para que los íconos
-// del menú lateral contrasten bien contra el fondo oscuro y mantengan el
-// mismo lenguaje visual en vez de un blanco/gris genérico.
-$sidenav-accent-green: #4caf50;
+// Acento de marca (dorado apagado) para que los íconos del menú lateral y el
+// ítem activo resalten sobre el fondo navy oscuro. Definido en
+// src/styles/_tokens.scss como --app-accent.
+$sidenav-accent: var(--app-accent);
 
 .sidenav-container {
   height: 100vh;
@@ -33,7 +32,7 @@ $sidenav-accent-green: #4caf50;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
     .brand-icon {
-      color: var(--mat-sys-inverse-primary);
+      color: var(--app-accent);
     }
 
     .logo {
@@ -53,9 +52,9 @@ $sidenav-accent-green: #4caf50;
     (
       list-item-label-text-color: var(--mat-sys-inverse-on-surface),
       list-item-label-text-weight: 500,
-      list-item-leading-icon-color: $sidenav-accent-green,
+      list-item-leading-icon-color: $sidenav-accent,
       list-item-hover-label-text-color: white,
-      list-item-hover-leading-icon-color: $sidenav-accent-green,
+      list-item-hover-leading-icon-color: $sidenav-accent,
       list-item-hover-state-layer-color: white,
       list-item-hover-state-layer-opacity: 0.08,
       list-item-focus-state-layer-color: white,
@@ -86,12 +85,12 @@ $sidenav-accent-green: #4caf50;
 
     .active-link {
       background-color: rgba(255, 255, 255, 0.12);
-      border-left: 3px solid $sidenav-accent-green;
+      border-left: 3px solid $sidenav-accent;
 
       @include mat.list-overrides(
         (
-          list-item-label-text-color: $sidenav-accent-green,
-          list-item-leading-icon-color: $sidenav-accent-green,
+          list-item-label-text-color: $sidenav-accent,
+          list-item-leading-icon-color: $sidenav-accent,
         )
       );
     }
@@ -110,22 +109,23 @@ $sidenav-accent-green: #4caf50;
 
 // Estilos para la Barra Superior
 mat-toolbar {
-  // `color="primary"` en el template no alcanza: `mat.theme(...)` (la API
-  // de theming del proyecto) no genera la regla `.mat-toolbar.mat-primary`
-  // que pinta el fondo — eso requeriría además un `mat.toolbar-theme(...)`
-  // aparte, que nunca se agregó. Se pinta a mano con los tokens del tema;
-  // el ícono del menú, el ícono/texto de marca, saludo y selector de wallet
-  // heredan `color` normalmente, así que no hace falta tocarlos aparte.
-  // `color="primary"` en el template no alcanza: `mat.theme(...)` (la API
-  // de theming del proyecto) no genera la regla `.mat-toolbar.mat-primary`
-  // que pinta el fondo — eso requeriría además un `mat.toolbar-theme(...)`
-  // aparte, que nunca se agregó. Se pinta a mano con los tokens del tema.
+  // `color="primary"` en el template no alcanza: `mat.theme(...)` no genera la
+  // regla `.mat-toolbar.mat-primary` que pinta el fondo (haría falta también un
+  // `mat.toolbar-theme(...)`). Se pinta a mano con los tokens del tema.
   height: $toolbar-height;
   position: sticky;
   top: 0;
   z-index: 10;
   background-color: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
+
+  // Los `mat-icon-button` (hamburguesa, flecha del selector) traen su propio
+  // token de color de ícono, que sobre el fondo navy quedaba gris oscuro e
+  // ilegible. Se fuerzan al color del texto del toolbar (blanco).
+  .mat-mdc-icon-button {
+    --mdc-icon-button-icon-color: var(--mat-sys-on-primary);
+    color: var(--mat-sys-on-primary);
+  }
 
   .toolbar-brand {
     display: flex;
@@ -165,13 +165,18 @@ mat-toolbar {
     gap: 0.25rem;
     font-size: 1.05rem;
 
-    // Café bien oscuro (cuero), no el café medio anterior — contra el verde
-    // opaco del toolbar necesita más contraste para leerse como billetera.
+    // `mat-button` pinta su label con un token propio (`--mdc-text-button-*`)
+    // que por defecto es el primary navy → sobre el toolbar navy quedaba negro.
+    // Se fuerza al color del texto del toolbar (blanco), y el ícono lo hereda.
+    color: var(--mat-sys-on-primary);
+    --mdc-text-button-label-text-color: var(--mat-sys-on-primary);
+
+    // Ícono SVG propio de billetera (public/icons/wallet.svg), registrado en
+    // AppComponent.
     .wallet-icon {
-      color: #3e2723;
-      font-size: 28px;
-      width: 28px;
-      height: 28px;
+      font-size: 26px;
+      width: 26px;
+      height: 26px;
     }
   }
 }
