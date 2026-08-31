@@ -759,4 +759,18 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
 
 - Los 8 PNG + `favicon.ico` (antes chanchito con degradado verde→violeta) se regeneran con **`scripts/generate-pwa-icons.mjs`** (nuevo, commiteado — repetible): billetera blanca sobre un degradado 135° `#243B53 → #B08D57` (navy dominante, remate dorado en la esquina), glyph al ~54% para la safe zone maskable. Necesita `sharp` (nueva dep de desarrollo).
 - `public/manifest.webmanifest` `theme_color` y `src/index.html` `<meta name="theme-color">`: `#026e00` → `#243B53`. `background_color` se mantiene.
-- Nota: el ícono de la app instalada pasa a ser una **billetera** (no el chanchito). La marca dentro de la app (sidenav/login, ícono `savings`) no se tocó — se puede unificar después si se quiere.
+- Nota: el ícono de la app instalada pasa a ser una **billetera** (no el chanchito). La marca dentro de la app (sidenav/login, ícono `savings`) no se tocó — se unifica en el Paso 58.
+
+### Paso 58: Nuevo Mark de Marca (línea de tendencia)
+
+- **Objetivo:** el chanchito (`savings`) se sentía juguetón para la identidad seria en azul marino. Se reemplaza por un mark de **línea de tendencia ascendente con flecha** — el símbolo estándar de app financiera, y distinto del ícono de billetera (que es "cartera activa", no la marca).
+- **`public/icons/brand.svg`** (nuevo): trazo `stroke="currentColor"` (línea que sube + flecha + una base tenue). Registrado junto a `wallet` en `AppComponent` (`MatIconRegistry`, loop sobre `['brand', 'wallet']`).
+- Los cuatro `<mat-icon>savings</mat-icon>` (header del sidenav, marca del toolbar, hero de login y de registro) pasan a `<mat-icon svgIcon="brand">`. Hereda el color del contexto: dorado en el sidenav (`.brand-icon`), blanco sobre el toolbar y el banner navy del login.
+- **Íconos PWA:** `scripts/generate-pwa-icons.mjs` ahora dibuja el mark de tendencia (blanco) sobre el mismo degradado navy→dorado, en vez de la billetera. Se regeneraron los 8 PNG + favicon.
+
+### Paso 59: Últimos Movimientos en el Home
+
+- **Objetivo:** al abrir la app, lo primero que uno quiere es ver qué se movió. El Home era puro tablero (Paso 47); se agrega una **vista rápida de 5 movimientos** del mes activo, sin dejar de ser tablero (no es la lista completa — tiene un "Ver todas" que va a Transacciones).
+- **Layout — 2 columnas en desktop:** la card de Ahorro quedaba angosta con mucho espacio muerto a la derecha. Ahora Ahorro y "Últimos movimientos" van lado a lado en un `.home-split` (`flex-wrap`, cada columna `flex: 1 1 340px`); en mobile se apilan solas. Reemplaza la sección suelta de Ahorro.
+- **Backend:** `GetTransactionsFilterDto` gana `limit?` (validado como `@IsNumberString`, el `ValidationPipe` global no tiene `transform`). `TransactionService.getTransactionsByWallet` lo parsea, lo clampea a `[1, 100]` y lo pasa como `take` de Prisma. Sin `limit` → conducta previa (todas).
+- **Frontend `HomeComponent`:** inyecta `TransactionService`; en `loadDashboardData` pide las transacciones del mes activo con `limit: 5` (ventana de fechas calculada igual que en la lista, `new Date(year, month, 0)` para el último día) y además hace `.slice(0, 5)` en el cliente por si el backend viejo ignora el `limit`. `RouterModule` en `imports` para el botón "Ver todas las transacciones" del `mat-card-actions` (→ `/dashboard/transactions`). Cada fila: badge circular tintado con la flecha ↑/↓ (verde ingreso / rojo gasto), descripción + `fecha · categoría`, monto con signo a la derecha. Estado vacío "Sin movimientos en {mes}".
