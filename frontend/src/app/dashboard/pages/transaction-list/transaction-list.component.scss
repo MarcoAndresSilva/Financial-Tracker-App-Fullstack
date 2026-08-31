@@ -3,47 +3,47 @@
   position: relative;
   height: 100%;
 }
+// --- Cabecera ---
+// Mobile: en columna (título arriba, y una fila compacta con el selector de mes
+// + botones solo-ícono). Desktop: todo en una fila.
 .header-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
 
-  h1 {
+  h1.page-title {
     margin: 0;
     font-weight: 600;
     color: var(--mat-sys-primary);
-
-    &.page-title {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.4rem;
   }
 }
 
-// Verde vivo (el mismo del sidenav/toolbar y del botón de agregar
-// transacción) y más grande que un ícono normal — la wallet es el concepto
-// central de toda la app y el título de cada sección lo debe dejar claro.
 .page-title-icon {
   color: #4caf50;
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
 }
 
-// En mobile el selector de mes baja a su propia fila, centrado; en desktop
-// va en línea entre el título y las acciones.
-.header-month {
-  order: 3;
-  flex-basis: 100%;
+.header-toolbar {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.header-month {
+  display: flex;
   transition: opacity 0.15s ease;
 
   &--muted {
-    opacity: 0.4;
+    opacity: 0.45;
     pointer-events: none;
   }
 }
@@ -52,28 +52,68 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-.filters-toggle,
-.all-months-toggle {
-  mat-icon {
-    margin: 0 0.15rem;
-  }
+.toolbar-btn mat-icon {
+  margin: 0;
 }
 
-.all-months-toggle--active,
-.select-toggle--active {
+.toolbar-btn--active {
   color: var(--mat-sys-primary);
   border-color: var(--mat-sys-primary);
 }
 
+.add-button-desktop {
+  display: none;
+}
+
+.fab-add-button-mobile {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
+}
+
+// Mobile: los botones de la toolbar quedan solo con ícono para caber en una
+// fila junto al selector de mes, sin empujar la lista hacia abajo.
+@media (max-width: 767px) {
+  .toolbar-btn__label {
+    display: none;
+  }
+  .toolbar-btn {
+    min-width: 0;
+    padding: 0 10px;
+  }
+}
+
+@media (min-width: 768px) {
+  .header-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-toolbar {
+    flex: 1;
+    justify-content: flex-end;
+  }
+  .fab-add-button-mobile {
+    display: none;
+  }
+  .add-button-desktop {
+    display: inline-flex;
+  }
+}
+
+// --- Barra del modo selección ---
 .selection-bar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin: 0.75rem 0;
-  padding: 0.5rem 0.75rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin: 0.6rem 0;
+  padding: 0.6rem 0.75rem;
   border-radius: 8px;
   background-color: var(--mat-sys-surface-container-high);
 }
@@ -82,8 +122,9 @@
   font-weight: 600;
 }
 
-.selection-spacer {
-  flex: 1;
+.selection-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .row-selectable {
@@ -98,58 +139,42 @@
   margin-right: 0.5rem;
 }
 
-@media (min-width: 768px) {
-  .header-month {
-    order: 0;
-    flex-basis: auto;
+@media (max-width: 600px) {
+  .selection-actions {
+    flex: 1 1 100%;
+
+    button {
+      flex: 1;
+    }
   }
 }
 
-.fab-add-button-mobile {
-  // `fixed`, no `absolute`: el host puede ser más alto que la pantalla
-  // (filtros + lista larga de transacciones), así que "absolute" lo dejaba
-  // pegado al fondo del contenido entero, no de lo que se ve en pantalla.
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 10;
-}
-
-.add-button-desktop {
-  display: none; // Oculto por defecto (mobile-first)
-}
-
-// Media Query para pantallas más grandes (ej. tablets y escritorio)
-@media (min-width: 768px) {
-  .fab-add-button-mobile {
-    display: none; // Ocultamos el FAB
-  }
-  .add-button-desktop {
-    display: inline-flex; // Mostramos el botón de escritorio
-  }
-}
-
+// --- Panel de filtros ---
 .filter-section {
-  background-color: white;
+  background-color: var(--mat-sys-surface-container-low, white);
   padding: 16px;
   border-radius: 8px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 .filter-panel {
   display: flex;
-  flex-wrap: wrap; // Permite que los filtros pasen a la siguiente línea en pantallas pequeñas
+  flex-wrap: wrap;
   gap: 16px;
   align-items: center;
+
+  mat-form-field {
+    flex: 1 1 180px;
+  }
 }
 
 mat-list-item {
   background-color: white;
   border-radius: 12px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-  height: 72px !important;
-  padding: 0 16px !important;
+  height: 68px !important;
+  padding: 0 14px !important;
 }
 
 ::ng-deep .mat-mdc-list-item-unscoped-content {
@@ -224,37 +249,38 @@ mat-list-item {
     margin-top: 1rem;
   }
 }
-.fab-add-button {
-  position: absolute;
-  bottom: 2rem;
-  right: 2rem;
-}
-
 @media (max-width: 600px) {
-  .main-content[_ngcontent-ng-c3122531510] {
-    padding: 1rem;
-  }
   mat-list-item {
-    padding: 0 !important;
+    padding: 0 12px !important;
+    height: 64px !important;
   }
 
   .transaction-icon-container {
-    margin: 5px;
+    width: 34px;
+    height: 34px;
+    margin-right: 10px;
   }
 
-  // .transaction-info {
-  //   margin-right: 8px;
-  // }
   .transaction-description {
-    font-size: 13px;
+    font-size: 0.85rem;
   }
 
   .transaction-details {
     display: flex;
     flex-wrap: wrap;
+    font-size: 0.72rem;
   }
 
   .transaction-amount {
     font-size: 0.9rem;
+  }
+
+  .transaction-actions {
+    margin-left: 8px;
+  }
+
+  // Espacio al final para que el FAB no tape la última transacción.
+  .list-container {
+    padding-bottom: 5rem;
   }
 }

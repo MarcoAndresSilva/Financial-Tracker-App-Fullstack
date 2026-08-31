@@ -87,9 +87,9 @@ export class TransactionListComponent implements OnInit {
   selectionMode = false;
   selectedIds = new Set<string>();
 
-  // En mobile arrancan colapsados para no tapar la lista; en desktop, visibles
-  // como siempre (se decide una sola vez al entrar, después el usuario lo maneja a mano).
-  showFilters = true;
+  // Arranca cerrado siempre (así en mobile nunca tapa la lista); en desktop se
+  // abre solo al entrar vía BreakpointObserver. Después el usuario lo maneja a mano.
+  showFilters = false;
 
   categories: Category[] = [];
   subcategories: Subcategory[] = [];

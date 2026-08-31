@@ -46,8 +46,15 @@
 }
 
 @media (max-width: 600px) {
+  .month-selector {
+    gap: 0;
+  }
   .month-selector__label {
-    font-size: 0.95rem;
-    min-width: 8rem;
+    font-size: 0.9rem;
+    min-width: 6.5rem;
+    padding: 0 4px;
+  }
+  .month-selector__today {
+    font-size: 0.75rem;
   }
 }

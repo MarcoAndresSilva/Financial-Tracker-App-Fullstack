@@ -5,81 +5,90 @@
       Mis Transacciones
     </h1>
 
-    <app-month-selector
-      class="header-month"
-      [class.header-month--muted]="showAllMonths"
-    ></app-month-selector>
+    <div class="header-toolbar">
+      <app-month-selector
+        class="header-month"
+        [class.header-month--muted]="showAllMonths"
+      ></app-month-selector>
 
-    <div class="header-actions">
-      <button
-        mat-stroked-button
-        type="button"
-        class="all-months-toggle"
-        [class.all-months-toggle--active]="showAllMonths"
-        (click)="toggleAllMonths()"
-      >
-        <mat-icon>{{ showAllMonths ? "event_available" : "date_range" }}</mat-icon>
-        <span>{{ showAllMonths ? "Todos los meses" : "Solo este mes" }}</span>
-      </button>
-      <button
-        mat-stroked-button
-        type="button"
-        class="filters-toggle"
-        (click)="toggleFilters()"
-      >
-        <mat-icon>filter_list</mat-icon>
-        <span>Filtros</span>
-        <mat-icon>{{
-          showFilters ? "expand_less" : "expand_more"
-        }}</mat-icon>
-      </button>
-      <button
-        mat-stroked-button
-        type="button"
-        class="select-toggle"
-        [class.select-toggle--active]="selectionMode"
-        (click)="toggleSelectionMode()"
-      >
-        <mat-icon>{{ selectionMode ? "close" : "checklist" }}</mat-icon>
-        <span>{{ selectionMode ? "Salir de selección" : "Seleccionar" }}</span>
-      </button>
-      <!-- Botón para DESKTOP -->
-      <button
-        mat-flat-button
-        color="primary"
-        class="add-button-desktop"
-        (click)="openTransactionForm()"
-      >
-        <mat-icon>add</mat-icon>
-        <span>Añadir Transacción</span>
-      </button>
+      <div class="header-actions">
+        <button
+          mat-stroked-button
+          type="button"
+          class="toolbar-btn all-months-toggle"
+          [class.toolbar-btn--active]="showAllMonths"
+          (click)="toggleAllMonths()"
+          [matTooltip]="showAllMonths ? 'Viendo todos los meses' : 'Viendo solo este mes'"
+        >
+          <mat-icon>{{
+            showAllMonths ? "event_available" : "date_range"
+          }}</mat-icon>
+          <span class="toolbar-btn__label">{{
+            showAllMonths ? "Todos los meses" : "Solo este mes"
+          }}</span>
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
+          class="toolbar-btn filters-toggle"
+          [class.toolbar-btn--active]="showFilters"
+          (click)="toggleFilters()"
+          matTooltip="Filtros"
+        >
+          <mat-icon>filter_list</mat-icon>
+          <span class="toolbar-btn__label">Filtros</span>
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
+          class="toolbar-btn select-toggle"
+          [class.toolbar-btn--active]="selectionMode"
+          (click)="toggleSelectionMode()"
+          [matTooltip]="selectionMode ? 'Salir de selección' : 'Seleccionar'"
+        >
+          <mat-icon>{{ selectionMode ? "close" : "checklist" }}</mat-icon>
+          <span class="toolbar-btn__label">{{
+            selectionMode ? "Salir" : "Seleccionar"
+          }}</span>
+        </button>
+        <!-- Botón para DESKTOP -->
+        <button
+          mat-flat-button
+          color="primary"
+          class="add-button-desktop"
+          (click)="openTransactionForm()"
+        >
+          <mat-icon>add</mat-icon>
+          <span>Añadir Transacción</span>
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Barra de acción del modo selección -->
   <div class="selection-bar" *ngIf="selectionMode">
     <span class="selection-count">
-      {{ selectedIds.size }}
-      seleccionada{{ selectedIds.size === 1 ? "" : "s" }}
+      {{ selectedIds.size }} seleccionada{{ selectedIds.size === 1 ? "" : "s" }}
     </span>
-    <span class="selection-spacer"></span>
-    <button
-      mat-flat-button
-      color="primary"
-      [disabled]="selectedIds.size === 0"
-      (click)="openBulkDialog('copy')"
-    >
-      <mat-icon>content_copy</mat-icon>
-      <span>Copiar a un mes</span>
-    </button>
-    <button
-      mat-stroked-button
-      [disabled]="selectedIds.size === 0"
-      (click)="openBulkDialog('move')"
-    >
-      <mat-icon>calendar_month</mat-icon>
-      <span>Mover</span>
-    </button>
+    <div class="selection-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="selectedIds.size === 0"
+        (click)="openBulkDialog('copy')"
+      >
+        <mat-icon>content_copy</mat-icon>
+        <span>Copiar</span>
+      </button>
+      <button
+        mat-stroked-button
+        [disabled]="selectedIds.size === 0"
+        (click)="openBulkDialog('move')"
+      >
+        <mat-icon>calendar_month</mat-icon>
+        <span>Mover</span>
+      </button>
+    </div>
   </div>
 
   <section class="filter-section" *ngIf="showFilters">
