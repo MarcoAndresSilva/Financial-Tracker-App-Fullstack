@@ -738,3 +738,25 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - Filas de transacción más compactas en mobile (alto 72→64px, ícono 40→34px, tipografía menor) y `padding-bottom` en `.list-container` para que el FAB no tape la última.
   - De paso, `.filter-section` pasa de `background-color: white` fijo a `var(--mat-sys-surface-container-low, white)`, y el `mat-form-field` del panel usa `flex: 1 1 180px` para acomodarse mejor.
   - `MonthSelectorComponent`: en `@media (max-width: 600px)` el label se achica (`min-width` 8rem→6.5rem, fuente 0.9rem) para caber junto a los botones.
+
+### Paso 56: Sistema de Tema Centralizado + Cambio a Azul Marino
+
+- **Objetivo:** la tester principal (la esposa del usuario) marcó que "verde en todos lados" hace que nada resalte. Se pasa a una identidad **azul marino + dorado apagado**, y se centraliza *toda* la paleta en un solo lugar para poder cambiarla de una.
+- **Infra del tema (`src/styles/`, nueva):**
+  - **`_theme-colors.scss`** — rampas tonales M3 generadas con `ng generate @angular/material:m3-theme --primary-color="#243B53" --tertiary-color="#B08D57"`. **No se edita a mano**: para cambiar navy/dorado se regenera el schematic.
+  - **`_tokens.scss`** (a mano) — **la paleta del proyecto**. (a) Fija `--mat-sys-primary: #243b53` / `--mat-sys-on-primary: #fff` y `--mat-sys-inverse-surface`/`-on-surface` a navy profundo (M3 mapea el seed a un tono más claro; acá se deja el exacto elegido; el override en `:root` gana por especificidad al `html` de `mat.theme`). (b) Define los `--app-*`: `--app-accent` (`#b08d57` dorado), `--app-income`/`--app-income-surface`, `--app-expense`/`--app-expense-surface`, y alias `--app-text-strong`/`--app-text-muted`.
+  - **`styles.scss`** — `@use` de `_theme-colors` y `_tokens`; `mat.theme(...)` con las paletas de marca. Misma API de un solo mixin del Paso 10.
+- **Migración de colores hardcodeados:** se sacaron todos los literales de los ~9 SCSS de componentes (`grep '#4caf50|#2e7d32|#c62828|#f44336|#757575|#212121'` → 0 resultados). Acento de chrome `#4caf50` → `var(--app-accent)`; ingreso/gasto → `var(--app-income*|--app-expense*)`; grises de texto → alias `--app-text-*`. **Ingreso verde / gasto rojo se mantienen** (convención) — el verde solo se sacó de la decoración. Únicas excepciones documentadas: `STATUS_COLORS` y `CATEGORY_COLORS` en `home.component.ts` (la skill de dataviz manda que status y categóricos no sigan la marca).
+- **Chrome ahora navy:** toolbar y sidenav ya consumían `--mat-sys-primary` / `--mat-sys-inverse-surface` → cambian solos. `active-link` del sidenav y los íconos de título de sección (`Home`, `Transacciones`, …) pasan a `var(--app-accent)` (dorado).
+- **Íconos del toolbar:**
+  - **Hamburguesa invisible (bug del tester):** los `mat-icon-button` traen su propio token de color de ícono que sobre el fondo navy quedaba gris oscuro. Se fuerza `mat-toolbar .mat-mdc-icon-button { --mdc-icon-button-icon-color: var(--mat-sys-on-primary); color: …on-primary }`.
+  - **Billetera:** el glyph `account_balance_wallet` (pintado café `#3e2723`) se reemplaza por un SVG propio (`public/icons/wallet.svg` — billetera con tarjeta asomando y broche recortado), registrado en `AppComponent` con `MatIconRegistry.addSvgIcon('wallet', …)`. En el template: `<mat-icon svgIcon="wallet">`. Hereda el blanco del toolbar.
+- **Login/registro:** los títulos quedan navy solos (usan `--mat-sys-primary`). El banner `.hero-banner` se probó con degradado navy→dorado pero le quitaba seriedad — quedó **azul marino sólido** (`background: var(--mat-sys-primary)`).
+- **Ajustes finos del mismo paso:** el selector de wallet (`mat-button`) pintaba su texto/ícono con el token `--mdc-text-button-*` (navy) sobre el toolbar navy → se forzó a `var(--mat-sys-on-primary)`. La card "Balance" del Home usa el ícono SVG `wallet`. En el Home se reordenó: carita → **Resumen** → **Ahorro** → gráficos por categoría (antes Ahorro iba antes que Resumen).
+- **Dark mode:** fuera de alcance, pero el `_tokens.scss` deja el terreno listo.
+
+### Paso 57: Assets PWA en Azul Marino
+
+- Los 8 PNG + `favicon.ico` (antes chanchito con degradado verde→violeta) se regeneran con **`scripts/generate-pwa-icons.mjs`** (nuevo, commiteado — repetible): billetera blanca sobre un degradado 135° `#243B53 → #B08D57` (navy dominante, remate dorado en la esquina), glyph al ~54% para la safe zone maskable. Necesita `sharp` (nueva dep de desarrollo).
+- `public/manifest.webmanifest` `theme_color` y `src/index.html` `<meta name="theme-color">`: `#026e00` → `#243B53`. `background_color` se mantiene.
+- Nota: el ícono de la app instalada pasa a ser una **billetera** (no el chanchito). La marca dentro de la app (sidenav/login, ícono `savings`) no se tocó — se puede unificar después si se quiere.
