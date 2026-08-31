@@ -727,3 +727,14 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - **`BulkTransactionsDialogComponent`** (`transactions/components/bulk-transactions-dialog/`, nuevo): un solo diálogo con `data: { count, mode: 'move' | 'copy' }` — título, texto de ayuda y label del botón se adaptan al modo. Datepicker con atajo "1 del mes que viene". Devuelve un `Date`.
   - `openBulkDialog(mode)` elige `bulkCopy` o `bulkMove` según el modo; en el `next` hace `periodContext.setPeriod(añoDestino, mesDestino)` (el `combineLatest` del Paso 52 recarga la lista solo), limpia la selección y muestra `NotificationService.success`.
 - **Sobre el ahorro (aclaración de comportamiento, no bug):** al **mover** un gasto de un mes anterior al mes que se está viendo, "Remanente al iniciar {mes}" sube y "Ahorro de {mes}" baja en el mismo monto — el "Saldo acumulado" no cambia, porque esa plata salió del bolsillo igual. Al **borrar** un gasto, el acumulado sube (esa plata no se gastó). Ambos son correctos; la card de Ahorro (Paso 53) se mantiene con las tres líneas.
+
+### Paso 55: Ajuste de Layout Mobile en la Lista de Transacciones
+
+- **Problema:** al acumularse en la cabecera el navegador de meses (Paso 52), los toggles "Solo este mes" / "Filtros" / "Seleccionar" y el botón de alta, en mobile la cabecera pasaba a ocupar 3–4 filas y empujaba la lista fuera de la pantalla. Además el panel de filtros a veces aparecía abierto en mobile.
+- **Cambios (`TransactionListComponent`):**
+  - `.header-content` en **columna** en mobile: el `<h1>` arriba, y debajo una fila `.header-toolbar` con el selector de mes a la izquierda y los botones a la derecha. En desktop (`@media min-width: 768px`) vuelve a una sola fila.
+  - Los tres toggles usan `.toolbar-btn`: en mobile se les oculta el texto (`.toolbar-btn__label { display: none }`) y quedan solo ícono + `matTooltip`; en desktop muestran el label.
+  - **El panel de filtros arranca cerrado siempre** (`showFilters = false` en vez de `true`). `BreakpointObserver` solo lo abre en desktop al entrar. Antes arrancaba abierto y dependía de que el observer lo cerrara a tiempo — en mobile eso fallaba de manera intermitente.
+  - Filas de transacción más compactas en mobile (alto 72→64px, ícono 40→34px, tipografía menor) y `padding-bottom` en `.list-container` para que el FAB no tape la última.
+  - De paso, `.filter-section` pasa de `background-color: white` fijo a `var(--mat-sys-surface-container-low, white)`, y el `mat-form-field` del panel usa `flex: 1 1 180px` para acomodarse mejor.
+  - `MonthSelectorComponent`: en `@media (max-width: 600px)` el label se achica (`min-width` 8rem→6.5rem, fuente 0.9rem) para caber junto a los botones.
