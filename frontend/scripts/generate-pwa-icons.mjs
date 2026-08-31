@@ -1,6 +1,6 @@
-// Genera los íconos PWA (8 PNG + favicon) de FinTrack: glyph de billetera blanco
-// sobre un degradado 135° azul marino → dorado apagado (la paleta de marca,
-// Paso 56/57). Volver a correr si cambia la paleta:
+// Genera los íconos PWA (8 PNG + favicon) de FinTrack: el mark de marca (línea
+// de tendencia) en blanco sobre un degradado 135° azul marino → dorado apagado
+// (la paleta de marca, Paso 56/57/58). Volver a correr si cambia la paleta:
 //   node scripts/generate-pwa-icons.mjs
 import sharp from 'sharp';
 import { mkdir } from 'node:fs/promises';
@@ -29,10 +29,12 @@ function iconSvg(size) {
     </linearGradient>
   </defs>
   <rect width="${size}" height="${size}" rx="${r}" fill="url(#bg)"/>
-  <g transform="translate(${g} ${g}) scale(${gw / 24})" fill="#fff">
-    <rect x="6.5" y="2.5" width="10" height="6.5" rx="1" opacity="0.5"/>
-    <path fill-rule="evenodd" clip-rule="evenodd"
-          d="M3 8.5A2.5 2.5 0 0 1 5.5 6h13A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-9Zm14 3a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5Z"/>
+  <g transform="translate(${g} ${g}) scale(${gw / 24})"
+     fill="none" stroke="#fff" stroke-width="2.4"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 20.5h18" opacity="0.35"/>
+    <path d="M3.5 16.5 9 11l3.5 3.5L21 6"/>
+    <path d="M15.5 6H21v5.5"/>
   </g>
 </svg>`;
 }

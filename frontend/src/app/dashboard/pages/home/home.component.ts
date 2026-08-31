@@ -1,8 +1,11 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject, combineLatest, takeUntil } from 'rxjs';
 import { TransactionFormComponent } from '../../../transactions/components/transaction-form/transaction-form.component';
+import { TransactionService } from '../../../transactions/services/transaction.service';
+import { Transaction } from '../../../transactions/services/transaction.types';
 import {
   DashboardService,
   ExpenseByCategory,
@@ -105,6 +108,7 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     ...MATERIAL_MODULES,
     CategoryBarsComponent,
     MonthSelectorComponent,
@@ -114,9 +118,13 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
 })
 export class HomeComponent implements OnInit {
   private dashboardService = inject(DashboardService);
+  private transactionService = inject(TransactionService);
   private walletContext = inject(WalletContextService);
   private periodContext = inject(PeriodContextService);
   private dialog = inject(MatDialog);
+
+  // Vista rápida: los últimos movimientos del mes activo (máx. 5).
+  readonly RECENT_LIMIT = 5;
   private destroy$ = new Subject<void>();
 
   activeWallet: Wallet | null = null;
@@ -125,6 +133,7 @@ export class HomeComponent implements OnInit {
   monthlySummary?: MonthlySummary;
   monthlyBalance = 0;
   savings?: SavingsSummary;
+  recentTransactions: Transaction[] = [];
 
   // Lente del bloque "Resumen": el mes en curso o todo el histórico de la wallet.
   // Antes eran dos filas de cards idénticas una debajo de otra — al empezar
@@ -251,6 +260,21 @@ export class HomeComponent implements OnInit {
       .subscribe((data) => {
         this.incomeCategoryBars = this.buildCategoryBars(data);
       });
+
+    // Vista rápida de últimos movimientos del mes activo.
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const lastDay = new Date(period.year, period.month, 0).getDate();
+    this.transactionService
+      .getTransactions({
+        walletId: wallet.id,
+        startDate: `${period.year}-${pad(period.month)}-01`,
+        endDate: `${period.year}-${pad(period.month)}-${pad(lastDay)}`,
+        limit: this.RECENT_LIMIT,
+      })
+      .subscribe(
+        (data) =>
+          (this.recentTransactions = data.slice(0, this.RECENT_LIMIT)),
+      );
   }
 
   private buildCategoryBars(data: ExpenseByCategory[]): CategoryBar[] {

@@ -15,12 +15,15 @@ export class AppComponent {
   title = 'frontend';
 
   constructor() {
-    // Ícono SVG propio de billetera para el selector de wallet (public/icons/).
+    // Íconos SVG propios (public/icons/): 'brand' = marca FinTrack (línea de
+    // tendencia), 'wallet' = selector de cartera activa.
     const registry = inject(MatIconRegistry);
     const sanitizer = inject(DomSanitizer);
-    registry.addSvgIcon(
-      'wallet',
-      sanitizer.bypassSecurityTrustResourceUrl('icons/wallet.svg'),
-    );
+    for (const name of ['brand', 'wallet']) {
+      registry.addSvgIcon(
+        name,
+        sanitizer.bypassSecurityTrustResourceUrl(`icons/${name}.svg`),
+      );
+    }
   }
 }

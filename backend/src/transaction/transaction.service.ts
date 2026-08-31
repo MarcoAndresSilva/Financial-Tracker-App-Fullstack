@@ -52,6 +52,9 @@ export class TransactionService {
     const { walletId, startDate, endDate, type, categoryId, subcategoryId } =
       filterDto;
     await this.permissions.checkWalletMembership(userId, walletId);
+    const take = filterDto.limit
+      ? Math.min(Math.max(parseInt(filterDto.limit, 10), 1), 100)
+      : undefined;
     const whereClause: Prisma.TransactionWhereInput = {
       walletId,
     };
@@ -76,6 +79,7 @@ export class TransactionService {
     }
     return this.prisma.transaction.findMany({
       where: whereClause,
+      ...(take ? { take } : {}),
       // Desempata por fecha de creación: entre transacciones con la misma
       // `date` (elegida por el usuario), la creada más recientemente aparece primero.
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],

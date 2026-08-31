@@ -401,10 +401,25 @@
   }
 }
 
+// --- Ahorro + Últimos movimientos: 2 columnas en desktop, apiladas en mobile ---
+.home-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.home-split__col {
+  flex: 1 1 340px;
+  min-width: 0;
+}
+
+.home-split__card {
+  height: 100%;
+}
+
 // --- Card de Ahorro / remanente ---
 .savings-card {
-  max-width: 480px;
-
   mat-card-content {
     display: flex;
     flex-direction: column;
@@ -415,6 +430,105 @@
   mat-divider {
     margin: 0.2rem 0;
   }
+}
+
+// --- Card de últimos movimientos ---
+.recent-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-list {
+  flex: 1;
+  padding: 0.25rem 0.5rem !important;
+}
+
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.35rem;
+
+  & + & {
+    border-top: 1px solid var(--mat-sys-surface-container-high);
+  }
+}
+
+.recent-row__badge {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
+
+  &--income {
+    background-color: var(--app-income-surface);
+    color: var(--app-income);
+  }
+  &--expense {
+    background-color: var(--app-expense-surface);
+    color: var(--app-expense);
+  }
+}
+
+.recent-row__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.recent-row__desc {
+  font-weight: 500;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-row__meta {
+  font-size: 0.75rem;
+  color: var(--app-text-muted);
+}
+
+.recent-row__amount {
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+
+  &--income {
+    color: var(--app-income);
+  }
+  &--expense {
+    color: var(--app-expense);
+  }
+}
+
+.recent-actions {
+  padding: 0.25rem 0.5rem 0.5rem;
+  border-top: 1px solid var(--mat-sys-surface-container-high);
+
+  a {
+    font-size: 0.82rem;
+  }
+}
+
+.recent-empty {
+  margin: 0;
+  padding: 1.25rem 0.35rem;
+  color: var(--app-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .savings-row {

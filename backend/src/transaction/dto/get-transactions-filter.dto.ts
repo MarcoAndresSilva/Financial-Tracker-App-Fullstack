@@ -1,4 +1,10 @@
-import { IsDateString, IsEnum, IsOptional, IsUUID } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsNumberString,
+  IsOptional,
+  IsUUID,
+} from 'class-validator';
 import { TransactionType } from '@prisma/client';
 
 export class GetTransactionsFilterDto {
@@ -24,4 +30,10 @@ export class GetTransactionsFilterDto {
   @IsOptional()
   @IsUUID()
   subcategoryId?: string;
+
+  // Máximo de transacciones a devolver (para la vista rápida del Home).
+  // Llega como string en el query; el servicio lo convierte y clampea.
+  @IsOptional()
+  @IsNumberString()
+  limit?: string;
 }

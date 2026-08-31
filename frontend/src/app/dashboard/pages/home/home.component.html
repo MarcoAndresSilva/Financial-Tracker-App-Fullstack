@@ -185,45 +185,105 @@
     </ng-template>
   </section>
 
-  <!-- ======================= AHORRO / REMANENTE ======================= -->
-  <section class="dashboard-section" *ngIf="savings as sv">
-    <div class="section-heading">
-      <h2>Ahorro</h2>
-      <span class="section-caption">
-        Tu saldo ahorrado — aparte de los ingresos y gastos del mes
-      </span>
-    </div>
-
-    <mat-card class="savings-card" appearance="outlined">
-      <mat-card-content>
-        <div class="savings-row">
-          <span class="savings-label"
-            >Remanente al iniciar {{ periodLabel }}</span
-          >
-          <span class="savings-value">{{
-            sv.remanenteEntrante | currency : "CLP" : "symbol-narrow" : "1.0-0"
-          }}</span>
-        </div>
-        <div class="savings-row">
-          <span class="savings-label">Ahorro de {{ periodLabel }}</span>
-          <span
-            class="savings-value"
-            [class.positive]="sv.ahorroDelMes >= 0"
-            [class.negative]="sv.ahorroDelMes < 0"
-          >
-            {{ sv.ahorroDelMes >= 0 ? "+" : ""
-            }}{{ sv.ahorroDelMes | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
+  <!-- ============= AHORRO + ÚLTIMOS MOVIMIENTOS (2 columnas en desktop) ============= -->
+  <section class="dashboard-section">
+    <div class="home-split">
+      <!-- Ahorro / remanente -->
+      <div class="home-split__col" *ngIf="savings as sv">
+        <div class="section-heading">
+          <h2>Ahorro</h2>
+          <span class="section-caption">
+            Tu saldo ahorrado — aparte de los ingresos y gastos del mes
           </span>
         </div>
-        <mat-divider></mat-divider>
-        <div class="savings-row savings-row--total">
-          <span class="savings-label">Saldo acumulado</span>
-          <span class="savings-value">{{
-            sv.saldoAcumulado | currency : "CLP" : "symbol-narrow" : "1.0-0"
-          }}</span>
+
+        <mat-card class="savings-card home-split__card" appearance="outlined">
+          <mat-card-content>
+            <div class="savings-row">
+              <span class="savings-label"
+                >Remanente al iniciar {{ periodLabel }}</span
+              >
+              <span class="savings-value">{{
+                sv.remanenteEntrante
+                  | currency : "CLP" : "symbol-narrow" : "1.0-0"
+              }}</span>
+            </div>
+            <div class="savings-row">
+              <span class="savings-label">Ahorro de {{ periodLabel }}</span>
+              <span
+                class="savings-value"
+                [class.positive]="sv.ahorroDelMes >= 0"
+                [class.negative]="sv.ahorroDelMes < 0"
+              >
+                {{ sv.ahorroDelMes >= 0 ? "+" : ""
+                }}{{
+                  sv.ahorroDelMes | currency : "CLP" : "symbol-narrow" : "1.0-0"
+                }}
+              </span>
+            </div>
+            <mat-divider></mat-divider>
+            <div class="savings-row savings-row--total">
+              <span class="savings-label">Saldo acumulado</span>
+              <span class="savings-value">{{
+                sv.saldoAcumulado | currency : "CLP" : "symbol-narrow" : "1.0-0"
+              }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Últimos movimientos del mes -->
+      <div class="home-split__col">
+        <div class="section-heading">
+          <h2>Últimos movimientos</h2>
+          <span class="section-caption">Lo más reciente de {{ periodLabel }}</span>
         </div>
-      </mat-card-content>
-    </mat-card>
+
+        <mat-card class="recent-card home-split__card" appearance="outlined">
+          <mat-card-content class="recent-list">
+            <ng-container *ngIf="recentTransactions.length; else noRecent">
+              <div class="recent-row" *ngFor="let tx of recentTransactions">
+                <span
+                  class="recent-row__badge"
+                  [class.recent-row__badge--income]="tx.type === 'INCOME'"
+                  [class.recent-row__badge--expense]="tx.type === 'EXPENSE'"
+                >
+                  <mat-icon>{{
+                    tx.type === "INCOME" ? "arrow_upward" : "arrow_downward"
+                  }}</mat-icon>
+                </span>
+                <div class="recent-row__body">
+                  <span class="recent-row__desc">{{ tx.description }}</span>
+                  <span class="recent-row__meta">
+                    {{ tx.date | date : "dd MMM" : "UTC" }} ·
+                    {{ tx.subcategory.category.name }}
+                  </span>
+                </div>
+                <span
+                  class="recent-row__amount"
+                  [class.recent-row__amount--income]="tx.type === 'INCOME'"
+                  [class.recent-row__amount--expense]="tx.type === 'EXPENSE'"
+                >
+                  {{ tx.type === "INCOME" ? "+" : "−"
+                  }}{{
+                    tx.amount | currency : "CLP" : "symbol-narrow" : "1.0-0"
+                  }}
+                </span>
+              </div>
+            </ng-container>
+            <ng-template #noRecent>
+              <p class="recent-empty">Sin movimientos en {{ periodLabel }}.</p>
+            </ng-template>
+          </mat-card-content>
+          <mat-card-actions class="recent-actions">
+            <a mat-button color="primary" routerLink="/dashboard/transactions">
+              Ver todas las transacciones
+              <mat-icon iconPositionEnd>chevron_right</mat-icon>
+            </a>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
   </section>
 
   <div class="category-breakdown-grid">
