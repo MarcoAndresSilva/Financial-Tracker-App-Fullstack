@@ -65,6 +65,26 @@
       ></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
+
+    <!-- Fila 5: Vínculo opcional con una Deuda/compra en cuotas -->
+    <mat-form-field
+      *ngIf="debts.length > 0"
+      appearance="outline"
+      class="full-width"
+    >
+      <mat-label>Vincular a una deuda (opcional)</mat-label>
+      <mat-select formControlName="debtId">
+        <mat-option [value]="null">Ninguna</mat-option>
+        <mat-option *ngFor="let debt of debts" [value]="debt.id">
+          {{ debt.name }}
+          <ng-container *ngIf="!debt.isFinished">
+            (cuota {{ debt.paidInstallments + 1 }} de
+            {{ debt.totalInstallments }})
+          </ng-container>
+          <ng-container *ngIf="debt.isFinished"> (pagada)</ng-container>
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
   </form>
 </div>
 

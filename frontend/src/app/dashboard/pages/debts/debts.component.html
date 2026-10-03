@@ -1,0 +1,91 @@
+<div class="debts-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      <mat-icon class="page-title-icon">credit_card</mat-icon>
+      Deudas y Cuotas
+    </h1>
+    <button mat-flat-button color="primary" (click)="addDebt()">
+      <mat-icon>add</mat-icon>
+      Nueva deuda
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>Cargando deudas...</p>
+  </div>
+
+  <div *ngIf="!isLoading && debts.length === 0" class="empty-state">
+    <mat-icon>credit_card</mat-icon>
+    <p>
+      Todavía no tienes deudas ni compras en cuotas registradas en esta
+      cartera.
+    </p>
+    <button mat-flat-button color="primary" (click)="addDebt()">
+      Agregar la primera
+    </button>
+  </div>
+
+  <div *ngIf="!isLoading && debts.length > 0" class="debts-grid">
+    <mat-card
+      class="debt-card"
+      appearance="outlined"
+      *ngFor="let debt of debts"
+    >
+      <mat-card-content>
+        <div class="debt-header">
+          <span class="debt-name">{{ debt.name }}</span>
+          <mat-icon *ngIf="debt.isFinished" class="finished-icon"
+            >check_circle</mat-icon
+          >
+          <span class="debt-actions">
+            <button
+              mat-icon-button
+              matTooltip="Editar deuda"
+              (click)="editDebt(debt)"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              matTooltip="Eliminar deuda"
+              (click)="deleteDebt(debt)"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </span>
+        </div>
+
+        <div class="debt-bar-track">
+          <div
+            class="debt-bar-fill"
+            [class.complete]="debt.isFinished"
+            [style.width.%]="debt.percentage"
+          ></div>
+        </div>
+
+        <div class="debt-values">
+          <span
+            >{{
+              debt.paidAmount | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}
+            de
+            {{
+              debt.totalAmount | currency : "CLP" : "symbol-narrow" : "1.0-0"
+            }}</span
+          >
+          <span class="debt-percentage"
+            >{{ debt.percentage | number : "1.0-0" }}%</span
+          >
+        </div>
+
+        <div class="debt-footer">
+          <span>Cuota {{ debt.paidInstallments }} de {{ debt.totalInstallments }}</span>
+          <span *ngIf="!debt.isFinished">
+            Termina aprox. {{ debt.estimatedEndDate | date : "MMM yyyy" : "UTC" }}
+          </span>
+          <span *ngIf="debt.isFinished" class="finished-label">Pagada</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+.full-width {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+
+  .form-field {
+    flex: 1;
+  }
+}
+
+.in-progress-checkbox {
+  display: block;
+  margin: 0.25rem 0 1rem;
+}

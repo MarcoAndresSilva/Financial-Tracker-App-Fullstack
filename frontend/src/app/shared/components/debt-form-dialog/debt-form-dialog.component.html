@@ -1,0 +1,81 @@
+<h2 mat-dialog-title>
+  {{ isEditMode ? "Editar deuda" : "Nueva deuda / compra en cuotas" }}
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSave()">
+  <div mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre</mat-label>
+      <input
+        matInput
+        formControlName="name"
+        placeholder="Ej: Tarjeta Falabella, Préstamo familiar"
+        cdkFocusInitial
+      />
+    </mat-form-field>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Monto total</mat-label>
+        <input matInput formControlName="totalAmount" type="number" min="1" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>N° de cuotas</mat-label>
+        <input
+          matInput
+          formControlName="totalInstallments"
+          type="number"
+          min="1"
+        />
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Fecha del primer pago</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="startDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <ng-container *ngIf="!isEditMode">
+      <mat-checkbox formControlName="alreadyInProgress" class="in-progress-checkbox">
+        Ya la venimos pagando (partir a mitad de camino)
+      </mat-checkbox>
+
+      <div class="form-row" *ngIf="form.value.alreadyInProgress">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Cuotas ya pagadas</mat-label>
+          <input
+            matInput
+            formControlName="initialPaidInstallments"
+            type="number"
+            min="0"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Plata ya pagada</mat-label>
+          <input
+            matInput
+            formControlName="initialPaidAmount"
+            type="number"
+            min="0"
+          />
+        </mat-form-field>
+      </div>
+    </ng-container>
+  </div>
+
+  <div mat-dialog-actions align="end">
+    <button mat-button type="button" [mat-dialog-close]="undefined">
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="form.invalid"
+    >
+      Guardar
+    </button>
+  </div>
+</form>

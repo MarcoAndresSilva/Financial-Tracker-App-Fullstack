@@ -7,6 +7,9 @@ export interface Transaction {
   walletId: string;
   subcategoryId: string;
   authorId: string;
+  // Presente cuando esta transacción es un pago vinculado a una Deuda/
+  // compromiso en cuotas (Paso 60).
+  debtId?: string | null;
   // Propiedades de las relaciones que pedimos con 'include'
   subcategory: {
     id: string;
@@ -35,6 +38,9 @@ export interface CreateTransactionDto {
   description: string;
   walletId: string;
   subcategoryId: string;
+  // Opcional: vincula este pago a una Deuda/compromiso en cuotas. `null` en
+  // un update desvincula el pago sin borrarlo.
+  debtId?: string | null;
 }
 
 export type UpdateTransactionDto = Partial<CreateTransactionDto>;

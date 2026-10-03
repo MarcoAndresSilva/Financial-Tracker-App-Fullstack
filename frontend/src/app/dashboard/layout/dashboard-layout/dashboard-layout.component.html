@@ -48,6 +48,15 @@
         <mat-icon matListItemIcon>flag</mat-icon>
         <span matListItemTitle>Metas de Ahorro</span>
       </a>
+      <a
+        mat-list-item
+        routerLink="debts"
+        routerLinkActive="active-link"
+        (click)="onNavLinkClick(sidenav)"
+      >
+        <mat-icon matListItemIcon>credit_card</mat-icon>
+        <span matListItemTitle>Deudas y Cuotas</span>
+      </a>
     </mat-nav-list>
 
     <div class="sidenav-footer">

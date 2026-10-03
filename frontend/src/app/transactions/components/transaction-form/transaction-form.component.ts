@@ -29,6 +29,7 @@ import {
   SubcategoryService,
 } from '../../../subcategories/services/subcategory.service';
 import { Transaction } from '../../../transactions/services/transaction.types';
+import { Debt, DebtService } from '../../../debts/services/debt.service';
 
 @Component({
   selector: 'app-transaction-form',
@@ -42,10 +43,12 @@ export class TransactionFormComponent implements OnInit {
   private transactionService = inject(TransactionService);
   private categoryService = inject(CategoryService);
   private subcategoryService = inject(SubcategoryService);
+  private debtService = inject(DebtService);
 
   transactionForm: FormGroup;
   categories: Category[] = [];
   subcategories: Subcategory[] = [];
+  debts: Debt[] = [];
   isEditMode = false;
 
   constructor(
@@ -62,12 +65,15 @@ export class TransactionFormComponent implements OnInit {
       categoryId: [null, Validators.required],
       subcategoryId: [{ value: null, disabled: true }, Validators.required],
       date: [new Date(), Validators.required],
+      // Opcional: marca este pago como una cuota de una Deuda existente.
+      debtId: [null],
     });
   }
 
   ngOnInit(): void {
     // 1. Siempre cargamos las opciones de categorías disponibles.
     this.loadCategories();
+    this.loadDebts();
 
     // 2. Si estamos en modo edición, procedemos a rellenar el formulario.
     if (this.isEditMode && this.data.transaction) {
@@ -82,6 +88,7 @@ export class TransactionFormComponent implements OnInit {
         description: transactionToEdit.description,
         date: isoToLocalDate(transactionToEdit.date), // ISO de la API → día local (sin corrimiento de huso)
         categoryId: transactionToEdit.subcategory.categoryId,
+        debtId: transactionToEdit.debtId ?? null,
       });
 
       // 4. Manejamos la subcategoría de forma especial, ya que depende de la categoría.
@@ -112,6 +119,12 @@ export class TransactionFormComponent implements OnInit {
       .subscribe((data) => {
         this.categories = data;
       });
+  }
+
+  loadDebts() {
+    this.debtService.getDebtsByWallet(this.data.walletId).subscribe((data) => {
+      this.debts = data;
+    });
   }
 
   setupSubcategoryListener(): void {
