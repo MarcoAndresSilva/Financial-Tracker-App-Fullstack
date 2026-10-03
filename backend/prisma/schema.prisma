@@ -57,6 +57,7 @@ model Wallet {
   categories   Category[]
   transactions Transaction[]
   savingsGoals SavingsGoal[]
+  debts        Debt[]
 }
 
 model WalletMembership {
@@ -119,6 +120,46 @@ model Transaction {
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
+
+  // Vínculo opcional: esta transacción es un pago de una Deuda/compromiso en cuotas
+  // (Paso 68). No cambia en nada su rol de gasto del mes — solo suma también al
+  // progreso de la deuda vinculada. onDelete: SetNull porque borrar la deuda no
+  // debe borrar el historial real de pagos, solo desvincularlos.
+  debtId String?
+  debt   Debt?   @relation(fields: [debtId], references: [id], onDelete: SetNull)
+}
+
+// Un compromiso pagado en cuotas: una compra en cuotas de una casa comercial o un
+// crédito/préstamo con pagos periódicos. El progreso NO se guarda como un campo que
+// se edita a mano — se calcula sumando las Transaction vinculadas (`payments`), para
+// que nunca se desincronice de lo que realmente se registró como gasto (Paso 68).
+model Debt {
+  id                String   @id @default(uuid())
+  name              String
+  // Monto total del compromiso completo (la compra o el crédito completo).
+  totalAmount       Float
+  // N° de cuotas pactado. Junto a totalAmount da la "cuota esperada" de referencia,
+  // pero el avance real se cuenta por pagos vinculados, no por este número — así un
+  // mes con pago parcial (ej. el préstamo familiar) sigue contando como "la cuota de
+  // ese mes", y el saldo pendiente en plata simplemente baja más lento.
+  totalInstallments Int
+  // Cuotas y plata ya pagadas ANTES de empezar a trackear esta deuda en FinTrack —
+  // para poder cargarla a mitad de camino (ej. "vamos en la cuota 4 de 8") en vez de
+  // forzar a reconstruir todo el historial previo como transacciones.
+  initialPaidInstallments Int   @default(0)
+  initialPaidAmount       Float @default(0)
+  // Fecha del primer pago (real o declarada) — ancla para proyectar la fecha
+  // estimada de término mientras no hay ningún pago vinculado todavía.
+  startDate DateTime @db.Date
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  payments Transaction[]
+
+  @@unique([walletId, name]) // El nombre de la deuda debe ser único por cartera
 }
 
 model SavingsGoal {

@@ -32,6 +32,9 @@ export class TransactionService {
         'Subcategory does not belong to this wallet',
       );
     }
+    if (dto.debtId) {
+      await this.assertDebtBelongsToWallet(dto.debtId, dto.walletId);
+    }
     return this.prisma.transaction.create({
       data: {
         amount: dto.amount,
@@ -41,6 +44,7 @@ export class TransactionService {
         walletId: dto.walletId,
         subcategoryId: dto.subcategoryId,
         authorId: userId,
+        debtId: dto.debtId,
       },
     });
   }
@@ -125,6 +129,11 @@ export class TransactionService {
         );
       }
     }
+    // `debtId` puede venir `null` (desvincular el pago) o un id nuevo a
+    // vincular; solo se valida cuando es un id real.
+    if (dto.debtId) {
+      await this.assertDebtBelongsToWallet(dto.debtId, transaction.walletId);
+    }
     return this.prisma.transaction.update({
       where: { id: transactionId },
       data: {
@@ -193,5 +202,12 @@ export class TransactionService {
       where: { id: transactionId },
     });
     return { message: 'Transaction deleted successfully' };
+  }
+
+  private async assertDebtBelongsToWallet(debtId: string, walletId: string) {
+    const debt = await this.prisma.debt.findUnique({ where: { id: debtId } });
+    if (!debt || debt.walletId !== walletId) {
+      throw new ForbiddenException('Debt does not belong to this wallet');
+    }
   }
 }
