@@ -62,7 +62,12 @@ export class DashboardController {
     @Query('year', new ParseIntPipe({ optional: true })) year?: number,
     @Query('month', new ParseIntPipe({ optional: true })) month?: number,
   ) {
-    return this.dashboardService.getMonthlySummary(userId, walletId, year, month);
+    return this.dashboardService.getMonthlySummary(
+      userId,
+      walletId,
+      year,
+      month,
+    );
   }
 
   @Get('savings')

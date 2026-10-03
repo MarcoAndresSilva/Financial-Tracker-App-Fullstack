@@ -157,7 +157,9 @@ export class DashboardService {
     const ahorroDelMes =
       (incMonth._sum.amount || 0) - (expMonth._sum.amount || 0);
     const remanenteEntrante =
-      saldoInicial + (incBefore._sum.amount || 0) - (expBefore._sum.amount || 0);
+      saldoInicial +
+      (incBefore._sum.amount || 0) -
+      (expBefore._sum.amount || 0);
     const saldoAcumulado = remanenteEntrante + ahorroDelMes;
 
     return { saldoInicial, remanenteEntrante, ahorroDelMes, saldoAcumulado };
