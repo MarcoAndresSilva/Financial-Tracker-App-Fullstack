@@ -165,6 +165,87 @@ export class DashboardService {
     return { saldoInicial, remanenteEntrante, ahorroDelMes, saldoAcumulado };
   }
 
+  // --- Desglose anual mes a mes (página Historial) ---
+  // Misma regla que `getSavings`, aplicada a los 12 meses de un año: el saldo
+  // que entra a enero es saldoInicial + todo lo anterior al año, y desde ahí
+  // cada mes arrastra su ahorro al siguiente. Se calcula acá (y no en el front)
+  // para que la regla del saldo acumulado viva en un solo lugar.
+  // `firstYear` acota el selector de año del front (null si no hay movimientos).
+  async getYearlyBreakdown(userId: string, walletId: string, year?: number) {
+    await this.permissions.checkWalletMembership(userId, walletId);
+
+    const y = year ?? new Date().getUTCFullYear();
+    const yearRange = {
+      gte: new Date(Date.UTC(y, 0, 1)),
+      lt: new Date(Date.UTC(y + 1, 0, 1)),
+    };
+
+    const [wallet, first, incBefore, expBefore, transactions] =
+      await Promise.all([
+        this.prisma.wallet.findUnique({
+          where: { id: walletId },
+          select: { saldoInicial: true },
+        }),
+        this.prisma.transaction.aggregate({
+          where: { walletId },
+          _min: { date: true },
+        }),
+        this.prisma.transaction.aggregate({
+          where: {
+            walletId,
+            type: TransactionType.INCOME,
+            date: { lt: yearRange.gte },
+          },
+          _sum: { amount: true },
+        }),
+        this.prisma.transaction.aggregate({
+          where: {
+            walletId,
+            type: TransactionType.EXPENSE,
+            date: { lt: yearRange.gte },
+          },
+          _sum: { amount: true },
+        }),
+        // Prisma no agrupa por mes de una fecha; con el volumen de una cartera
+        // personal alcanza con traer solo monto/tipo/fecha del año y sumar acá.
+        this.prisma.transaction.findMany({
+          where: { walletId, date: yearRange },
+          select: { amount: true, type: true, date: true },
+        }),
+      ]);
+
+    const months = Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      income: 0,
+      expense: 0,
+      ahorroDelMes: 0,
+      saldoAcumulado: 0,
+    }));
+    for (const t of transactions) {
+      const row = months[t.date.getUTCMonth()];
+      if (t.type === TransactionType.INCOME) row.income += t.amount;
+      else row.expense += t.amount;
+    }
+
+    const remanenteInicial =
+      (wallet?.saldoInicial ?? 0) +
+      (incBefore._sum.amount || 0) -
+      (expBefore._sum.amount || 0);
+    let saldo = remanenteInicial;
+    for (const row of months) {
+      row.ahorroDelMes = row.income - row.expense;
+      saldo += row.ahorroDelMes;
+      row.saldoAcumulado = saldo;
+    }
+
+    return {
+      year: y,
+      firstYear: first._min.date?.getUTCFullYear() ?? null,
+      remanenteInicial,
+      months,
+    };
+  }
+
   // --- Gastos Agrupados por Categoría ---
   // Los gastos suelen concentrarse en pocas categorías grandes (Alimentación,
   // Transporte, etc.), así que acá el nivel útil de detalle es la categoría.
