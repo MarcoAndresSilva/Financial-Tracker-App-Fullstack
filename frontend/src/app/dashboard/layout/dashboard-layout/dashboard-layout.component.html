@@ -32,6 +32,15 @@
       </a>
       <a
         mat-list-item
+        routerLink="historial"
+        routerLinkActive="active-link"
+        (click)="onNavLinkClick(sidenav)"
+      >
+        <mat-icon matListItemIcon>calendar_month</mat-icon>
+        <span matListItemTitle>Historial</span>
+      </a>
+      <a
+        mat-list-item
         routerLink="categories"
         routerLinkActive="active-link"
         (click)="onNavLinkClick(sidenav)"

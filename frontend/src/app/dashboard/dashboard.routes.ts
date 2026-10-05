@@ -6,6 +6,7 @@ import { HomeComponent } from './pages/home/home.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { SavingsGoalsComponent } from './pages/savings-goals/savings-goals.component';
 import { DebtsComponent } from './pages/debts/debts.component';
+import { HistorialComponent } from './pages/historial/historial.component';
 
 export const DASHBOARD_ROUTES: Routes = [
   {
@@ -16,6 +17,7 @@ export const DASHBOARD_ROUTES: Routes = [
     children: [
       { path: 'home', component: HomeComponent },
       { path: 'transactions', component: TransactionListComponent },
+      { path: 'historial', component: HistorialComponent },
       { path: 'categories', component: CategoriesComponent },
       { path: 'goals', component: SavingsGoalsComponent },
       { path: 'debts', component: DebtsComponent },

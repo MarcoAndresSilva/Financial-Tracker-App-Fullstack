@@ -1,0 +1,109 @@
+<div class="historial-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      <mat-icon class="page-title-icon">calendar_month</mat-icon>
+      Historial
+    </h1>
+
+    <div class="year-selector">
+      <button
+        mat-icon-button
+        aria-label="Año anterior"
+        [disabled]="year <= minYear"
+        (click)="changeYear(-1)"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span class="year-label">{{ year }}</span>
+      <button
+        mat-icon-button
+        aria-label="Año siguiente"
+        [disabled]="year >= currentYear"
+        (click)="changeYear(1)"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading && !data" class="loading">
+    <p>Cargando historial...</p>
+  </div>
+
+  <mat-card *ngIf="data" class="historial-card" [class.is-loading]="isLoading">
+    <p class="carry-in">
+      Saldo con que se entró a enero:
+      <strong [class.negative]="data.remanenteInicial < 0">{{
+        data.remanenteInicial | currency : "CLP" : "symbol-narrow" : "1.0-0"
+      }}</strong>
+    </p>
+
+    <div class="table-scroll">
+      <table class="historial-table">
+        <thead>
+          <tr>
+            <th>Mes</th>
+            <th>Ingresos</th>
+            <th>Gastos</th>
+            <th>Ahorro del mes</th>
+            <th>Saldo acumulado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let row of data.months"
+            [class.future]="isFuture(row)"
+            [class.active]="isActivePeriod(row)"
+            [attr.tabindex]="isFuture(row) ? null : 0"
+            (click)="openMonth(row)"
+            (keydown.enter)="openMonth(row)"
+          >
+            <td class="month-cell">{{ monthNames[row.month - 1] }}</td>
+            <ng-container *ngIf="!isFuture(row); else futureCells">
+              <td class="income">
+                {{ row.income | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
+              </td>
+              <td class="expense">
+                {{ row.expense | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
+              </td>
+              <td [class.negative]="row.ahorroDelMes < 0">
+                {{
+                  row.ahorroDelMes | currency : "CLP" : "symbol-narrow" : "1.0-0"
+                }}
+              </td>
+              <td class="saldo" [class.negative]="row.saldoAcumulado < 0">
+                {{
+                  row.saldoAcumulado
+                    | currency : "CLP" : "symbol-narrow" : "1.0-0"
+                }}
+              </td>
+            </ng-container>
+            <ng-template #futureCells>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+            </ng-template>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total {{ year }}</td>
+            <td class="income">
+              {{ totals.income | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
+            </td>
+            <td class="expense">
+              {{ totals.expense | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
+            </td>
+            <td [class.negative]="totals.ahorro < 0">
+              {{ totals.ahorro | currency : "CLP" : "symbol-narrow" : "1.0-0" }}
+            </td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p class="hint">Toca un mes para abrirlo en el Home.</p>
+  </mat-card>
+</div>

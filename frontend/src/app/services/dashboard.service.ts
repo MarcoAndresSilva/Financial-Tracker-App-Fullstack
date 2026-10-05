@@ -26,6 +26,21 @@ export interface SavingsSummary {
   saldoAcumulado: number; // remanenteEntrante + ahorroDelMes
 }
 
+export interface YearlyMonthRow {
+  month: number; // 1–12
+  income: number;
+  expense: number;
+  ahorroDelMes: number;
+  saldoAcumulado: number;
+}
+
+export interface YearlyBreakdown {
+  year: number;
+  firstYear: number | null; // año del primer movimiento (null si no hay)
+  remanenteInicial: number; // saldo con que se entra a enero
+  months: YearlyMonthRow[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -91,5 +106,12 @@ export class DashboardService {
     return this.http.get<SavingsSummary>(`${this.apiUrl}/dashboard/savings`, {
       params: this.walletParams(walletId, period),
     });
+  }
+
+  getYearlyBreakdown(walletId: string, year: number) {
+    return this.http.get<YearlyBreakdown>(
+      `${this.apiUrl}/dashboard/yearly-breakdown`,
+      { params: this.walletParams(walletId).set('year', String(year)) }
+    );
   }
 }

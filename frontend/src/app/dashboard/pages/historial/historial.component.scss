@@ -1,0 +1,151 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0;
+    font-weight: 600;
+    color: var(--mat-sys-primary);
+
+    &.page-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+}
+
+.page-title-icon {
+  color: var(--app-accent);
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.year-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.year-label {
+  min-width: 3.5rem;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.historial-card {
+  border-radius: 16px !important;
+  padding: 1rem;
+  transition: opacity 0.15s ease;
+
+  &.is-loading {
+    opacity: 0.6;
+  }
+}
+
+.carry-in {
+  margin: 0 0 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// En mobile la tabla no cabe: scroll horizontal dentro de la card en vez de
+// romper el layout de la página.
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.historial-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+
+  th,
+  td {
+    padding: 0.65rem 0.75rem;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  th:first-child,
+  td:first-child {
+    text-align: left;
+  }
+
+  thead th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--mat-sys-on-surface-variant);
+    border-bottom: 2px solid var(--mat-sys-outline-variant);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    cursor: pointer;
+
+    &:hover:not(.future),
+    &:focus-visible {
+      background: var(--mat-sys-surface-container);
+      outline: none;
+    }
+
+    &.active {
+      background: var(--mat-sys-surface-container-high);
+
+      .month-cell {
+        box-shadow: inset 3px 0 0 var(--app-accent);
+      }
+    }
+
+    &.future {
+      cursor: default;
+      color: var(--mat-sys-outline);
+    }
+  }
+
+  tfoot td {
+    font-weight: 700;
+    border-top: 2px solid var(--mat-sys-outline-variant);
+  }
+
+  .month-cell {
+    font-weight: 500;
+  }
+
+  .income {
+    color: var(--app-income);
+  }
+
+  .expense {
+    color: var(--app-expense);
+  }
+
+  .saldo {
+    font-weight: 600;
+  }
+}
+
+.negative {
+  color: var(--app-expense);
+}
+
+.hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
