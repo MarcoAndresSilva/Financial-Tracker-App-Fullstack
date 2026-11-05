@@ -37,9 +37,30 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  // Momento del último cambio de contraseña. JwtStrategy rechaza cualquier token
+  // emitido antes de esta fecha, así cambiar o restablecer la contraseña cierra
+  // las sesiones abiertas en otros dispositivos aunque el JWT sea stateless.
+  passwordChangedAt DateTime?
 
   memberships WalletMembership[]
   transactions Transaction[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+// Token de un solo uso para "¿Olvidaste tu contraseña?". Se guarda solo el hash
+// SHA-256 del token: el valor real viaja únicamente en el link del email, así que
+// una filtración de la BD no permite restablecer la contraseña de nadie.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Wallet {

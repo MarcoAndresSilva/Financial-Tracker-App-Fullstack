@@ -16,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: { sub: string; email: string }) {
+  async validate(payload: { sub: string; email: string; iat: number }) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       include: {
@@ -29,6 +29,17 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
 
     if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    // Un token emitido antes del último cambio de contraseña ya no vale: así
+    // cambiarla o restablecerla cierra las sesiones abiertas en otros
+    // dispositivos. `iat` viene en segundos; se compara contra el segundo del
+    // cambio para que el token nuevo que devuelve el propio cambio siga válido.
+    if (
+      user.passwordChangedAt &&
+      payload.iat < Math.floor(user.passwordChangedAt.getTime() / 1000)
+    ) {
       throw new UnauthorizedException();
     }
 
