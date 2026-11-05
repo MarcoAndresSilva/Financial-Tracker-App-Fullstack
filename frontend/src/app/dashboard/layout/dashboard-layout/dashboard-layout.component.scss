@@ -22,6 +22,18 @@ $sidenav-accent: var(--app-accent);
   flex-direction: column;
   border-right: none;
 
+  // M3 redondea las esquinas derechas del sidenav (`corner-large`, 16px). En
+  // mobile (modo "over") flota sobre el contenido y el redondeo le queda bien,
+  // pero en desktop (modo "side") va fijo junto al toolbar navy y la curva deja
+  // ver el fondo claro de atrás como una muesca en la esquina.
+  &.mat-drawer-side {
+    @include mat.sidenav-overrides(
+      (
+        container-shape: 0,
+      )
+    );
+  }
+
   .sidenav-header {
     padding: 1.25rem 1rem;
     text-align: center;
