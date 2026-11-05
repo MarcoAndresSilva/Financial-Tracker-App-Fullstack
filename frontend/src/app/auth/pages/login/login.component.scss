@@ -132,3 +132,15 @@ mat-card-actions {
     text-decoration: underline;
   }
 }
+
+// Va pegado al campo de contraseña (el gap del form lo separaría demasiado).
+.forgot-link {
+  align-self: flex-end;
+  margin-top: -1rem;
+  font-size: 0.875rem;
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}

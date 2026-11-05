@@ -44,6 +44,10 @@
           <mat-icon matSuffix>lock</mat-icon>
         </mat-form-field>
 
+        <a class="forgot-link" routerLink="/auth/forgot-password"
+          >¿Olvidaste tu contraseña?</a
+        >
+
         <button
           mat-raised-button
           color="primary"
@@ -62,7 +66,7 @@
         routerLink="/auth/register" -> Convierte esto en un enlace de navegación interno de Angular.
       -->
       <a class="register-link" routerLink="/auth/register"
-        >¿No tienes una cuenta? **Regístrate**</a
+        >¿No tienes una cuenta? <strong>Regístrate</strong></a
       >
     </mat-card-actions>
   </mat-card>

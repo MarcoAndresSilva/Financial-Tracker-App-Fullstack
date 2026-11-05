@@ -9,6 +9,10 @@ interface AuthResponse {
   access_token: string;
 }
 
+interface MessageResponse {
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -32,6 +36,41 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem('access_token');
+  }
+
+  forgotPassword(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(
+      `${this.apiUrl}/auth/forgot-password`,
+      { email }
+    );
+  }
+
+  resetPassword(
+    token: string,
+    newPassword: string
+  ): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(
+      `${this.apiUrl}/auth/reset-password`,
+      { token, newPassword }
+    );
+  }
+
+  // El backend invalida el token con que se hizo el cambio y devuelve uno
+  // nuevo: se guarda igual que en el login para que esta sesión siga activa.
+  changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Observable<AuthResponse> {
+    return this.http
+      .patch<AuthResponse>(`${this.apiUrl}/auth/password`, {
+        currentPassword,
+        newPassword,
+      })
+      .pipe(
+        tap((response) => {
+          localStorage.setItem('access_token', response.access_token);
+        })
+      );
   }
 
   signup(credentials: {

@@ -1,0 +1,32 @@
+// Mensajes de estado dentro de la card de auth (link enviado, link inválido),
+// compartidos por forgot-password y reset-password.
+.status-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  color: var(--app-text-strong);
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.status-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: var(--app-accent);
+}
+
+.status-hint {
+  font-size: 0.875rem;
+  color: var(--app-text-muted);
+}
+
+.status-action {
+  margin-top: 1rem;
+  border-radius: 50px !important;
+}

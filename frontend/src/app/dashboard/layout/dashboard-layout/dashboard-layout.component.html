@@ -69,6 +69,14 @@
     </mat-nav-list>
 
     <div class="sidenav-footer">
+      <a
+        mat-list-item
+        (click)="openChangePassword(sidenav)"
+        style="cursor: pointer"
+      >
+        <mat-icon matListItemIcon>key</mat-icon>
+        <span matListItemTitle>Cambiar Contraseña</span>
+      </a>
       <a mat-list-item (click)="logout()" style="cursor: pointer">
         <mat-icon matListItemIcon>logout</mat-icon>
         <span matListItemTitle>Cerrar Sesión</span>
