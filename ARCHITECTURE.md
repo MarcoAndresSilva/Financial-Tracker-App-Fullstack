@@ -810,3 +810,30 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - **Meses futuros con "—" en vez de $0:** un $0 en noviembre se leería como "ese mes no se gastó nada"; un guion dice "todavía no llega". Esas filas no son clickeables.
   - **Fila clickeable → Home en ese mes:** `periodContext.setPeriod(año, mes)` + `router.navigate(['/dashboard/home'])` — el Historial funciona como índice para saltar al detalle de cualquier mes. El mes activo se marca con fondo y un borde dorado (`--app-accent`).
   - **Tabla HTML simple, no `mat-table`:** no hay ordenamiento, paginación ni filtros que justifiquen `MatTableDataSource`; una `<table>` con `font-variant-numeric: tabular-nums` alinea mejor los montos. En mobile la tabla (`min-width: 560px`) hace scroll horizontal dentro de la card (`.table-scroll`), sin desbordar la página.
+
+### Paso 63: Cambio y Recuperación de Contraseña (Backend)
+
+- **Problema:** no existía ninguna forma de cambiar la contraseña ni de recuperarla si se olvidaba — la única salida era editar la BD a mano. Se cubren los dos casos: **cambiarla con sesión iniciada** (sé mi contraseña actual) y **"¿Olvidaste tu contraseña?"** (no la sé, pruebo que soy dueño del email).
+- **Mecanismo de recuperación — link con token de un solo uso por email:**
+  - *Descartado:* código numérico de 6 dígitos — obliga a limitar intentos por usuario (un código corto se adivina por fuerza bruta) y agrega una pantalla más. Un token de 32 bytes aleatorios no se puede adivinar, así que no necesita ese control.
+  - *Descartado:* que un administrador la resetee a mano — no escala a nadie fuera de la familia y no resuelve el caso de uso real.
+  - **Elegido:** `POST /auth/forgot-password` genera `randomBytes(32)` y manda `{FRONTEND_URL}/auth/reset-password?token=…`; `POST /auth/reset-password` lo canjea por la contraseña nueva. Vence a los **30 minutos** y vale **una sola vez**.
+- **Modelo — `PasswordResetToken` como tabla aparte**, no columnas `resetToken`/`resetExpires` en `User`: deja registrar `usedAt`, se borra en cascada con el usuario y no ensucia `User` con estado temporal. En la BD se guarda **solo el hash SHA-256** del token (`tokenHash @unique`); el valor real existe únicamente en el link del email. SHA-256 y no bcrypt porque el token ya tiene 256 bits de entropía — bcrypt protege secretos débiles (contraseñas) y además impediría buscar por hash. Pedir un link nuevo borra los anteriores: siempre vale solo el último email.
+- **No revelar qué emails tienen cuenta:** `forgot-password` responde siempre el mismo 200 exista o no el email, y el envío corre en segundo plano (si se esperara al email, el tiempo de respuesta delataría los emails registrados). Un error de envío se registra en el log, no se le devuelve al cliente.
+- **Abuso del endpoint público:** cooldown de 60 s por usuario entre emails (si hay un token creado hace menos, no se manda otro). *Descartado por ahora:* `@nestjs/throttler` (límite por IP) — dependencia y configuración global para un solo endpoint de una app de uso familiar; queda como mejora si la app se abre a más usuarios.
+- **Canje atómico del token:** dentro de un `$transaction` interactivo se marca `usedAt` con `updateMany({ where: { id, usedAt: null } })` y se verifica `count === 1` antes de cambiar la contraseña — dos envíos simultáneos del mismo link no pueden restablecerla dos veces.
+- **Cerrar sesiones abiertas al cambiar la contraseña:** el JWT es stateless y sin refresh token (Paso 3), así que un token robado seguiría sirviendo hasta 60 min después del cambio.
+  - *Descartado:* lista negra de tokens en BD/Redis — infraestructura nueva para resolver lo mismo.
+  - **Elegido:** `User.passwordChangedAt DateTime?`; `JwtStrategy`, que ya consulta el usuario en cada request, rechaza todo token con `iat` anterior a esa fecha. Costo cero de queries extra.
+- **Cambio con sesión iniciada — `PATCH /auth/password`** (`currentPassword`, `newPassword`, guard JWT a nivel de método; el resto de `AuthController` sigue público):
+  - Vive en `AuthService` y no en `UserModule` porque reutiliza `signToken` y el hasheo con bcrypt que ya están ahí.
+  - Como el propio cambio invalida el token con que se hizo la petición, **devuelve un `access_token` nuevo** para que el dispositivo actual siga dentro. La comparación de `iat` es por segundo (`iat < floor(passwordChangedAt / 1000)`), así el token emitido en el mismo segundo del cambio es válido.
+  - Contraseña actual incorrecta → **400, no 401**: el interceptor del frontend (Paso 40) trata todo 401 como sesión vencida y cerraría la sesión.
+  - El restablecimiento por email **no** inicia sesión automáticamente, por el mismo criterio que el registro (Paso 26): cada flujo hace una sola cosa y después se entra por el login.
+- **Envío de emails — `MailService` (`src/mail/`) sobre la API HTTP de Brevo con `fetch` nativo:**
+  - *Descartado:* SMTP (Gmail + nodemailer) — el plan gratuito de Render bloquea los puertos SMTP de salida.
+  - *Descartado:* Resend — sin un dominio propio verificado solo envía al email del dueño de la cuenta.
+  - **Elegido:** Brevo permite verificar un remitente individual sin dominio propio, tiene plan gratuito de 300 emails/día y se usa por HTTP, sin dependencia nueva. Queda encapsulado en `MailService.send()`: cambiar de proveedor toca un solo archivo.
+  - Sin `BREVO_API_KEY`/`MAIL_FROM` el email no se envía y su contenido (con el link) se escribe en el log — permite probar el flujo completo en local sin cuenta. El nombre del usuario se escapa antes de insertarlo en el HTML.
+- **Migración** `add_password_reset` (columna `User.passwordChangedAt` + tabla `PasswordResetToken`). Nuevas variables documentadas en `.env.example`: `BREVO_API_KEY`, `MAIL_FROM`, `MAIL_FROM_NAME`, y `FRONTEND_URL` (ya existía para CORS, ahora también arma el link).
+- **Alcance — solo backend.** Las pantallas (link en el login, página de restablecimiento, cambio de contraseña desde el menú de usuario) van en el paso siguiente.
