@@ -857,3 +857,20 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
 
 - **Problema:** con el menú lateral abierto en desktop aparecía una muesca clara en la esquina superior derecha del sidenav, justo donde se junta con el toolbar (y otra igual abajo). Es el redondeo que Material 3 aplica por defecto a las esquinas derechas del drawer (`--mat-sidenav-container-shape: corner-large`, 16px): deja ver el fondo claro del contenedor detrás de dos superficies navy.
 - **Fix — sin redondeo solo en modo `side`:** `mat.sidenav-overrides((container-shape: 0))` dentro de `.sidenav.mat-drawer-side`. En mobile el sidenav usa modo `over` (Paso 37): flota sobre el contenido con sombra, y ahí el redondeo M3 sí corresponde al diseño, así que se mantiene. *Descartado:* `border-radius: 0 !important` en el sidenav — pisaría el estilo en ambos modos y saltaría la API de tokens que el proyecto ya usa para el resto del theming del menú (`mat.list-overrides`).
+
+### Paso 66: Buscador de Transacciones
+
+- **Problema:** para encontrar un gasto puntual ("¿cuándo pagamos el dentista?", "¿cuánto llevamos en cuotas?") había que ir mes por mes o armar filtros de categoría y fechas. Se agrega una búsqueda por texto libre en la lista de transacciones.
+- **Dónde se filtra — en el backend, no en el cliente:**
+  - *Descartado:* filtrar en el front la lista ya cargada — esa lista trae por defecto solo el mes activo (Paso 52), así que una búsqueda local no encontraría nada de otros meses, que es justo el caso de uso.
+  - **Elegido:** `GetTransactionsFilterDto` gana `search?` (`@MaxLength(100)`) y se combina con los filtros existentes (tipo, categoría, rango de fechas) en el mismo `GET /transactions`.
+- **Qué se busca:** la descripción **y** el nombre de la categoría y la subcategoría — "cuota" encuentra "Cuota TV Falabella" por descripción y "super" encuentra todo lo de la subcategoría "Supermercado", aunque la descripción diga "Compra grande mes".
+- **Sin distinguir tildes:**
+  - *Descartado:* `contains` con `mode: 'insensitive'` de Prisma — ignora mayúsculas pero no tildes (Postgres `ILIKE`), así que "credito" no encontraría "Créditos". Desde el teclado del celular casi siempre se escribe sin tildes.
+  - *Descartado:* la extensión `unaccent` de Postgres — requiere `CREATE EXTENSION` vía migración y que el proveedor la tenga habilitada, para resolver algo que una función nativa ya cubre.
+  - **Elegido:** `TransactionService.findTransactionIdsMatching` hace un `$queryRaw` parametrizado que compara `lower(translate(campo, 'ÁÉÍÓÚÜÑáéíóúüñ', 'AEIOUUNaeiouun')) LIKE patrón`; el término se normaliza igual en JS (`normalize('NFD')` + quitar diacríticos + minúsculas). La consulta cruda devuelve **solo ids**, que pasan como `id: { in: [...] }` al `findMany` de siempre: el resto de los filtros, el orden y el `include` siguen tipados en Prisma en vez de reescribirse en SQL. Los comodines de `LIKE` (`%`, `_`, `\`) se escapan para que se busquen literales.
+- **Frontend — `TransactionListComponent`:**
+  - Campo de búsqueda siempre visible bajo la cabecera (no dentro del panel de filtros, que arranca cerrado en mobile). Es un `FormControl` aparte de `filterForm`: necesita `debounceTime(300)` por escribirse letra a letra, y "Limpiar filtros" no debe borrar lo que se está buscando.
+  - **Con texto, la búsqueda recorre todos los meses** — se agrega como cuarta condición a la prioridad de ventana de fechas del Paso 52 (un rango manual sigue mandando). El selector de mes se atenúa, igual que con "Todos los meses", para que se note que no está filtrando.
+  - Resumen bajo el campo: "N resultados para *x*" + total de gastos e ingresos de los resultados — responde "¿cuánto llevamos en X?" sin sumar a mano. Se calcula en el cliente sobre la lista ya filtrada. Estado vacío propio ("Nada coincide con *x*") en vez del "¡Añade tu primera transacción!".
+  - `type="text"` con `enterkeyhint="search"` y no `type="search"`: este último agrega el botón de borrar nativo del navegador junto al propio, quedando dos "X".
