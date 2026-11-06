@@ -1,6 +1,11 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import {
   finalize,
@@ -11,6 +16,7 @@ import {
   debounceTime,
   distinctUntilChanged,
   filter,
+  map,
   Subject,
   take,
   takeUntil,
@@ -94,6 +100,27 @@ export class TransactionListComponent implements OnInit {
   categories: Category[] = [];
   subcategories: Subcategory[] = [];
 
+  // Fuera de `filterForm` a propósito: se escribe letra por letra (necesita
+  // debounce) y "Limpiar filtros" no debería borrar lo que se está buscando.
+  searchControl = new FormControl('', { nonNullable: true });
+
+  get searchTerm(): string {
+    return this.searchControl.value.trim();
+  }
+
+  // Totales de lo que se está viendo: con una búsqueda activa responden
+  // "¿cuánto gastamos en X?" sin tener que sumar a mano.
+  get visibleTotals(): { income: number; expense: number } {
+    return this.transactions.reduce(
+      (totals, t) => {
+        if (t.type === 'INCOME') totals.income += t.amount;
+        else totals.expense += t.amount;
+        return totals;
+      },
+      { income: 0, expense: 0 },
+    );
+  }
+
   constructor() {
     this.filterForm = this.fb.group({
       type: [null],
@@ -121,6 +148,7 @@ export class TransactionListComponent implements OnInit {
       });
     this.setupDependentFilters();
     this.setupFilterFormListener();
+    this.setupSearchListener();
 
     this.breakpointObserver
       .observe(Breakpoints.Handset)
@@ -235,7 +263,9 @@ export class TransactionListComponent implements OnInit {
       ? dateToApiString(formValues.endDate)
       : undefined;
 
-    if (!startDate && !endDate && !this.showAllMonths) {
+    // Una búsqueda recorre todos los meses ("¿cuándo pagamos el dentista?"),
+    // salvo que el usuario haya fijado un rango manual.
+    if (!startDate && !endDate && !this.showAllMonths && !this.searchTerm) {
       const { year, month } = this.activePeriod;
       startDate = dateToApiString(new Date(year, month - 1, 1));
       endDate = dateToApiString(new Date(year, month, 0)); // último día del mes
@@ -246,6 +276,7 @@ export class TransactionListComponent implements OnInit {
       ...formValues,
       startDate,
       endDate,
+      search: this.searchTerm || undefined,
     };
 
     this.transactionService
@@ -293,6 +324,21 @@ export class TransactionListComponent implements OnInit {
       .subscribe(() => {
         this.loadTransactions();
       });
+  }
+
+  setupSearchListener(): void {
+    this.searchControl.valueChanges
+      .pipe(
+        map((value) => value.trim()),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(() => this.loadTransactions());
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('');
   }
 
   openTransactionForm(): void {

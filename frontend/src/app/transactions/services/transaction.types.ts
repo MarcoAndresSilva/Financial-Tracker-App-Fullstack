@@ -29,6 +29,7 @@ export interface GetTransactionsFilterDto {
   type?: 'INCOME' | 'EXPENSE';
   categoryId?: string;
   subcategoryId?: string;
+  search?: string;
   limit?: number;
 }
 export interface CreateTransactionDto {

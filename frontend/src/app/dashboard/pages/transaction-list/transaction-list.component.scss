@@ -149,6 +149,35 @@
   }
 }
 
+// --- Buscador ---
+.search-bar {
+  margin-bottom: 1.25rem;
+}
+
+.search-field {
+  width: 100%;
+}
+
+.search-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--app-text-muted);
+
+  strong {
+    color: var(--app-text-strong);
+  }
+}
+
+.search-summary__totals {
+  display: flex;
+  gap: 1rem;
+  font-weight: 500;
+}
+
 // --- Panel de filtros ---
 .filter-section {
   background-color: var(--mat-sys-surface-container-low, white);

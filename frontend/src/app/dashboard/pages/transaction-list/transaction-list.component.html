@@ -8,7 +8,7 @@
     <div class="header-toolbar">
       <app-month-selector
         class="header-month"
-        [class.header-month--muted]="showAllMonths"
+        [class.header-month--muted]="showAllMonths || searchTerm"
       ></app-month-selector>
 
       <div class="header-actions">
@@ -62,6 +62,49 @@
           <span>Añadir Transacción</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Buscador: siempre visible, recorre todos los meses mientras tenga texto -->
+  <div class="search-bar">
+    <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        type="text"
+        enterkeyhint="search"
+        [formControl]="searchControl"
+        placeholder="Buscar por descripción o categoría"
+        aria-label="Buscar transacciones"
+        autocomplete="off"
+      />
+      <button
+        *ngIf="searchControl.value"
+        mat-icon-button
+        matSuffix
+        type="button"
+        (click)="clearSearch()"
+        aria-label="Limpiar búsqueda"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <div class="search-summary" *ngIf="searchTerm && !isLoading">
+      <span>
+        {{ transactions.length }} resultado{{ transactions.length === 1 ? "" : "s" }}
+        para <strong>"{{ searchTerm }}"</strong>
+      </span>
+      <span class="search-summary__totals" *ngIf="transactions.length > 0">
+        <span *ngIf="visibleTotals.expense > 0" class="expense-amount"
+          >Gastos
+          {{ visibleTotals.expense | currency : "CLP" : "symbol-narrow" : "1.0-0" }}</span
+        >
+        <span *ngIf="visibleTotals.income > 0" class="income-amount"
+          >Ingresos
+          {{ visibleTotals.income | currency : "CLP" : "symbol-narrow" : "1.0-0" }}</span
+        >
+      </span>
     </div>
   </div>
 
@@ -250,8 +293,14 @@
     <!-- Estado: No cargando Y NO hay transacciones -->
     <div *ngIf="!isLoading && transactions.length === 0" class="empty-state">
       <mat-icon>search_off</mat-icon>
-      <p>No se encontraron transacciones.</p>
-      <p>¡Añade tu primera transacción para empezar!</p>
+      <ng-container *ngIf="searchTerm; else noTransactions">
+        <p>Nada coincide con "{{ searchTerm }}".</p>
+        <p>Prueba con otra palabra o revisa los filtros.</p>
+      </ng-container>
+      <ng-template #noTransactions>
+        <p>No se encontraron transacciones.</p>
+        <p>¡Añade tu primera transacción para empezar!</p>
+      </ng-template>
     </div>
   </div>
 

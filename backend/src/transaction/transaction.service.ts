@@ -81,6 +81,12 @@ export class TransactionService {
         whereClause.date.lte = new Date(endDate);
       }
     }
+    const search = filterDto.search?.trim();
+    if (search) {
+      whereClause.id = {
+        in: await this.findTransactionIdsMatching(walletId, search),
+      };
+    }
     return this.prisma.transaction.findMany({
       where: whereClause,
       ...(take ? { take } : {}),
@@ -95,6 +101,40 @@ export class TransactionService {
         },
       },
     });
+  }
+
+  // Prisma solo ofrece `contains` con `mode: 'insensitive'`, que ignora
+  // mayúsculas pero no tildes ("credito" no encontraría "Crédito"). La
+  // comparación se hace en SQL con translate(), que quita tildes y ñ de ambos
+  // lados sin requerir la extensión `unaccent`. Devuelve solo ids: el resto de
+  // los filtros y el include siguen en el findMany tipado de Prisma.
+  private async findTransactionIdsMatching(
+    walletId: string,
+    search: string,
+  ): Promise<string[]> {
+    const normalized = search
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      // %, _ y \ son comodines de LIKE: se escapan para buscarlos literales.
+      .replace(/[\\%_]/g, '\\$&');
+    const pattern = `%${normalized}%`;
+    const from = 'ÁÉÍÓÚÜÑáéíóúüñ';
+    const to = 'AEIOUUNaeiouun';
+
+    const rows = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT t.id
+      FROM "Transaction" t
+      JOIN "Subcategory" s ON s.id = t."subcategoryId"
+      JOIN "Category" c ON c.id = s."categoryId"
+      WHERE t."walletId" = ${walletId}
+        AND (
+          lower(translate(t.description, ${from}, ${to})) LIKE ${pattern}
+          OR lower(translate(s.name, ${from}, ${to})) LIKE ${pattern}
+          OR lower(translate(c.name, ${from}, ${to})) LIKE ${pattern}
+        )
+    `;
+    return rows.map((row) => row.id);
   }
 
   async getTransactionById(userId: string, transactionId: string) {
