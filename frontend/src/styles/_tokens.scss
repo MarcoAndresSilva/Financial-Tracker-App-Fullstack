@@ -21,33 +21,64 @@
 //           financiera (ingreso/gasto) y el acento de marca.
 //
 //  Regla: ningún componente hardcodea un color. Usa `--mat-sys-*` para el
-//  chrome y `--app-*` para lo de acá. Únicas excepciones (skill de dataviz):
-//  `STATUS_COLORS` y `CATEGORY_COLORS` en home.component.ts — status y
-//  categóricos nunca siguen la marca.
+//  chrome y `--app-*` para lo de acá. Única excepción (skill de dataviz):
+//  `STATUS_COLORS` en home.component.ts — los colores de estado son fijos y
+//  no cambian con el modo.
+//
+//  Modo claro/oscuro (Paso 67): cada valor es `light-dark(claro, oscuro)`. El
+//  navegador elige según la propiedad `color-scheme` de <html>, que fija
+//  ThemeService (o el script inline de index.html antes de que cargue Angular).
+//  `mat.theme` usa `theme-type: color-scheme`, así que los `--mat-sys-*` que
+//  no se fijan acá también traen sus dos variantes.
 // ============================================================================
 
 :root {
   /* ---- Marca / chrome: valores exactos elegidos ---- */
   // M3 aclara el seed al mapearlo al rol "primary" (tono 40). Lo fijamos al
-  // navy que se eligió para que el toolbar y los botones primary sean ese color.
-  --mat-sys-primary: #243b53;
-  --mat-sys-on-primary: #ffffff;
+  // navy que se eligió para que los botones primary y los títulos sean ese
+  // color. En oscuro, primary pasa al tono 80 de la misma rampa: navy sobre un
+  // fondo oscuro no se leería.
+  --mat-sys-primary: light-dark(#243b53, #b1c9e6);
+  --mat-sys-on-primary: light-dark(#ffffff, #1a324a);
 
-  // Sidenav oscuro en navy profundo (en vez del gris neutro por defecto).
-  --mat-sys-inverse-surface: #1b2a3d;
+  // Superficie de marca (toolbar, banner de login/registro). Se separa de
+  // `primary` porque en oscuro primary se aclara para leerse como texto, y un
+  // toolbar celeste claro rompería la identidad: el chrome sigue navy.
+  --app-chrome: light-dark(#243b53, #1e2d40);
+  --app-on-chrome: #ffffff;
+
+  // Sidenav oscuro en navy profundo (en vez del gris neutro por defecto). En
+  // oscuro M3 invertiría esta superficie a un gris claro; se mantiene navy,
+  // un poco más profundo que el toolbar.
+  --mat-sys-inverse-surface: light-dark(#1b2a3d, #16212f);
   --mat-sys-inverse-on-surface: #e9f1ff;
 
   /* ---- Acento de marca: detalles que antes eran verdes ---- */
   // Íconos de título de sección, ítem activo del menú lateral, remates.
-  --app-accent: #b08d57; // dorado apagado
-  --app-accent-strong: #8a6d40; // para texto/bordes sobre fondo claro
+  --app-accent: #b08d57; // dorado apagado (legible sobre claro y oscuro)
+  --app-accent-strong: light-dark(#8a6d40, #c9a46b); // texto/bordes
   --app-accent-contrast: #ffffff;
 
   /* ---- Semántica financiera (CONVENCIÓN — no sigue la marca) ---- */
-  --app-income: #2e7d32;
-  --app-income-surface: #e8f5e9;
-  --app-expense: #c62828;
-  --app-expense-surface: #ffebee;
+  // En oscuro: tonos más claros del mismo verde/rojo para mantener contraste
+  // de texto, y superficies tintadas oscuras en vez de pasteles.
+  --app-income: light-dark(#2e7d32, #66bb6a);
+  --app-income-surface: light-dark(#e8f5e9, #1c2e1f);
+  --app-expense: light-dark(#c62828, #ef6b6b);
+  --app-expense-surface: light-dark(#ffebee, #3a1f21);
+
+  /* ---- Paleta categórica (gráficos por categoría del Home) ---- */
+  // Orden fijo, nunca ciclado (skill de dataviz). La columna oscura son los
+  // mismos 8 tonos ajustados a la superficie oscura, validados con
+  // validate_palette.js contra #1b1c1d y #121315 (todas las pruebas pasan).
+  --app-cat-1: light-dark(#2a78d6, #3987e5); // azul
+  --app-cat-2: light-dark(#eb6834, #d95926); // naranjo
+  --app-cat-3: light-dark(#1baf7a, #199e70); // aqua
+  --app-cat-4: light-dark(#eda100, #c98500); // amarillo
+  --app-cat-5: light-dark(#e87ba4, #d55181); // magenta
+  --app-cat-6: #008300; // verde (igual en ambos modos)
+  --app-cat-7: light-dark(#4a3aa7, #9085e9); // violeta
+  --app-cat-8: light-dark(#e34948, #e66767); // rojo
 
   /* ---- Alias de texto legibles sobre los tokens de Material ---- */
   --app-text-strong: var(--mat-sys-on-surface);

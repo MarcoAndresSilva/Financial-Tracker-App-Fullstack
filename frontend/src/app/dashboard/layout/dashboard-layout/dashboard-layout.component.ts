@@ -20,6 +20,7 @@ import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { WalletContextService } from '../../../core/services/wallet-context.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { AuthService } from '../../../auth/services/auth.service';
+import { ThemeService } from '../../../core/services/theme.service';
 import {
   MyWallet,
   WalletMember,
@@ -54,6 +55,9 @@ export class DashboardLayoutComponent implements OnDestroy {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private breakpointObserver = inject(BreakpointObserver);
+  private themeService = inject(ThemeService);
+
+  isDark$ = this.themeService.isDark$;
   private destroy$ = new Subject<void>();
 
   activeWallet$ = this.walletContext.activeWallet$;
@@ -238,6 +242,10 @@ export class DashboardLayoutComponent implements OnDestroy {
           },
         });
       });
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggle();
   }
 
   openChangePassword(sidenav: MatSidenav): void {

@@ -8,7 +8,9 @@ html {
   @include mat.theme(
     (
       color: (
-        theme-type: light,
+        // Emite cada --mat-sys-* como light-dark(claro, oscuro); el modo lo
+        // decide `color-scheme` en <html> (Paso 67).
+        theme-type: color-scheme,
         primary: brand.$primary-palette,
         tertiary: brand.$tertiary-palette,
       ),
@@ -16,6 +18,12 @@ html {
       density: 0,
     )
   );
+}
+
+// Por defecto sigue al sistema operativo; ThemeService lo fija a `light` o
+// `dark` si el usuario eligió uno.
+html {
+  color-scheme: light dark;
 }
 
 html,

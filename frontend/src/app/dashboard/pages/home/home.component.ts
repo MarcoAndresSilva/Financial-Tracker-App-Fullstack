@@ -27,26 +27,27 @@ import {
   CategoryBarsComponent,
 } from '../../../shared/components/category-bars/category-bars.component';
 
-// NOTA: estos dos arrays (categórico y de estado) son la única excepción a la
-// regla "todos los colores viven en src/styles/_tokens.scss" — la skill de
-// dataviz manda que las paletas categóricas y de estado NO sigan la marca.
-// Paleta categórica validada (8 tonos, orden fijo, CVD-safe) — ver dataviz skill.
+// Paleta categórica validada (8 tonos, orden fijo, CVD-safe) — ver dataviz
+// skill. Los valores viven en src/styles/_tokens.scss (`--app-cat-*`), con su
+// variante para modo oscuro; acá solo se fija el orden.
 const CATEGORY_COLORS = [
-  '#2a78d6', // azul
-  '#eb6834', // naranjo
-  '#1baf7a', // aqua
-  '#eda100', // amarillo
-  '#e87ba4', // magenta
-  '#008300', // verde
-  '#4a3aa7', // violeta
-  '#e34948', // rojo
+  'var(--app-cat-1)', // azul
+  'var(--app-cat-2)', // naranjo
+  'var(--app-cat-3)', // aqua
+  'var(--app-cat-4)', // amarillo
+  'var(--app-cat-5)', // magenta
+  'var(--app-cat-6)', // verde
+  'var(--app-cat-7)', // violeta
+  'var(--app-cat-8)', // rojo
 ];
 const MAX_CATEGORY_SLOTS = 8;
 
 // Umbral simple para sugerir invertir el saldo histórico ocioso.
 const INVESTMENT_TIP_THRESHOLD = 500_000;
 
-// Paleta de estado fija (nunca sigue el tema) — ver dataviz skill.
+// Paleta de estado fija (nunca sigue el tema ni el modo claro/oscuro: los
+// cuatro tonos superan 3:1 en ambas superficies) — ver dataviz skill. Única
+// excepción a la regla "todos los colores viven en _tokens.scss".
 const STATUS_COLORS = {
   good: '#0ca30c',
   warning: '#fab219',

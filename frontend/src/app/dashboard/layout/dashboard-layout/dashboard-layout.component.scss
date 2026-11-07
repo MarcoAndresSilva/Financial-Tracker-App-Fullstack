@@ -123,20 +123,21 @@ $sidenav-accent: var(--app-accent);
 mat-toolbar {
   // `color="primary"` en el template no alcanza: `mat.theme(...)` no genera la
   // regla `.mat-toolbar.mat-primary` que pinta el fondo (haría falta también un
-  // `mat.toolbar-theme(...)`). Se pinta a mano con los tokens del tema.
+  // `mat.toolbar-theme(...)`). Se pinta a mano con `--app-chrome` y no con
+  // `--mat-sys-primary`, que en modo oscuro se aclara (Paso 67).
   height: $toolbar-height;
   position: sticky;
   top: 0;
   z-index: 10;
-  background-color: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
+  background-color: var(--app-chrome);
+  color: var(--app-on-chrome);
 
   // Los `mat-icon-button` (hamburguesa, flecha del selector) traen su propio
   // token de color de ícono, que sobre el fondo navy quedaba gris oscuro e
   // ilegible. Se fuerzan al color del texto del toolbar (blanco).
   .mat-mdc-icon-button {
-    --mdc-icon-button-icon-color: var(--mat-sys-on-primary);
-    color: var(--mat-sys-on-primary);
+    --mdc-icon-button-icon-color: var(--app-on-chrome);
+    color: var(--app-on-chrome);
   }
 
   .toolbar-brand {
@@ -150,6 +151,10 @@ mat-toolbar {
 
   .toolbar-spacer {
     flex: 1 1 auto;
+  }
+
+  .theme-toggle {
+    margin-right: 0.5rem;
   }
 
   .user-greeting {
@@ -180,8 +185,8 @@ mat-toolbar {
     // `mat-button` pinta su label con un token propio (`--mdc-text-button-*`)
     // que por defecto es el primary navy → sobre el toolbar navy quedaba negro.
     // Se fuerza al color del texto del toolbar (blanco), y el ícono lo hereda.
-    color: var(--mat-sys-on-primary);
-    --mdc-text-button-label-text-color: var(--mat-sys-on-primary);
+    color: var(--app-on-chrome);
+    --mdc-text-button-label-text-color: var(--app-on-chrome);
 
     // Ícono SVG propio de billetera (public/icons/wallet.svg), registrado en
     // AppComponent.

@@ -6,6 +6,16 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#243B53">
+  <!-- Aplica el modo claro/oscuro guardado antes de que cargue Angular, para
+       no mostrar un destello claro en modo oscuro (ver ThemeService). -->
+  <script>
+    try {
+      var mode = localStorage.getItem('theme_mode');
+      if (mode === 'light' || mode === 'dark') {
+        document.documentElement.style.colorScheme = mode;
+      }
+    } catch (e) {}
+  </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&amp;display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

@@ -104,6 +104,20 @@
         <span>¡Hola, {{ user.name || user.email }}!</span>
       </div>
 
+      <!-- MODO CLARO / OSCURO: el ícono muestra el modo actual (sol = día,
+           luna = noche); un clic pasa al otro. -->
+      <ng-container *ngIf="{ dark: isDark$ | async } as theme">
+        <button
+          mat-icon-button
+          class="theme-toggle"
+          (click)="toggleTheme()"
+          [matTooltip]="theme.dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+          [attr.aria-label]="theme.dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+        >
+          <mat-icon>{{ theme.dark ? "dark_mode" : "light_mode" }}</mat-icon>
+        </button>
+      </ng-container>
+
       <!-- SELECTOR DE WALLET -->
       <ng-container *ngIf="activeWallet$ | async as activeWallet">
         <button mat-button [matMenuTriggerFor]="walletMenu" class="wallet-selector">
