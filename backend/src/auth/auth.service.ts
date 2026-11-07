@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -14,6 +16,8 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
   ChangePasswordDto,
+  RequestEmailChangeDto,
+  ConfirmEmailChangeDto,
 } from './dto';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
@@ -26,6 +30,10 @@ const RESET_TOKEN_TTL_MS = 30 * 60 * 1000;
 // Espera mínima entre dos emails de restablecimiento para el mismo usuario, para
 // que el endpoint público no se pueda usar para llenarle la bandeja a alguien.
 const RESET_COOLDOWN_MS = 60 * 1000;
+// Vigencia del link de confirmación de un email nuevo. Más larga que la del
+// restablecimiento: el cambio ya exigió la contraseña, y el link llega a un
+// correo que quizás no se revisa al tiro.
+const EMAIL_CHANGE_TTL_MS = 24 * 60 * 60 * 1000;
 
 // El nombre lo elige el usuario: se escapa antes de meterlo en el HTML del email.
 function escapeHtml(value: string): string {
@@ -214,6 +222,205 @@ export class AuthService {
     return this.signToken(user.id, user.email);
   }
 
+  // Paso 1 del cambio de email: no toca la cuenta, solo manda un link al email
+  // nuevo. El cambio se aplica recién en confirmEmailChange.
+  async requestEmailChange(userId: string, dto: RequestEmailChangeDto) {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+
+    // 400 y no 401, por el mismo motivo que en changePassword.
+    if (!(await bcrypt.compare(dto.currentPassword, user.password))) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    const newEmail = dto.newEmail.trim();
+    if (newEmail.toLowerCase() === user.email.toLowerCase()) {
+      throw new BadRequestException(
+        'New email must be different from the current one',
+      );
+    }
+    // Revelar que un email ya tiene cuenta acá es aceptable: hace falta sesión
+    // y contraseña para preguntar, y el registro ya lo revela igual.
+    if (await this.isEmailTaken(newEmail, userId)) {
+      throw new ConflictException('Email already in use');
+    }
+
+    // Pedir de nuevo invalida el link anterior: vale solo el último email.
+    const token = randomBytes(32).toString('hex');
+    await this.prisma.$transaction([
+      this.prisma.emailChangeToken.deleteMany({ where: { userId } }),
+      this.prisma.emailChangeToken.create({
+        data: {
+          userId,
+          newEmail,
+          tokenHash: this.hashToken(token),
+          expiresAt: new Date(Date.now() + EMAIL_CHANGE_TTL_MS),
+        },
+      }),
+    ]);
+
+    const link = `${this.frontendUrl()}/auth/confirm-email?token=${token}`;
+    const greeting = user.name ? `Hola ${user.name}` : 'Hola';
+    // A diferencia de forgot-password, acá se espera el envío: el usuario está
+    // en la pantalla esperando el link, y si Brevo falla tiene que saberlo.
+    try {
+      await this.mail.send({
+        to: newEmail,
+        toName: user.name ?? undefined,
+        subject: 'Confirma tu nuevo email de FinTrack',
+        text:
+          `${greeting},\n\n` +
+          `Pediste usar este email (${newEmail}) en tu cuenta de FinTrack. ` +
+          `Abre este link para confirmarlo (vence en 24 horas):\n\n${link}\n\n` +
+          `Hasta que lo confirmes, tu cuenta sigue con el email anterior. ` +
+          `Si no fuiste tú, ignora este correo.`,
+        html: this.emailLayout(
+          'Confirma tu nuevo email',
+          `<p>${escapeHtml(greeting)},</p>
+           <p>Pediste usar <strong>${escapeHtml(newEmail)}</strong> en tu cuenta de FinTrack.</p>`,
+          link,
+          'Confirmar email',
+          'El link vence en 24 horas. Hasta que lo confirmes, tu cuenta sigue con el email anterior. Si no fuiste tú, ignora este correo.',
+        ),
+      });
+    } catch (error) {
+      this.logger.error(
+        `No se pudo enviar la confirmación de email a ${newEmail}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new ServiceUnavailableException(
+        'Could not send confirmation email',
+      );
+    }
+
+    return { message: 'Confirmation email sent', pendingEmail: newEmail };
+  }
+
+  // Paso 2: público (el link puede abrirse en un navegador sin sesión). El
+  // token prueba a la vez quién pidió el cambio y que el email nuevo existe.
+  async confirmEmailChange(dto: ConfirmEmailChangeDto) {
+    const tokenHash = this.hashToken(dto.token);
+
+    const { user, newEmail } = await this.prisma.$transaction(async (tx) => {
+      const record = await tx.emailChangeToken.findUnique({
+        where: { tokenHash },
+        include: { user: true },
+      });
+      if (!record || record.usedAt || record.expiresAt < new Date()) {
+        throw new BadRequestException('Invalid or expired token');
+      }
+      // Mismo canje atómico que resetPassword: un link, un solo uso.
+      const { count } = await tx.emailChangeToken.updateMany({
+        where: { id: record.id, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+      if (count === 0) {
+        throw new BadRequestException('Invalid or expired token');
+      }
+      // Otra cuenta pudo registrarse con ese email entre el pedido y la
+      // confirmación: se vuelve a revisar antes de aplicar.
+      if (await this.isEmailTaken(record.newEmail, record.userId, tx)) {
+        throw new ConflictException('Email already in use');
+      }
+      try {
+        await tx.user.update({
+          where: { id: record.userId },
+          data: { email: record.newEmail },
+        });
+      } catch (error) {
+        if (
+          error instanceof PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          throw new ConflictException('Email already in use');
+        }
+        throw error;
+      }
+      return { user: record.user, newEmail: record.newEmail };
+    });
+
+    // Aviso al email anterior: si el cambio no lo hizo el dueño de la cuenta,
+    // es la única pista que le queda. En segundo plano: el cambio ya se aplicó.
+    const greeting = user.name ? `Hola ${user.name}` : 'Hola';
+    this.mail
+      .send({
+        to: user.email,
+        toName: user.name ?? undefined,
+        subject: 'El email de tu cuenta de FinTrack cambió',
+        text:
+          `${greeting},\n\n` +
+          `El email de tu cuenta de FinTrack ahora es ${newEmail}. Desde ahora ` +
+          `entras con ese email y ahí llegan los avisos.\n\n` +
+          `Si no fuiste tú, responde a este correo para que revisemos tu cuenta.`,
+        html: this.emailLayout(
+          'Tu email cambió',
+          `<p>${escapeHtml(greeting)},</p>
+           <p>El email de tu cuenta de FinTrack ahora es <strong>${escapeHtml(newEmail)}</strong>.
+           Desde ahora entras con ese email y ahí llegan los avisos.</p>`,
+          null,
+          null,
+          'Si no fuiste tú, responde a este correo para que revisemos tu cuenta.',
+        ),
+      })
+      .catch((error: unknown) =>
+        this.logger.error(
+          `No se pudo avisar el cambio de email a ${user.email}`,
+          error instanceof Error ? error.stack : undefined,
+        ),
+      );
+
+    return { message: 'Email updated', email: newEmail };
+  }
+
+  // Comparación sin distinguir mayúsculas: "Marco@x.cl" y "marco@x.cl" son el
+  // mismo buzón aunque el índice único de la BD los vea distintos.
+  private async isEmailTaken(
+    email: string,
+    exceptUserId: string,
+    client: Pick<PrismaService, 'user'> = this.prisma,
+  ): Promise<boolean> {
+    const existing = await client.user.findFirst({
+      where: {
+        email: { equals: email, mode: 'insensitive' },
+        id: { not: exceptUserId },
+      },
+      select: { id: true },
+    });
+    return existing !== null;
+  }
+
+  private frontendUrl(): string {
+    return this.config.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
+  }
+
+  // Mismo diseño para todos los emails de cuenta (restablecer, confirmar email,
+  // aviso de cambio). `contentHtml` y `hint` ya vienen escapados o son fijos.
+  private emailLayout(
+    title: string,
+    contentHtml: string,
+    link: string | null,
+    buttonLabel: string | null,
+    hint: string,
+  ): string {
+    const button =
+      link && buttonLabel
+        ? `<p style="margin: 24px 0;">
+            <a href="${link}" style="background: #243b53; color: #fff; padding: 12px 20px;
+               border-radius: 8px; text-decoration: none; display: inline-block;">
+              ${buttonLabel}
+            </a>
+          </p>`
+        : '';
+    return `
+        <div style="font-family: Arial, sans-serif; color: #243b53; max-width: 480px;">
+          <h2 style="margin: 0 0 16px;">${title}</h2>
+          ${contentHtml}
+          ${button}
+          <p style="font-size: 13px; color: #627d98;">${hint}</p>
+        </div>`;
+  }
+
   private async sendResetEmail(user: User) {
     const recent = await this.prisma.passwordResetToken.findFirst({
       where: {
@@ -237,9 +444,7 @@ export class AuthService {
       }),
     ]);
 
-    const frontendUrl =
-      this.config.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
-    const link = `${frontendUrl}/auth/reset-password?token=${token}`;
+    const link = `${this.frontendUrl()}/auth/reset-password?token=${token}`;
     const greeting = user.name ? `Hola ${user.name}` : 'Hola';
 
     await this.mail.send({
@@ -251,21 +456,14 @@ export class AuthService {
         `Recibimos una solicitud para restablecer la contraseña de tu cuenta de FinTrack. ` +
         `Abre este link para elegir una nueva (vence en 30 minutos):\n\n${link}\n\n` +
         `Si no fuiste tú, ignora este correo: tu contraseña no cambia.`,
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #243b53; max-width: 480px;">
-          <h2 style="margin: 0 0 16px;">Restablece tu contraseña</h2>
-          <p>${escapeHtml(greeting)},</p>
-          <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta de FinTrack.</p>
-          <p style="margin: 24px 0;">
-            <a href="${link}" style="background: #243b53; color: #fff; padding: 12px 20px;
-               border-radius: 8px; text-decoration: none; display: inline-block;">
-              Elegir nueva contraseña
-            </a>
-          </p>
-          <p style="font-size: 13px; color: #627d98;">
-            El link vence en 30 minutos. Si no fuiste tú, ignora este correo: tu contraseña no cambia.
-          </p>
-        </div>`,
+      html: this.emailLayout(
+        'Restablece tu contraseña',
+        `<p>${escapeHtml(greeting)},</p>
+         <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta de FinTrack.</p>`,
+        link,
+        'Elegir nueva contraseña',
+        'El link vence en 30 minutos. Si no fuiste tú, ignora este correo: tu contraseña no cambia.',
+      ),
     });
   }
 

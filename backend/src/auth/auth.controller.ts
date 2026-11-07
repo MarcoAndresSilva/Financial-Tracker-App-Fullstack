@@ -15,6 +15,8 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
   ChangePasswordDto,
+  RequestEmailChangeDto,
+  ConfirmEmailChangeDto,
 } from './dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
@@ -44,8 +46,9 @@ export class AuthController {
     return this.authService.resetPassword(dto);
   }
 
-  // Única ruta protegida del controlador: el resto es público por naturaleza
-  // (registrarse, entrar y recuperar el acceso se hacen sin sesión).
+  // Rutas protegidas del controlador (password y email-change): el resto es
+  // público por naturaleza (registrarse, entrar, recuperar el acceso y abrir
+  // el link de confirmación de email se hacen sin sesión).
   @UseGuards(AuthGuard('jwt'))
   @Patch('password')
   changePassword(
@@ -53,5 +56,21 @@ export class AuthController {
     @Body() dto: ChangePasswordDto,
   ) {
     return this.authService.changePassword(userId, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.OK)
+  @Post('email-change')
+  requestEmailChange(
+    @CurrentUser('id') userId: string,
+    @Body() dto: RequestEmailChangeDto,
+  ) {
+    return this.authService.requestEmailChange(userId, dto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('confirm-email')
+  confirmEmailChange(@Body() dto: ConfirmEmailChangeDto) {
+    return this.authService.confirmEmailChange(dto);
   }
 }

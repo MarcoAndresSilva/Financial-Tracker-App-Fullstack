@@ -45,6 +45,7 @@ model User {
   memberships WalletMembership[]
   transactions Transaction[]
   passwordResetTokens PasswordResetToken[]
+  emailChangeTokens EmailChangeToken[]
 }
 
 // Token de un solo uso para "¿Olvidaste tu contraseña?". Se guarda solo el hash
@@ -53,6 +54,24 @@ model User {
 model PasswordResetToken {
   id        String    @id @default(uuid())
   tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Cambio de email pendiente de confirmar (Paso 68). El email nuevo no se aplica
+// hasta que se abre el link enviado a ESE email: así un error de tipeo no deja
+// la cuenta con un correo al que nadie llega. Igual que PasswordResetToken, se
+// guarda solo el hash del token.
+model EmailChangeToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  newEmail  String
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
