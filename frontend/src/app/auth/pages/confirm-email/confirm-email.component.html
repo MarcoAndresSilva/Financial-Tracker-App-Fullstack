@@ -1,0 +1,78 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <div class="hero-banner">
+      <mat-icon svgIcon="brand" class="hero-icon"></mat-icon>
+      <span class="hero-brand">FinTrack</span>
+    </div>
+
+    <mat-card-header>
+      <mat-card-title>Confirmar email</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content [ngSwitch]="state">
+      <div *ngSwitchCase="'ready'" class="status-box">
+        <mat-icon class="status-icon">mark_email_unread</mat-icon>
+        <p>Confirma que quieres usar este email en tu cuenta de FinTrack.</p>
+        <p class="status-hint">
+          Desde que confirmes, entrarás con él y ahí te llegarán los avisos.
+        </p>
+        <button
+          mat-flat-button
+          color="primary"
+          class="login-button status-confirm"
+          type="button"
+          [disabled]="isConfirming"
+          (click)="confirm()"
+        >
+          {{ isConfirming ? "Confirmando..." : "Confirmar email" }}
+        </button>
+      </div>
+
+      <div *ngSwitchCase="'done'" class="status-box">
+        <mat-icon class="status-icon">verified</mat-icon>
+        <p>
+          Listo. Desde ahora entras con <strong>{{ newEmail }}</strong>.
+        </p>
+        <a
+          *ngIf="hasSession; else goLogin"
+          mat-stroked-button
+          color="primary"
+          class="status-action"
+          routerLink="/dashboard/account"
+          >Volver a Mi cuenta</a
+        >
+        <ng-template #goLogin>
+          <a
+            mat-stroked-button
+            color="primary"
+            class="status-action"
+            routerLink="/auth/login"
+            >Iniciar sesión</a
+          >
+        </ng-template>
+      </div>
+
+      <div *ngSwitchCase="'taken'" class="status-box">
+        <mat-icon class="status-icon">person_off</mat-icon>
+        <p>Ese email ya lo está usando otra cuenta.</p>
+        <p class="status-hint">
+          Tu cuenta sigue con el email anterior. Puedes pedir el cambio a otro
+          email desde Mi cuenta.
+        </p>
+      </div>
+
+      <div *ngSwitchCase="'invalid'" class="status-box">
+        <mat-icon class="status-icon">link_off</mat-icon>
+        <p>Este link no es válido o ya venció.</p>
+        <p class="status-hint">
+          Los links duran 24 horas y sirven una sola vez. Puedes pedir uno nuevo
+          desde Mi cuenta; tu email no cambió.
+        </p>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions *ngIf="state !== 'done'">
+      <a class="register-link" routerLink="/auth/login">Ir a iniciar sesión</a>
+    </mat-card-actions>
+  </mat-card>
+</div>

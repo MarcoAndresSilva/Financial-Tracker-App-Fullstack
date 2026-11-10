@@ -73,6 +73,27 @@ export class AuthService {
       );
   }
 
+  // Paso 1 del cambio de email: no cambia nada, manda un link al email nuevo.
+  requestEmailChange(
+    newEmail: string,
+    currentPassword: string
+  ): Observable<{ message: string; pendingEmail: string }> {
+    return this.http.post<{ message: string; pendingEmail: string }>(
+      `${this.apiUrl}/auth/email-change`,
+      { newEmail, currentPassword }
+    );
+  }
+
+  // Paso 2: lo llama la página que abre el link del email (no requiere sesión).
+  confirmEmailChange(
+    token: string
+  ): Observable<{ message: string; email: string }> {
+    return this.http.post<{ message: string; email: string }>(
+      `${this.apiUrl}/auth/confirm-email`,
+      { token }
+    );
+  }
+
   signup(credentials: {
     name: string;
     email: string;

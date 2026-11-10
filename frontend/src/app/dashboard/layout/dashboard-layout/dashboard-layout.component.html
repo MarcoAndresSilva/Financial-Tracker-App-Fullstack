@@ -71,11 +71,12 @@
     <div class="sidenav-footer">
       <a
         mat-list-item
-        (click)="openChangePassword(sidenav)"
-        style="cursor: pointer"
+        routerLink="account"
+        routerLinkActive="active-link"
+        (click)="onNavLinkClick(sidenav)"
       >
-        <mat-icon matListItemIcon>key</mat-icon>
-        <span matListItemTitle>Cambiar Contraseña</span>
+        <mat-icon matListItemIcon>manage_accounts</mat-icon>
+        <span matListItemTitle>Mi cuenta</span>
       </a>
       <a mat-list-item (click)="logout()" style="cursor: pointer">
         <mat-icon matListItemIcon>logout</mat-icon>

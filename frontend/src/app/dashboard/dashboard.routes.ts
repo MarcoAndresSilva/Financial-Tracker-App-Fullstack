@@ -7,6 +7,7 @@ import { CategoriesComponent } from './pages/categories/categories.component';
 import { SavingsGoalsComponent } from './pages/savings-goals/savings-goals.component';
 import { DebtsComponent } from './pages/debts/debts.component';
 import { HistorialComponent } from './pages/historial/historial.component';
+import { AccountComponent } from './pages/account/account.component';
 
 export const DASHBOARD_ROUTES: Routes = [
   {
@@ -21,6 +22,7 @@ export const DASHBOARD_ROUTES: Routes = [
       { path: 'categories', component: CategoriesComponent },
       { path: 'goals', component: SavingsGoalsComponent },
       { path: 'debts', component: DebtsComponent },
+      { path: 'account', component: AccountComponent },
 
       // Si el usuario va a /dashboard, lo redirigimos a /dashboard/home
       { path: '', redirectTo: 'home', pathMatch: 'full' },

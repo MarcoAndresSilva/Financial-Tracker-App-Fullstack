@@ -1,5 +1,5 @@
-// Mensajes de estado dentro de la card de auth (link enviado, link inválido),
-// compartidos por forgot-password y reset-password.
+// Mensajes de estado dentro de la card de auth (link enviado, link inválido,
+// email confirmado), compartidos por forgot/reset-password y confirm-email.
 .status-box {
   display: flex;
   flex-direction: column;
@@ -29,4 +29,8 @@
 .status-action {
   margin-top: 1rem;
   border-radius: 50px !important;
+}
+
+.status-confirm {
+  margin-top: 1rem;
 }

@@ -94,7 +94,11 @@ $sidenav-accent: var(--app-accent);
   mat-nav-list {
     flex-grow: 1;
     padding-top: 1rem;
+  }
 
+  // Ítem activo: en la lista principal y en el pie ("Mi cuenta").
+  mat-nav-list,
+  .sidenav-footer {
     .active-link {
       background-color: rgba(255, 255, 255, 0.12);
       border-left: 3px solid $sidenav-accent;

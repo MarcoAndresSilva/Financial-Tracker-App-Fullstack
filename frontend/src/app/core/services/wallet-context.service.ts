@@ -45,6 +45,14 @@ export class WalletContextService {
     );
   }
 
+  // Actualiza datos del usuario ya cargado (ej. el nombre desde "Mi cuenta")
+  // sin volver a pedir /users/me: loadUserWallets() reasignaría la wallet
+  // activa a la primera de la lista.
+  patchCurrentUser(changes: Partial<Pick<User, 'name' | 'email'>>): void {
+    const user = this.currentUserSubject.getValue();
+    if (user) this.currentUserSubject.next({ ...user, ...changes });
+  }
+
   // Método para obtener la cartera activa en un momento dado.
   getActiveWallet(): Wallet | null {
     return this.activeWalletSubject.getValue();

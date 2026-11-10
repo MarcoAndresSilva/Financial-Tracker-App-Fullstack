@@ -29,7 +29,6 @@ import {
 import { Wallet } from '../../../user/types/user.types';
 import { CreateSharedWalletDialogComponent } from '../../../shared/components/create-shared-wallet-dialog/create-shared-wallet-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { ChangePasswordDialogComponent } from '../../../shared/components/change-password-dialog/change-password-dialog.component';
 import {
   WalletSettingsDialogComponent,
   WalletSettingsResult,
@@ -246,20 +245,6 @@ export class DashboardLayoutComponent implements OnDestroy {
 
   toggleTheme(): void {
     this.themeService.toggle();
-  }
-
-  openChangePassword(sidenav: MatSidenav): void {
-    this.onNavLinkClick(sidenav);
-    this.dialog
-      .open(ChangePasswordDialogComponent, { width: '400px' })
-      .afterClosed()
-      .pipe(filter((changed) => changed === true))
-      .subscribe(() =>
-        this.notification.success(
-          'Tu contraseña se actualizó. Las sesiones en otros dispositivos se cerraron.',
-          'Contraseña cambiada'
-        )
-      );
   }
 
   logout(): void {

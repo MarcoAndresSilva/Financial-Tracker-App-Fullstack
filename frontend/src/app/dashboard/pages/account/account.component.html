@@ -1,0 +1,153 @@
+<div class="account-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      <mat-icon class="page-title-icon">manage_accounts</mat-icon>
+      Mi cuenta
+    </h1>
+  </div>
+
+  <app-loading-spinner
+    *ngIf="isLoading"
+    message="Cargando tu cuenta..."
+  ></app-loading-spinner>
+
+  <div class="account-sections" *ngIf="!isLoading">
+    <!-- DATOS PERSONALES -->
+    <mat-card class="account-card">
+      <div class="section-head">
+        <mat-icon class="section-icon">badge</mat-icon>
+        <div>
+          <h2>Datos personales</h2>
+          <p class="section-hint">Es el nombre con que te saluda FinTrack.</p>
+        </div>
+      </div>
+      <form [formGroup]="nameForm" (ngSubmit)="saveName()" class="section-form">
+        <mat-form-field appearance="outline" class="grow">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="name" autocomplete="name" />
+          <mat-error *ngIf="nameForm.get('name')?.hasError('maxlength')"
+            >Máximo 60 caracteres.</mat-error
+          >
+        </mat-form-field>
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="nameForm.invalid || !nameChanged || isSavingName"
+        >
+          {{ isSavingName ? "Guardando..." : "Guardar" }}
+        </button>
+      </form>
+    </mat-card>
+
+    <!-- EMAIL -->
+    <mat-card class="account-card">
+      <div class="section-head">
+        <mat-icon class="section-icon">alternate_email</mat-icon>
+        <div>
+          <h2>Email</h2>
+          <p class="section-hint">
+            Con él entras a FinTrack y ahí te llega la recuperación de
+            contraseña.
+          </p>
+        </div>
+      </div>
+
+      <div class="current-row">
+        <span class="current-value">{{ email }}</span>
+        <button
+          *ngIf="!showEmailForm"
+          mat-stroked-button
+          type="button"
+          (click)="openEmailForm()"
+        >
+          Cambiar email
+        </button>
+      </div>
+
+      <!-- Link enviado: el cambio todavía no se aplicó -->
+      <div class="pending-box" *ngIf="pendingEmail && !showEmailForm">
+        <mat-icon>mark_email_unread</mat-icon>
+        <div>
+          <p>
+            Te enviamos un link a <strong>{{ pendingEmail }}</strong>. Ábrelo
+            para confirmar el cambio.
+          </p>
+          <p class="section-hint">
+            Hasta entonces sigues entrando con {{ email }}. El link vence en 24
+            horas; si no lo ves, revisa el spam.
+          </p>
+        </div>
+      </div>
+
+      <form
+        *ngIf="showEmailForm"
+        [formGroup]="emailForm"
+        (ngSubmit)="requestEmailChange()"
+        class="email-form"
+      >
+        <mat-form-field appearance="outline">
+          <mat-label>Email nuevo</mat-label>
+          <input
+            matInput
+            type="email"
+            formControlName="newEmail"
+            autocomplete="email"
+            cdkFocusInitial
+          />
+          <mat-error *ngIf="emailForm.get('newEmail')?.hasError('email')"
+            >Revisa que el email esté bien escrito.</mat-error
+          >
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Tu contraseña actual</mat-label>
+          <input
+            matInput
+            type="password"
+            formControlName="currentPassword"
+            autocomplete="current-password"
+          />
+          <mat-hint>Por seguridad, para confirmar que eres tú.</mat-hint>
+        </mat-form-field>
+
+        <p class="error-message" *ngIf="emailError">
+          <mat-icon>error_outline</mat-icon>{{ emailError }}
+        </p>
+
+        <div class="form-actions">
+          <button mat-button type="button" (click)="cancelEmailForm()">
+            Cancelar
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="emailForm.invalid || isSendingEmail"
+          >
+            {{ isSendingEmail ? "Enviando..." : "Enviar link de confirmación" }}
+          </button>
+        </div>
+      </form>
+    </mat-card>
+
+    <!-- SEGURIDAD -->
+    <mat-card class="account-card">
+      <div class="section-head">
+        <mat-icon class="section-icon">lock</mat-icon>
+        <div>
+          <h2>Seguridad</h2>
+          <p class="section-hint">
+            Al cambiar la contraseña se cierra la sesión en tus otros
+            dispositivos.
+          </p>
+        </div>
+      </div>
+      <div class="current-row">
+        <span class="current-value">Contraseña ••••••••</span>
+        <button mat-stroked-button type="button" (click)="openChangePassword()">
+          Cambiar contraseña
+        </button>
+      </div>
+    </mat-card>
+  </div>
+</div>

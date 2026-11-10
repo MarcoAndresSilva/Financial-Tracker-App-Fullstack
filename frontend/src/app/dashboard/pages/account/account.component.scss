@@ -1,0 +1,141 @@
+.account-container {
+  max-width: 720px;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0;
+    font-weight: 600;
+    color: var(--mat-sys-primary);
+
+    &.page-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+}
+
+.page-title-icon {
+  color: var(--app-accent);
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.account-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.account-card {
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px !important;
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--app-text-strong);
+  }
+}
+
+.section-icon {
+  color: var(--app-accent);
+  margin-top: 2px;
+  flex-shrink: 0; // si no, se recorta en mobile cuando el texto es largo
+}
+
+.section-hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+}
+
+// Campo + botón en una fila; en mobile el botón baja debajo del campo.
+.section-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  .grow {
+    flex: 1 1 240px;
+  }
+
+  button {
+    margin-top: 0.5rem;
+  }
+}
+
+.current-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.current-value {
+  font-weight: 500;
+  color: var(--app-text-strong);
+  word-break: break-all;
+}
+
+.pending-box {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--app-accent) 12%, var(--mat-sys-surface));
+
+  mat-icon {
+    color: var(--app-accent);
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    color: var(--app-text-strong);
+  }
+}
+
+.email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  color: var(--app-expense);
+  font-size: 0.875rem;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
