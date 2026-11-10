@@ -952,3 +952,14 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
 - **Estilo:** el toast de éxito usa el estándar de Material 3 (superficie invertida). El de error se tiñe con `--app-expense-surface` / `--app-expense` vía `mat.snack-bar-overrides` en `styles.scss`, que ya traen su variante de modo oscuro (Paso 67).
 - **Fix de paso — modal de sesión expirada duplicado:** una pantalla dispara varias peticiones a la vez y todas volvían con 401; cada una abría su propio modal. Ahora el interceptor solo actúa si el token que mandó la petición **sigue guardado**: la primera lo borra y avisa, las demás lo encuentran borrado y no hacen nada.
 - **Costo:** `MatSnackBar` suma ~16 kB al bundle inicial (588 → 603 kB), 3 kB sobre el presupuesto de advertencia de 600 kB. Se acepta: es una advertencia, no un error, y el peso comprimido es de unos 4 kB.
+
+### Paso 73: Bloquear el botón mientras se envía — transacciones duplicadas por doble clic
+
+- **Problema:** el formulario de transacción dejaba **Guardar** habilitado mientras esperaba la respuesta del backend. En producción esa espera puede llegar a varios segundos (Render y Neon en plan gratuito "despiertan" lento), y un usuario que vuelve a apretar porque "no pasó nada" mandaba otro `POST /transactions`: la transacción quedaba duplicada. Además, si fallaba, el error solo iba a la consola y el usuario no veía nada.
+- **Fix — flag de envío en curso** (`isSaving` / `isSubmitting`) en los formularios que **esperan la respuesta con el formulario abierto**:
+  - `TransactionFormComponent`: botón deshabilitado con texto "Guardando…", y el guard `if (... || this.isSaving) return` en `onSave()` (cubre también un Enter repetido). Mientras guarda, `dialogRef.disableClose = true` y Cancelar deshabilitado: cerrar a medio guardar dejaría la transacción creada pero la lista sin recargar. Un error ahora se muestra con `NotificationService.error`.
+  - `LoginComponent` ("Ingresando…") y `RegisterComponent` ("Creando cuenta…"): mismo patrón.
+  - El flag se apaga en `finalize()`, que corre tanto si la petición sale bien como si falla: nunca queda el botón bloqueado para siempre.
+  - Las dos ramas de `onSave()` (crear/editar) se unificaron en un solo `request$` para no repetir el manejo de estado.
+- **Qué no hizo falta tocar:** deudas, metas, categorías, aportes y wallets usan diálogos que **se cierran al primer clic** y devuelven los datos; la petición la hace la página después. El segundo clic ya no encuentra el botón. Los formularios de Mi cuenta, cambio y recuperación de contraseña ya tenían su flag desde los Pasos 63–69.
+- **Descartado por ahora — idempotencia en el backend** (una clave única por envío que el servidor rechace si se repite): es la defensa completa contra reintentos de red, pero el caso real es el doble clic, y bloquear el botón lo resuelve sin migración ni cambios de API.
