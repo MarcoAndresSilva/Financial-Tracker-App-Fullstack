@@ -907,3 +907,17 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - Las sesiones abiertas **no** se cierran al cambiar el email: `JwtStrategy` busca al usuario por `sub` (id), no por email, y el cambio no compromete la contraseña.
 - **Emails con un solo diseño:** `AuthService.emailLayout()` arma el HTML de los tres emails de cuenta (restablecer contraseña, confirmar email nuevo, aviso de cambio); el de restablecimiento del Paso 63 deja de tener su copia propia del HTML.
 - **Migración** `add_email_change_token`. **Alcance — solo backend**; la página "Mi cuenta" y la de confirmación del link van en el paso siguiente.
+
+### Paso 69: "Mi cuenta" (Frontend)
+
+- **Un solo lugar para todo lo de la cuenta:** ítem **"Mi cuenta"** en el pie del sidenav (ruta `/dashboard/account`, ícono `manage_accounts`), que reemplaza al "Cambiar Contraseña" suelto del Paso 64. El pie queda con solo dos acciones de cuenta: Mi cuenta y Cerrar sesión. El botón sol/luna del modo oscuro (Paso 67) se queda en el toolbar: es una preferencia de uso frecuente, no un dato de la cuenta. El estilo de ítem activo (`.active-link`) se extiende al pie, que antes no lo necesitaba porque solo tenía acciones, no rutas.
+- **`AccountComponent`** (`dashboard/pages/account/`) — tres cards:
+  - **Datos personales:** campo nombre + Guardar (deshabilitado si no cambió). Al guardar, `WalletContextService.patchCurrentUser({ name })` actualiza el saludo del toolbar en el acto. *Descartado:* refrescar con `loadUserWallets()` — vuelve a pedir `/users/me` y además **reasigna la wallet activa a la primera**, lo que sacaría al usuario de la wallet compartida en la que estaba.
+  - **Email:** muestra el actual y un botón "Cambiar email" que despliega el formulario (email nuevo + contraseña actual). Tras enviarlo, un recuadro dice a qué email se mandó el link y que **hasta confirmarlo se sigue entrando con el anterior** — el cambio en dos pasos del Paso 68 tiene que verse en la UI, o el usuario creería que ya cambió. Los errores (contraseña incorrecta, email de otra cuenta, falla de envío 503) se traducen del código/mensaje del backend y se muestran dentro de la card, sin cerrar el formulario.
+  - **Seguridad:** "Cambiar contraseña" abre el mismo `ChangePasswordDialogComponent` del Paso 64; solo cambió desde dónde se abre.
+  - La página pide sus propios datos a `GET /users/me` en vez de leer el usuario del contexto, para funcionar también al entrar directo a la URL.
+- **`ConfirmEmailComponent`** (`/auth/confirm-email?token=…`, destino del link del email; misma card que login y restablecimiento):
+  - **Confirma con un clic, no al cargar.** *Descartado:* llamar a `confirm-email` apenas abre la página — algunos servicios de correo y antivirus abren por su cuenta los links de los emails para inspeccionarlos, y aplicarían el cambio sin que la persona lo vea. Con el botón, solo un humano en la página lo confirma.
+  - Estados: listo para confirmar, confirmado (con "Volver a Mi cuenta" si hay sesión en ese navegador, o "Iniciar sesión" si no), link inválido/vencido (400) y email tomado por otra cuenta entre el pedido y la confirmación (409).
+- Botón de confirmar con `mat-flat-button`: en Material 3 `mat-raised-button` ignora `color="primary"` y sale con fondo de superficie, no navy.
+
