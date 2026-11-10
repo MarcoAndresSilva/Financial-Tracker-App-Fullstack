@@ -60,13 +60,10 @@ export class ResetPasswordComponent {
           // Si en este navegador había una sesión abierta, ese token ya no vale
           // (el backend invalida los anteriores al cambio): se limpia acá.
           this.authService.logout();
-          this.notification
-            .success(
-              'Tu contraseña se actualizó. Ya puedes iniciar sesión con la nueva.',
-              'Contraseña restablecida'
-            )
-            .afterClosed()
-            .subscribe(() => this.router.navigate(['/auth/login']));
+          this.notification.success(
+            'Tu contraseña se actualizó. Ya puedes iniciar sesión con la nueva.'
+          );
+          this.router.navigate(['/auth/login']);
         },
         error: (err) => {
           if (err?.status === 400) {

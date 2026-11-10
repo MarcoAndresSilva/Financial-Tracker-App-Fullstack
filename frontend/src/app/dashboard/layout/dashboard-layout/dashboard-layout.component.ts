@@ -141,7 +141,9 @@ export class DashboardLayoutComponent implements OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
-        this.notification.error(
+        // Modal y no toast: el usuario no estaba mirando, y al volver tiene
+        // que ver por qué está en el login.
+        this.notification.alert(
           'Cerramos tu sesión porque estuvo inactiva por un buen rato.',
           'Sesión cerrada por inactividad'
         );
@@ -175,8 +177,7 @@ export class DashboardLayoutComponent implements OnDestroy {
         this.walletService.createSharedWallet(result).subscribe({
           next: () => {
             this.notification.success(
-              `"${result.name}" fue creada y ${result.inviteEmail} ya es miembro.`,
-              'Wallet compartida creada'
+              `"${result.name}" fue creada y ${result.inviteEmail} ya es miembro.`
             );
             this.walletContext.loadUserWallets().subscribe();
             this.loadMyWallets();

@@ -22,11 +22,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   //    de dejar la app en un estado roto en silencio. Si no había token (ej.
   //    un signin con credenciales incorrectas), el 401 lo maneja el propio
   //    formulario — no es un vencimiento de sesión.
+  //    Una pantalla hace varias peticiones a la vez y todas vuelven con 401:
+  //    solo la primera (la que todavía encuentra su token guardado) avisa y
+  //    redirige; las demás ya lo encuentran borrado y no abren otro modal.
   return next(request).pipe(
     catchError((error) => {
-      if (error.status === 401 && token) {
+      if (
+        error.status === 401 &&
+        token &&
+        localStorage.getItem('access_token') === token
+      ) {
         localStorage.removeItem('access_token');
-        notification.error(
+        // Modal y no toast: no lo provocó el usuario y lo saca de donde estaba.
+        notification.alert(
           'Tu sesión expiró. Vuelve a iniciar sesión.',
           'Sesión finalizada'
         );

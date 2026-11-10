@@ -48,6 +48,12 @@
           >¿Olvidaste tu contraseña?</a
         >
 
+        @if (loginError) {
+          <p class="login-error" role="alert">
+            <mat-icon>error_outline</mat-icon>{{ loginError }}
+          </p>
+        }
+
         <button
           mat-raised-button
           color="primary"

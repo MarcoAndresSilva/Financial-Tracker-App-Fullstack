@@ -28,6 +28,7 @@ export class LoginComponent {
   private notification = inject(NotificationService);
 
   loginForm: FormGroup;
+  loginError: string | null = null;
 
   constructor() {
     // Usamos 'new FormControl' para ser explícitos y evitar la ambigüedad.
@@ -42,21 +43,28 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.invalid) return;
+    this.loginError = null;
 
     this.authService
       .login(this.loginForm.value)
       .pipe(switchMap(() => this.WalletContext.loadUserWallets()))
       .subscribe({
-        next: () => {
-          this.notification
-            .success('Sesión iniciada correctamente.', '¡Bienvenido!')
-            .afterClosed()
-            .subscribe(() => this.router.navigate(['/dashboard']));
+        // Bienvenida con el primer nombre, en un toast que no pide clic.
+        next: (user) => {
+          const firstName = user.name?.trim().split(/\s+/)[0];
+          this.notification.success(
+            firstName
+              ? `¡Hola, ${firstName}! Qué bueno verte de nuevo.`
+              : '¡Hola! Qué bueno verte de nuevo.'
+          );
+          this.router.navigate(['/dashboard']);
         },
+        // El error se muestra dentro del formulario, donde se corrige.
         error: (err) => {
-          const message =
-            err?.error?.message ?? 'No se pudo iniciar sesión.';
-          this.notification.error(message, 'Credenciales incorrectas');
+          this.loginError =
+            err?.status === 401
+              ? 'Email o contraseña incorrectos.'
+              : 'No pudimos iniciar sesión. Inténtalo de nuevo en un rato.';
         },
       });
   }

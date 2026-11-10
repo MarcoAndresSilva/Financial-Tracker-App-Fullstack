@@ -35,3 +35,26 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
   background-color: var(--mat-sys-surface-container-low);
 }
+
+// Toasts de NotificationService. Salen arriba pero bajo el toolbar (64 px):
+// encima de él, el toast de éxito (oscuro) se perdía contra el navy.
+.mat-mdc-snack-bar-container.app-snack {
+  margin-top: 76px;
+}
+
+// Colores de los toasts. El de éxito usa el estilo estándar de
+// Material 3 (superficie invertida); el de error se tiñe con los colores de
+// gasto del tema, que ya traen su variante para modo oscuro.
+.app-snack-error {
+  @include mat.snack-bar-overrides(
+    (
+      container-color: var(--app-expense-surface),
+      supporting-text-color: var(--app-expense),
+      button-color: var(--app-expense),
+    )
+  );
+
+  .mdc-snackbar__surface {
+    border: 1px solid var(--app-expense);
+  }
+}

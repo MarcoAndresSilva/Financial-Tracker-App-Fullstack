@@ -137,8 +137,7 @@ export class AccountComponent implements OnInit {
       .pipe(filter((changed) => changed === true))
       .subscribe(() =>
         this.notification.success(
-          'Tu contraseña se actualizó. Las sesiones en otros dispositivos se cerraron.',
-          'Contraseña cambiada'
+          'Tu contraseña se actualizó. Las sesiones en otros dispositivos se cerraron.'
         )
       );
   }
