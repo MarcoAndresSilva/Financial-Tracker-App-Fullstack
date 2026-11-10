@@ -1,24 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { configureApp } from './app.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  // En producción, FRONTEND_URL apunta al dominio real del frontend desplegado.
-  app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:4200',
-    methods: ['GET', 'HEAD', 'PATCH', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
-  });
-
-  // Usa el ValidationPipe globalmente
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // Elimina cualquier propiedad no definida en el DTO
-    }),
-  );
-
+  configureApp(app);
   await app.listen(process.env.PORT ?? 3000);
 }
 
