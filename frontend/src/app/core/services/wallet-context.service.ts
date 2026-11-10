@@ -36,18 +36,23 @@ export class WalletContextService {
         );
         this.userWalletsSubject.next(this.userWallets);
 
-        // Si tiene carteras, ponemos la primera en el pizarrón como activa.
+        // Wallet activa: la última elegida (guardada en localStorage) si
+        // sigue en la lista; si no (se borró, o es otro usuario en este
+        // navegador), la primera. Se toma de la lista recién traída para que
+        // lleve los datos actualizados (ej. un nombre recién editado).
         if (this.userWallets.length > 0) {
-          const defaultActiveWallet = this.userWallets[0];
-          this.activeWalletSubject.next(defaultActiveWallet);
+          const storedId = this.readStoredWalletId();
+          const activeWallet =
+            this.userWallets.find((w) => w.id === storedId) ??
+            this.userWallets[0];
+          this.activeWalletSubject.next(activeWallet);
         }
       })
     );
   }
 
   // Actualiza datos del usuario ya cargado (ej. el nombre desde "Mi cuenta")
-  // sin volver a pedir /users/me: loadUserWallets() reasignaría la wallet
-  // activa a la primera de la lista.
+  // sin volver a pedir /users/me ni recargar las wallets.
   patchCurrentUser(changes: Partial<Pick<User, 'name' | 'email'>>): void {
     const user = this.currentUserSubject.getValue();
     if (user) this.currentUserSubject.next({ ...user, ...changes });
@@ -64,7 +69,23 @@ export class WalletContextService {
   }
 
   // Permite cambiar manualmente la cartera activa (selector de wallet).
+  // Se recuerda la elección para que una recarga (F5) no vuelva a la primera.
   setActiveWallet(wallet: Wallet): void {
     this.activeWalletSubject.next(wallet);
+    try {
+      localStorage.setItem(this.STORAGE_KEY, wallet.id);
+    } catch {
+      // Sin persistencia (modo privado, storage bloqueado) — no es crítico.
+    }
+  }
+
+  private readonly STORAGE_KEY = 'active_wallet_id';
+
+  private readStoredWalletId(): string | null {
+    try {
+      return localStorage.getItem(this.STORAGE_KEY);
+    } catch {
+      return null;
+    }
   }
 }

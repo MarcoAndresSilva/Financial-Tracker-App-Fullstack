@@ -236,8 +236,9 @@ export class DashboardLayoutComponent implements OnDestroy {
           next: () => {
             this.notification.success(`"${wallet.name}" fue eliminada.`);
             this.loadMyWallets();
-            // loadUserWallets() ya reasigna la wallet activa a la primera de
-            // la lista actualizada, así que no hace falta manejarlo a mano acá.
+            // Si se borró la wallet activa, loadUserWallets() ya no la
+            // encuentra en la lista y cae a la primera: no hace falta
+            // manejarlo a mano acá.
             this.walletContext.loadUserWallets().subscribe();
           },
           error: (err) => {
