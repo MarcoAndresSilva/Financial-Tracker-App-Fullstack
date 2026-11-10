@@ -6,7 +6,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { startWith, switchMap, of } from 'rxjs';
+import { startWith, switchMap, of, finalize, Observable } from 'rxjs';
 
 import { CommonModule } from '@angular/common';
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
@@ -30,6 +30,7 @@ import {
 } from '../../../subcategories/services/subcategory.service';
 import { Transaction } from '../../../transactions/services/transaction.types';
 import { Debt, DebtService } from '../../../debts/services/debt.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-transaction-form',
@@ -44,12 +45,16 @@ export class TransactionFormComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private subcategoryService = inject(SubcategoryService);
   private debtService = inject(DebtService);
+  private notification = inject(NotificationService);
 
   transactionForm: FormGroup;
   categories: Category[] = [];
   subcategories: Subcategory[] = [];
   debts: Debt[] = [];
   isEditMode = false;
+  // Mientras el backend responde, el botón queda bloqueado: un segundo clic
+  // durante la espera creaba la transacción dos veces.
+  isSaving = false;
 
   constructor(
     public dialogRef: MatDialogRef<TransactionFormComponent>,
@@ -153,36 +158,41 @@ export class TransactionFormComponent implements OnInit {
   }
 
   onSave(): void {
-    if (this.transactionForm.invalid) return;
+    if (this.transactionForm.invalid || this.isSaving) return;
 
-    // ... (preparación de datos)
     const formData = this.transactionForm.getRawValue();
-    const transactionData = {
+    const finalData: CreateTransactionDto | UpdateTransactionDto = {
       ...formData,
       walletId: this.data.walletId,
       date: dateToApiString(formData.date),
     };
 
-    const finalData: CreateTransactionDto | UpdateTransactionDto =
-      transactionData;
+    const request$: Observable<unknown> = this.isEditMode
+      ? this.transactionService.updateTransaction(
+          this.data.transaction!.id,
+          finalData
+        )
+      : this.transactionService.createTransaction(
+          finalData as CreateTransactionDto
+        );
 
-    // 4. Lógica condicional para guardar
-    if (this.isEditMode) {
-      // MODO EDICIÓN
-      this.transactionService
-        .updateTransaction(this.data.transaction!.id, finalData)
-        .subscribe({
-          next: () => this.dialogRef.close(true),
-          error: (err) => console.error('Error al actualizar transacción', err),
-        });
-    } else {
-      // MODO CREACIÓN
-      this.transactionService
-        .createTransaction(finalData as CreateTransactionDto)
-        .subscribe({
-          next: () => this.dialogRef.close(true),
-          error: (err) => console.error('Error al crear transacción', err),
-        });
-    }
+    this.isSaving = true;
+    // Tampoco se puede cerrar el diálogo a medio guardar: la transacción se
+    // crearía igual, pero la lista no se enteraría para recargarse.
+    this.dialogRef.disableClose = true;
+    request$
+      .pipe(
+        finalize(() => {
+          this.isSaving = false;
+          this.dialogRef.disableClose = false;
+        })
+      )
+      .subscribe({
+        next: () => this.dialogRef.close(true),
+        error: () =>
+          this.notification.error(
+            'No pudimos guardar la transacción. Inténtalo de nuevo.'
+          ),
+      });
   }
 }

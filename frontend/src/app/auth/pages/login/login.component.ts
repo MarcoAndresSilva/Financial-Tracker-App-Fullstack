@@ -11,7 +11,7 @@ import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { AuthService } from '../../services/auth.service';
 import { WalletContextService } from '../../../core/services/wallet-context.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { switchMap } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -29,6 +29,8 @@ export class LoginComponent {
 
   loginForm: FormGroup;
   loginError: string | null = null;
+  // Bloquea el botón mientras responde el backend (evita envíos repetidos).
+  isSubmitting = false;
 
   constructor() {
     // Usamos 'new FormControl' para ser explícitos y evitar la ambigüedad.
@@ -42,12 +44,16 @@ export class LoginComponent {
   }
 
   onSubmit() {
-    if (this.loginForm.invalid) return;
+    if (this.loginForm.invalid || this.isSubmitting) return;
     this.loginError = null;
+    this.isSubmitting = true;
 
     this.authService
       .login(this.loginForm.value)
-      .pipe(switchMap(() => this.WalletContext.loadUserWallets()))
+      .pipe(
+        switchMap(() => this.WalletContext.loadUserWallets()),
+        finalize(() => (this.isSubmitting = false))
+      )
       .subscribe({
         // Bienvenida con el primer nombre, en un toast que no pide clic.
         next: (user) => {

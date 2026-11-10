@@ -59,9 +59,9 @@
           color="primary"
           class="login-button"
           type="submit"
-          [disabled]="registerForm.invalid"
+          [disabled]="registerForm.invalid || isSubmitting"
         >
-          Crear cuenta
+          {{ isSubmitting ? "Creando cuenta…" : "Crear cuenta" }}
         </button>
       </form>
     </mat-card-content>

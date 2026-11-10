@@ -89,13 +89,15 @@
 </div>
 
 <div mat-dialog-actions align="end">
-  <button mat-button [mat-dialog-close]="false">Cancelar</button>
+  <button mat-button [mat-dialog-close]="false" [disabled]="isSaving">
+    Cancelar
+  </button>
   <button
     mat-flat-button
     color="primary"
-    [disabled]="transactionForm.invalid"
+    [disabled]="transactionForm.invalid || isSaving"
     (click)="onSave()"
   >
-    Guardar
+    {{ isSaving ? "Guardando…" : "Guardar" }}
   </button>
 </div>

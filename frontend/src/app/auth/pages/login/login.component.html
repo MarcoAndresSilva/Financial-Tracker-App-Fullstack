@@ -59,9 +59,9 @@
           color="primary"
           class="login-button"
           type="submit"
-          [disabled]="loginForm.invalid"
+          [disabled]="loginForm.invalid || isSubmitting"
         >
-          Ingresar
+          {{ isSubmitting ? "Ingresando…" : "Ingresar" }}
         </button>
       </form>
     </mat-card-content>
