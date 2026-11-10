@@ -921,3 +921,8 @@ Durante la creación del decorador `@CurrentUser`, nos encontramos con un error 
   - Estados: listo para confirmar, confirmado (con "Volver a Mi cuenta" si hay sesión en ese navegador, o "Iniciar sesión" si no), link inválido/vencido (400) y email tomado por otra cuenta entre el pedido y la confirmación (409).
 - Botón de confirmar con `mat-flat-button`: en Material 3 `mat-raised-button` ignora `color="primary"` y sale con fondo de superficie, no navy.
 
+### Paso 70: La app quedaba "Cargando…" al recargar (F5) dentro del dashboard
+
+- **Problema:** al recargar la página estando en cualquier ruta del dashboard, desaparecían el saludo y el selector de wallet, y todas las páginas quedaban en "Cargando…" sin fin. Pasaba desde el Paso 23: `WalletContextService.loadUserWallets()` (usuario + wallets + wallet activa) solo se llamaba en el submit del login. Una recarga crea la app de cero con el token todavía en `localStorage` — el guard deja pasar — pero nadie volvía a cargar el contexto, y las páginas esperan una wallet activa que nunca llega. Se notaba poco porque en la PWA casi no se recarga.
+- **Fix:** `DashboardLayoutComponent` (padre de todas las rutas del dashboard) llama a `loadUserWallets()` al crearse **si el contexto no está cargado** (`isLoaded()`, nuevo). La condición evita pedir `/users/me` dos veces justo después del login, que ya lo cargó.
+- **Limitación conocida:** tras recargar, la wallet activa vuelve a ser la primera de la lista (no se recuerda la elegida), a diferencia del mes activo, que sí se persiste (Paso 52).
