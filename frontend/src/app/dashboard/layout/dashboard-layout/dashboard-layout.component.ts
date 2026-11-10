@@ -90,6 +90,12 @@ export class DashboardLayoutComponent implements OnDestroy {
       this.isSidenavOpened = !isMobile;
     });
     this.watchInactivity();
+    // El login carga usuario y wallets, pero al recargar la página (F5) dentro
+    // del dashboard nadie lo hacía: sin wallet activa, todas las páginas
+    // quedaban en "Cargando..." para siempre. Se carga acá si falta.
+    if (!this.walletContext.isLoaded()) {
+      this.walletContext.loadUserWallets().subscribe();
+    }
     this.loadMyWallets();
     this.watchActiveWalletMembers();
   }

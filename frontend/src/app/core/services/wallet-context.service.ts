@@ -53,6 +53,11 @@ export class WalletContextService {
     if (user) this.currentUserSubject.next({ ...user, ...changes });
   }
 
+  // Si ya se cargó el usuario en esta sesión de la app (login o recarga).
+  isLoaded(): boolean {
+    return this.currentUserSubject.getValue() !== null;
+  }
+
   // Método para obtener la cartera activa en un momento dado.
   getActiveWallet(): Wallet | null {
     return this.activeWalletSubject.getValue();
