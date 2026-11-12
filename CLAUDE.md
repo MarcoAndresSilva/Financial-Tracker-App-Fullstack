@@ -23,6 +23,7 @@ Financial Tracker — a full-stack personal-finance tracker. NestJS + Prisma + P
 - `npm start` (`ng serve`) — dev server
 - `npm run build` (`ng build`)
 - `npm test` (`ng test`) — Karma/Jasmine
+- `npm run e2e` — Playwright: flujos críticos en Chromium contra un stack de pruebas propio (backend :3100 + `fintrack_test`, frontend :4300). Single file: `npx playwright test e2e/auth.spec.ts`. Ver una falla: `npx playwright show-trace test-results/<carpeta>/trace.zip`
 
 ### Full stack
 - `docker-compose up -d --build` from the repo root — runs `api` + `db` (Postgres) services. API is exposed on `http://localhost:3000`.
@@ -78,3 +79,9 @@ When adding a feature: write its contract and tests first (see **Pruebas**), imp
 - `test/setup-env.ts` fuerza `DATABASE_URL` a la base de pruebas (o a `TEST_DATABASE_URL` si está definida) y **aborta si el nombre de la base no contiene "test"**: la suite vacía la base en cada archivo.
 - `test/helpers/test-app.ts` → `createTestApp()` (app completa con `configureApp`) y `resetDatabase()`. `test/helpers/factories.ts` → `createUser()` y `seedWallet()`, que crean datos **a través de la API**, no escribiendo directo en la base.
 - La suite corre en serie (`maxWorkers: 1`) porque todos los archivos comparten la base.
+
+**Infraestructura Playwright (frontend):**
+- `frontend/playwright.config.ts` levanta su propio stack, aislado del de desarrollo: backend en :3100 con `ts-node` (sin tocar `dist/`) contra `fintrack_test`, y `ng serve --configuration e2e` en :4300 (`environment.e2e.ts` apunta a :3100). Se puede correr con los servidores de desarrollo abiertos.
+- `frontend/e2e/helpers.ts`: los datos se crean por la API (`createUser`, `createCategory`, `createSharedWallet`) con emails únicos, así los tests corren en paralelo sin limpiar la base. `openDashboardAs()` entra con sesión ya iniciada; `slowDown()` simula un backend lento y cuenta las peticiones.
+- Selectores por rol y texto visible (`getByRole`, `getByLabel`), como los percibe un usuario, nunca por clases CSS. Para `mat-select`, clic en el `mat-form-field` completo (la etiqueta queda encima del control vacío).
+- Un test por bug arreglado: si un fix no tiene test, puede volver sin que nadie lo note.
