@@ -7,6 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "e2e": "playwright test",
     "tailwind:init": "node ./node_modules/tailwindcss/src/cli.js init"
   },
   "private": true,
@@ -31,6 +32,7 @@
     "@angular-devkit/build-angular": "^19.1.7",
     "@angular/cli": "^19.1.7",
     "@angular/compiler-cli": "^19.1.0",
+    "@playwright/test": "1.62.1",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.5.0",
     "karma": "~6.4.0",
