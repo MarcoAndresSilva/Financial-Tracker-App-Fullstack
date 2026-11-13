@@ -100,6 +100,18 @@ export class SubcategoryService {
       subcategory.category.walletId,
     );
 
+    // La subcategoría de una deuda es donde se registran sus pagos: se borra
+    // la deuda primero (Paso 77).
+    const debt = await this.prisma.debt.findUnique({
+      where: { subcategoryId },
+      select: { name: true },
+    });
+    if (debt) {
+      throw new ConflictException(
+        `Esta subcategoría es la de la deuda "${debt.name}". Para quitarla, elimina primero la deuda.`,
+      );
+    }
+
     try {
       await this.prisma.subcategory.delete({
         where: { id: subcategoryId },

@@ -4,16 +4,29 @@ import { App } from 'supertest/types';
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/app.setup';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { UfService } from '../../src/common/indicators/uf.service';
+
+/** Valor de UF fijo para los tests (nunca se consulta la API real). */
+export const TEST_UF_VALUE = 41324.4;
 
 /**
  * Levanta la app completa (todos los módulos, base de datos real de pruebas),
  * con la misma configuración global que main.ts. No abre un puerto: supertest
  * le habla directo al servidor HTTP en memoria.
  */
-export async function createTestApp(): Promise<INestApplication<App>> {
+export async function createTestApp(
+  options: { ufValue?: number | null } = {},
+): Promise<INestApplication<App>> {
+  // La UF real viene de una API externa: en los tests se reemplaza por un valor
+  // fijo (o null, para probar qué pasa si la API no responde).
+  const ufValue =
+    options.ufValue === undefined ? TEST_UF_VALUE : options.ufValue;
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideProvider(UfService)
+    .useValue({ getUfValue: () => Promise.resolve(ufValue) })
+    .compile();
 
   const app = moduleRef.createNestApplication<INestApplication<App>>();
   configureApp(app);

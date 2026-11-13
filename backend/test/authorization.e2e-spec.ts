@@ -180,6 +180,17 @@ describe('Autorización por wallet (e2e)', () => {
     },
     // Deudas
     {
+      name: 'crear deuda',
+      method: 'post',
+      path: () => '/debts',
+      body: (d) => ({
+        name: 'Hackeo',
+        kind: 'FREE_AMOUNT',
+        totalAmount: 1,
+        walletId: d.walletId,
+      }),
+    },
+    {
       name: 'listar deudas',
       method: 'get',
       path: (d) => `/debts?walletId=${d.walletId}`,
@@ -297,15 +308,6 @@ describe('Autorización por wallet (e2e)', () => {
           walletId: betoData.walletId,
           subcategoryId: anaData.subcategoryId,
         });
-
-      expect(res.status).toBe(403);
-    });
-
-    it('no se puede vincular una transacción propia a una deuda ajena', async () => {
-      const res = await api()
-        .patch(`/transactions/${betoData.transactionId}`)
-        .set(bearer(beto.token))
-        .send({ debtId: anaData.debtId });
 
       expect(res.status).toBe(403);
     });

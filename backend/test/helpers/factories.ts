@@ -103,9 +103,12 @@ export async function seedWallet(
     .set(auth)
     .send({
       name: 'Notebook',
-      totalAmount: 600000,
+      kind: 'INSTALLMENTS',
       totalInstallments: 6,
-      startDate: '2026-10-01',
+      installmentValue: 100000,
+      unit: 'CLP',
+      initialPaidInstallments: 0,
+      nextDueDate: '2026-12-10',
       walletId,
     })
     .expect(201);

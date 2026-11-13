@@ -1,5 +1,7 @@
+import { AmountUnit, DebtKind } from '@prisma/client';
 import {
   IsDateString,
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -8,39 +10,62 @@ import {
   IsString,
   IsUUID,
   Min,
+  ValidateIf,
 } from 'class-validator';
 
+const isInstallments = (o: CreateDebtDto) => o.kind === DebtKind.INSTALLMENTS;
+const isFreeAmount = (o: CreateDebtDto) => o.kind === DebtKind.FREE_AMOUNT;
+
+/**
+ * Los campos obligatorios dependen del tipo: una deuda en cuotas se describe
+ * como la informa el banco ("dividendo 42 de 300, UF 8,44, vence el 1 de
+ * diciembre"); una de monto libre, solo con su total.
+ */
 export class CreateDebtDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
+  @IsEnum(DebtKind)
+  kind: DebtKind;
+
+  @IsUUID()
+  @IsNotEmpty()
+  walletId: string;
+
+  // --- En cuotas ---
+  @ValidateIf(isInstallments)
+  @IsInt()
+  @Min(1)
+  totalInstallments?: number;
+
+  @ValidateIf(isInstallments)
   @IsNumber()
   @IsPositive()
-  totalAmount: number;
+  installmentValue?: number;
 
-  @IsInt()
-  @IsPositive()
-  totalInstallments: number;
+  @ValidateIf(isInstallments)
+  @IsEnum(AmountUnit)
+  unit?: AmountUnit;
 
-  @IsDateString() // Fecha del primer pago (real o declarada), ej. "2026-03-01"
-  @IsNotEmpty()
-  startDate: string;
-
-  // Cuotas y plata ya pagadas ANTES de empezar a trackear esta deuda en
-  // FinTrack — para poder cargarla a mitad de camino (ej. "vamos en la
-  // cuota 4 de 8") en vez de reconstruir todo el historial previo.
   @IsOptional()
   @IsInt()
   @Min(0)
   initialPaidInstallments?: number;
 
+  /** Vencimiento de la próxima cuota a pagar, ej. "2026-12-01". */
+  @ValidateIf(isInstallments)
+  @IsDateString()
+  nextDueDate?: string;
+
+  // --- Monto libre ---
+  @ValidateIf(isFreeAmount)
+  @IsNumber()
+  @IsPositive()
+  totalAmount?: number;
+
   @IsOptional()
   @IsNumber()
   @Min(0)
   initialPaidAmount?: number;
-
-  @IsUUID()
-  @IsNotEmpty()
-  walletId: string;
 }

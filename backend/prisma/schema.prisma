@@ -136,6 +136,8 @@ model Subcategory {
   categoryId  String
   category    Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  // Si es la subcategoría de una deuda (Paso 77), sus gastos son pagos.
+  debt         Debt?
 
   @@unique([categoryId, name]) // El nombre de la subcategoría debe ser único por categoría
 }
@@ -160,44 +162,62 @@ model Transaction {
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
-
-  // Vínculo opcional: esta transacción es un pago de una Deuda/compromiso en cuotas
-  // (Paso 68). No cambia en nada su rol de gasto del mes — solo suma también al
-  // progreso de la deuda vinculada. onDelete: SetNull porque borrar la deuda no
-  // debe borrar el historial real de pagos, solo desvincularlos.
-  debtId String?
-  debt   Debt?   @relation(fields: [debtId], references: [id], onDelete: SetNull)
 }
 
 // Un compromiso pagado en cuotas: una compra en cuotas de una casa comercial o un
 // crédito/préstamo con pagos periódicos. El progreso NO se guarda como un campo que
 // se edita a mano — se calcula sumando las Transaction vinculadas (`payments`), para
 // que nunca se desincronice de lo que realmente se registró como gasto (Paso 68).
+// Tipo de deuda (Paso 77):
+//   INSTALLMENTS → en cuotas (hipotecario, consumo, tarjetas, casas comerciales):
+//                  el avance se mide en cantidad de cuotas.
+//   FREE_AMOUNT  → monto libre (préstamo familiar): un total del que se
+//                  descuenta cada pago, sin cuotas ni fechas fijas.
+enum DebtKind {
+  INSTALLMENTS
+  FREE_AMOUNT
+}
+
+// Unidad en que está expresada la cuota. En UF, el monto en pesos cambia cada
+// mes y se estima con el valor de la UF del día.
+enum AmountUnit {
+  CLP
+  UF
+}
+
 model Debt {
-  id                String   @id @default(uuid())
-  name              String
-  // Monto total del compromiso completo (la compra o el crédito completo).
-  totalAmount       Float
-  // N° de cuotas pactado. Junto a totalAmount da la "cuota esperada" de referencia,
-  // pero el avance real se cuenta por pagos vinculados, no por este número — así un
-  // mes con pago parcial (ej. el préstamo familiar) sigue contando como "la cuota de
-  // ese mes", y el saldo pendiente en plata simplemente baja más lento.
-  totalInstallments Int
-  // Cuotas y plata ya pagadas ANTES de empezar a trackear esta deuda en FinTrack —
-  // para poder cargarla a mitad de camino (ej. "vamos en la cuota 4 de 8") en vez de
-  // forzar a reconstruir todo el historial previo como transacciones.
-  initialPaidInstallments Int   @default(0)
-  initialPaidAmount       Float @default(0)
-  // Fecha del primer pago (real o declarada) — ancla para proyectar la fecha
-  // estimada de término mientras no hay ningún pago vinculado todavía.
-  startDate DateTime @db.Date
+  id   String   @id @default(uuid())
+  name String
+  kind DebtKind
+
+  // --- Solo INSTALLMENTS ---
+  totalInstallments Int?
+  // Valor de cada cuota en su unidad (ej. 8.44 UF o 45000 pesos).
+  installmentValue  Float?
+  unit              AmountUnit?
+  // Cuotas pagadas ANTES de registrar la deuda en la app ("voy en la 41").
+  initialPaidInstallments Int @default(0)
+  // Vencimiento de la próxima cuota al registrarla (la N° initialPaid + 1).
+  // Es el ancla fija desde la que se calculan todas las demás fechas.
+  nextDueDateAtStart DateTime? @db.Date
+
+  // --- Solo FREE_AMOUNT ---
+  totalAmount       Float?
+  // Plata pagada ANTES de registrar la deuda en la app.
+  initialPaidAmount Float @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   walletId String
   wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
-  payments Transaction[]
+  // La subcategoría (dentro de "Deudas") donde se registran sus pagos: todo
+  // GASTO en ella creado después de la deuda es una cuota pagada. Restrict:
+  // no se puede borrar la subcategoría mientras la deuda exista; borrar la
+  // deuda, en cambio, deja la subcategoría y sus pagos como historial.
+  subcategoryId String      @unique
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id], onDelete: Restrict)
 
   @@unique([walletId, name]) // El nombre de la deuda debe ser único por cartera
 }
