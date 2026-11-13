@@ -10,7 +10,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -29,7 +28,6 @@ export const MATERIAL_MODULES = [
   MatListModule,
   MatSelectModule,
   MatDatepickerModule,
-  MatNativeDateModule,
   MatDialogModule,
   MatMenuModule,
   MatTooltipModule,

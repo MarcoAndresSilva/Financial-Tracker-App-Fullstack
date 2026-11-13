@@ -12,9 +12,11 @@ import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import {
+  DateAdapter,
   MAT_DATE_LOCALE,
   provideNativeDateAdapter,
 } from '@angular/material/core';
+import { ClDateAdapter } from './shared/utils/cl-date-adapter';
 import { provideServiceWorker } from '@angular/service-worker';
 
 registerLocaleData(localeEsCL);
@@ -27,6 +29,10 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     { provide: LOCALE_ID, useValue: 'es-CL' },
     provideNativeDateAdapter(),
+    // Lee las fechas tipeadas como día-mes-año (Paso 79). Va después de
+    // provideNativeDateAdapter para reemplazar su DateAdapter; los formatos de
+    // visualización siguen siendo los nativos.
+    { provide: DateAdapter, useClass: ClDateAdapter },
     { 
       provide: MAT_DATE_LOCALE, 
       useValue: 'es-CL' }, 

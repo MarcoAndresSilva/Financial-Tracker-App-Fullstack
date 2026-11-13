@@ -6,7 +6,6 @@ import {
   MatDatepicker,
   MatDatepickerModule,
 } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { map } from 'rxjs';
 
 import { PeriodContextService } from '../../../core/services/period-context.service';
@@ -39,7 +38,6 @@ const MONTHS_ES = [
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule,
   ],
   templateUrl: './month-selector.component.html',
   styleUrls: ['./month-selector.component.scss'],
