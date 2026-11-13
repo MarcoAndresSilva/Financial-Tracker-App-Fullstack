@@ -57,24 +57,56 @@
   }
 }
 
-.debt-header {
+// Pista de cómo se paga (Paso 78): el vínculo es automático por subcategoría.
+.page-hint {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  margin: -0.5rem 0 1.25rem;
+  font-size: 0.875rem;
+  color: var(--app-text-muted);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--app-accent-strong);
+  }
+}
+
+.debt-header {
+  display: flex;
+  align-items: flex-start;
   gap: 0.4rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.debt-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .debt-name {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.finished-icon {
-  color: var(--app-income);
+.kind-chip {
+  align-self: flex-start;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--app-accent-strong);
+  border: 1px solid var(--app-accent);
 }
 
 .debt-actions {
@@ -83,18 +115,92 @@
   flex-shrink: 0;
 }
 
+// "Cuota 42 de 300" + estado del mes
+.headline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.headline {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--app-text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-chip {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--app-income);
+  background: var(--app-income-surface);
+
+  &[data-status="DUE_SOON"] {
+    color: var(--app-text-strong);
+    background: color-mix(in srgb, var(--app-cat-4) 28%, transparent);
+  }
+
+  &[data-status="OVERDUE"] {
+    color: var(--app-expense);
+    background: var(--app-expense-surface);
+  }
+}
+
+.amount-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.amount-main {
+  font-weight: 600;
+}
+
+.amount-clp {
+  font-weight: 500;
+}
+
+.muted {
+  color: var(--app-text-muted);
+  font-size: 0.85rem;
+}
+
+.due-line {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--app-text-muted);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
 .debt-bar-track {
-  height: 20px;
-  background-color: var(--mat-sys-surface-container-low);
-  border-radius: 4px;
+  height: 10px;
+  margin-top: 0.75rem;
+  background-color: var(--mat-sys-surface-container-high);
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .debt-bar-fill {
   height: 100%;
-  min-width: 4px;
-  border-radius: 4px;
-  background-color: var(--mat-sys-primary);
+  min-width: 6px;
+  border-radius: 999px;
+  background-color: var(--app-accent);
   transition: width 0.4s ease;
 
   &.complete {
@@ -102,28 +208,33 @@
   }
 }
 
-.debt-values {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--mat-sys-on-surface-variant);
-  font-variant-numeric: tabular-nums;
-}
-
-.debt-percentage {
-  font-weight: 600;
-}
-
 .debt-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  margin-top: 0.75rem;
-  font-size: 0.8rem;
-  color: var(--mat-sys-on-surface-variant);
+  gap: 0.25rem 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+  font-variant-numeric: tabular-nums;
+
+  span {
+    white-space: nowrap;
+  }
+}
+
+.estimate {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
 }
 
 .finished-label {
   color: var(--app-income);
   font-weight: 600;
+}
+
+.pay-button {
+  width: 100%;
+  margin-top: 1rem;
 }

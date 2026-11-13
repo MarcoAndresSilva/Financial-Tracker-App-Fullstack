@@ -1,4 +1,4 @@
-<h1 mat-dialog-title>Nueva Transacción</h1>
+<h1 mat-dialog-title>{{ dialogTitle }}</h1>
 
 <div mat-dialog-content>
   <form [formGroup]="transactionForm" class="transaction-form">
@@ -55,6 +55,26 @@
       </mat-form-field>
     </div>
 
+    <!-- Si la subcategoría es la de una deuda, este gasto es un pago (Paso 77). -->
+    @if (linkedDebt; as debt) {
+      <div class="debt-link" role="status">
+        <mat-icon>link</mat-icon>
+        <span>
+          @if (debt.kind === "INSTALLMENTS") {
+            @if (debt.progress.isFinished) {
+              Esta deuda ya está pagada · {{ debt.name }}
+            } @else {
+              Cuota {{ debt.progress.nextInstallmentNumber }} de
+              {{ debt.totalInstallments }} · se suma a tu deuda {{ debt.name }}
+            }
+          } @else {
+            Se descuenta de tu deuda {{ debt.name }} · quedan
+            {{ debt.progress.remainingAmountClp | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+          }
+        </span>
+      </div>
+    }
+
     <!-- Fila 4: Fecha -->
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Fecha de la Transacción</mat-label>
@@ -66,25 +86,6 @@
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
 
-    <!-- Fila 5: Vínculo opcional con una Deuda/compra en cuotas -->
-    <mat-form-field
-      *ngIf="debts.length > 0"
-      appearance="outline"
-      class="full-width"
-    >
-      <mat-label>Vincular a una deuda (opcional)</mat-label>
-      <mat-select formControlName="debtId">
-        <mat-option [value]="null">Ninguna</mat-option>
-        <mat-option *ngFor="let debt of debts" [value]="debt.id">
-          {{ debt.name }}
-          <ng-container *ngIf="!debt.isFinished">
-            (cuota {{ debt.paidInstallments + 1 }} de
-            {{ debt.totalInstallments }})
-          </ng-container>
-          <ng-container *ngIf="debt.isFinished"> (pagada)</ng-container>
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
   </form>
 </div>
 

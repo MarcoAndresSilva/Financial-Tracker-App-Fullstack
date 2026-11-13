@@ -1,9 +1,10 @@
-import { Locator, expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import {
   countTransactions,
   createCategory,
   createUser,
   openDashboardAs,
+  pickOption,
   slowDown,
 } from './helpers';
 
@@ -47,21 +48,3 @@ test.describe('Nueva transacción', () => {
   });
 });
 
-/**
- * Elige una opción de un mat-select. Se hace clic en el campo completo (como
- * un usuario) y no en el combobox: con el select vacío, Material deja la
- * etiqueta flotando encima del control.
- */
-async function pickOption(
-  dialog: Locator,
-  label: string,
-  option: string,
-): Promise<void> {
-  const page = dialog.page();
-  await dialog
-    .locator('mat-form-field')
-    .filter({ has: page.getByRole('combobox', { name: label, exact: true }) })
-    .click();
-  await page.getByRole('option', { name: option }).click();
-  await expect(page.getByRole('listbox')).toHaveCount(0);
-}

@@ -1,17 +1,110 @@
+.debt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  // mat-dialog-content no deja padding superior bajo el título: sin esto, el
+  // selector de tipo queda cortado.
+  padding-top: 0.75rem !important;
+}
+
 .full-width {
   width: 100%;
 }
 
-.form-row {
-  display: flex;
-  gap: 1rem;
+.kind-toggle {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
 
-  .form-field {
+.kind-hint {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+}
+
+.value-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  .unit-toggle {
+    margin-top: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .grow {
     flex: 1;
   }
 }
 
-.in-progress-checkbox {
-  display: block;
-  margin: 0.25rem 0 1rem;
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.day-field {
+  max-width: 220px;
+}
+
+.due-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.due-choice mat-button-toggle-group {
+  align-self: flex-start;
+
+  mat-button-toggle {
+    min-width: 120px;
+  }
+}
+
+.due-label {
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+}
+
+.form-error {
+  margin: -0.5rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--app-expense);
+}
+
+// Resumen en vivo: lo que va a quedar registrado, antes de guardar.
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container-high);
+  border-left: 3px solid var(--app-accent);
+  font-size: 0.9rem;
+
+  span {
+    color: var(--app-text-muted);
+  }
+}
+
+// En mobile, los pares de campos se apilan.
+@media (max-width: 480px) {
+  .form-row,
+  .value-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .value-row .unit-toggle {
+    align-self: flex-start;
+    margin: 0 0 0.75rem;
+  }
 }

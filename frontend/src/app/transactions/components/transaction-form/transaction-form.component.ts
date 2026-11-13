@@ -30,6 +30,14 @@ import {
 } from '../../../subcategories/services/subcategory.service';
 import { Transaction } from '../../../transactions/services/transaction.types';
 import { Debt, DebtService } from '../../../debts/services/debt.service';
+
+export interface TransactionFormData {
+  walletId: string;
+  /** Presente = editar esa transacción. */
+  transaction?: Transaction;
+  /** Al crear: valores ya puestos (ej. "Registrar pago" desde una deuda). */
+  preset?: { categoryId: string; subcategoryId: string; amount?: number | null };
+}
 import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
@@ -50,8 +58,11 @@ export class TransactionFormComponent implements OnInit {
   transactionForm: FormGroup;
   categories: Category[] = [];
   subcategories: Subcategory[] = [];
+  /** Deudas de la wallet: para reconocer cuándo un gasto es un pago (Paso 78). */
   debts: Debt[] = [];
   isEditMode = false;
+  // Subcategoría a elegir apenas carguen las de la categoría (ver `preset`).
+  private pendingSubcategoryId: string | null = null;
   // Mientras el backend responde, el botón queda bloqueado: un segundo clic
   // durante la espera creaba la transacción dos veces.
   isSaving = false;
@@ -59,7 +70,7 @@ export class TransactionFormComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<TransactionFormComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: { walletId: string; transaction?: Transaction }
+    public data: TransactionFormData
   ) {
     this.isEditMode = !!this.data.transaction;
 
@@ -70,15 +81,37 @@ export class TransactionFormComponent implements OnInit {
       categoryId: [null, Validators.required],
       subcategoryId: [{ value: null, disabled: true }, Validators.required],
       date: [new Date(), Validators.required],
-      // Opcional: marca este pago como una cuota de una Deuda existente.
-      debtId: [null],
     });
+  }
+
+  /**
+   * Si la subcategoría elegida es la de una deuda, este gasto es un pago: se
+   * suma solo (Paso 77). Solo al crear: al editar, el pago ya está contado.
+   */
+  get linkedDebt(): Debt | undefined {
+    if (this.isEditMode) return undefined;
+    const { subcategoryId, type } = this.transactionForm.getRawValue();
+    if (!subcategoryId || type !== 'EXPENSE') return undefined;
+    return this.debts.find((d) => d.subcategoryId === subcategoryId);
+  }
+
+  get dialogTitle(): string {
+    if (this.isEditMode) return 'Editar transacción';
+    return this.data.preset ? 'Registrar pago' : 'Nueva transacción';
   }
 
   ngOnInit(): void {
     // 1. Siempre cargamos las opciones de categorías disponibles.
     this.loadCategories();
     this.loadDebts();
+
+    // Abierto desde "Registrar pago" de una deuda: llega con categoría,
+    // subcategoría y monto ya puestos.
+    if (!this.isEditMode && this.data.preset) {
+      const { categoryId, subcategoryId, amount } = this.data.preset;
+      this.transactionForm.patchValue({ categoryId, amount: amount ?? null });
+      this.pendingSubcategoryId = subcategoryId;
+    }
 
     // 2. Si estamos en modo edición, procedemos a rellenar el formulario.
     if (this.isEditMode && this.data.transaction) {
@@ -93,7 +126,6 @@ export class TransactionFormComponent implements OnInit {
         description: transactionToEdit.description,
         date: isoToLocalDate(transactionToEdit.date), // ISO de la API → día local (sin corrimiento de huso)
         categoryId: transactionToEdit.subcategory.categoryId,
-        debtId: transactionToEdit.debtId ?? null,
       });
 
       // 4. Manejamos la subcategoría de forma especial, ya que depende de la categoría.
@@ -116,6 +148,9 @@ export class TransactionFormComponent implements OnInit {
     // 5. Finalmente, configuramos el listener para que el formulario siga siendo reactivo
     //    en caso de que el usuario cambie la categoría manualmente.
     this.setupSubcategoryListener();
+    this.transactionForm
+      .get('subcategoryId')!
+      .valueChanges.subscribe(() => this.prefillFromLinkedDebt());
   }
 
   loadCategories() {
@@ -129,7 +164,32 @@ export class TransactionFormComponent implements OnInit {
   loadDebts() {
     this.debtService.getDebtsByWallet(this.data.walletId).subscribe((data) => {
       this.debts = data;
+      this.prefillFromLinkedDebt();
     });
+  }
+
+  /**
+   * Al elegir la subcategoría de una deuda, propone el monto de la cuota y
+   * una descripción, solo en los campos que el usuario dejó vacíos.
+   */
+  private prefillFromLinkedDebt(): void {
+    const debt = this.linkedDebt;
+    if (!debt) return;
+    const amount = this.transactionForm.get('amount')!;
+    const description = this.transactionForm.get('description')!;
+
+    if (debt.kind === 'INSTALLMENTS' && !debt.progress.isFinished) {
+      if (!amount.value && debt.progress.installmentValueClp) {
+        amount.setValue(debt.progress.installmentValueClp);
+      }
+      if (!description.value) {
+        description.setValue(
+          `Cuota ${debt.progress.nextInstallmentNumber} de ${debt.totalInstallments} · ${debt.name}`
+        );
+      }
+    } else if (debt.kind === 'FREE_AMOUNT' && !description.value) {
+      description.setValue(`Pago ${debt.name}`);
+    }
   }
 
   setupSubcategoryListener(): void {
@@ -154,6 +214,13 @@ export class TransactionFormComponent implements OnInit {
       )
       .subscribe((subcategories) => {
         this.subcategories = subcategories;
+        if (
+          this.pendingSubcategoryId &&
+          subcategories.some((s) => s.id === this.pendingSubcategoryId)
+        ) {
+          subcategoryControl.setValue(this.pendingSubcategoryId);
+          this.pendingSubcategoryId = null;
+        }
       });
   }
 

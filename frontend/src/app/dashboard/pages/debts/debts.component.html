@@ -10,82 +10,148 @@
     </button>
   </div>
 
-  <div *ngIf="isLoading" class="loading">
-    <p>Cargando deudas...</p>
-  </div>
-
-  <div *ngIf="!isLoading && debts.length === 0" class="empty-state">
-    <mat-icon>credit_card</mat-icon>
-    <p>
-      Todavía no tienes deudas ni compras en cuotas registradas en esta
-      cartera.
+  @if (isLoading) {
+    <div class="loading"><p>Cargando deudas...</p></div>
+  } @else if (debts.length === 0) {
+    <div class="empty-state">
+      <mat-icon>credit_card</mat-icon>
+      <p>
+        Registra tu hipotecario, créditos, tarjetas o préstamos. Cada pago que
+        anotes se suma solo.
+      </p>
+      <button mat-flat-button color="primary" (click)="addDebt()">
+        Agregar la primera
+      </button>
+    </div>
+  } @else {
+    <p class="page-hint">
+      <mat-icon>info</mat-icon>
+      <span>
+        Para pagar, usa <strong>Registrar pago</strong> o anota un gasto en
+        <strong>Deudas → nombre de la deuda</strong>: se suma solo.
+      </span>
     </p>
-    <button mat-flat-button color="primary" (click)="addDebt()">
-      Agregar la primera
-    </button>
-  </div>
 
-  <div *ngIf="!isLoading && debts.length > 0" class="debts-grid">
-    <mat-card
-      class="debt-card"
-      appearance="outlined"
-      *ngFor="let debt of debts"
-    >
-      <mat-card-content>
-        <div class="debt-header">
-          <span class="debt-name">{{ debt.name }}</span>
-          <mat-icon *ngIf="debt.isFinished" class="finished-icon"
-            >check_circle</mat-icon
-          >
-          <span class="debt-actions">
-            <button
-              mat-icon-button
-              matTooltip="Editar deuda"
-              (click)="editDebt(debt)"
-            >
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              matTooltip="Eliminar deuda"
-              (click)="deleteDebt(debt)"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
-          </span>
-        </div>
+    <div class="debts-grid">
+      @for (debt of debts; track debt.id) {
+        <mat-card class="debt-card" appearance="outlined">
+          <mat-card-content>
+            <div class="debt-header">
+              <div class="debt-title">
+                <span class="debt-name">{{ debt.name }}</span>
+                <span class="kind-chip">{{ kindLabel(debt) }}</span>
+              </div>
+              <span class="debt-actions">
+                <button mat-icon-button matTooltip="Editar deuda" aria-label="Editar deuda" (click)="editDebt(debt)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Eliminar deuda" aria-label="Eliminar deuda" (click)="deleteDebt(debt)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </span>
+            </div>
 
-        <div class="debt-bar-track">
-          <div
-            class="debt-bar-fill"
-            [class.complete]="debt.isFinished"
-            [style.width.%]="debt.percentage"
-          ></div>
-        </div>
+            @if (debt.kind === "INSTALLMENTS") {
+              <!-- ===== EN CUOTAS: como la vista del banco ===== -->
+              <div class="headline-row">
+                <span class="headline">
+                  @if (debt.progress.isFinished) {
+                    {{ debt.totalInstallments }} de {{ debt.totalInstallments }} pagadas
+                  } @else {
+                    Cuota {{ debt.progress.nextInstallmentNumber }} de {{ debt.totalInstallments }}
+                  }
+                </span>
+                <span class="status-chip" [attr.data-status]="debt.progress.status">
+                  {{ statusLabel(debt) }}
+                </span>
+              </div>
 
-        <div class="debt-values">
-          <span
-            >{{
-              debt.paidAmount | currency : "CLP" : "symbol-narrow" : "1.0-0"
-            }}
-            de
-            {{
-              debt.totalAmount | currency : "CLP" : "symbol-narrow" : "1.0-0"
-            }}</span
-          >
-          <span class="debt-percentage"
-            >{{ debt.percentage | number : "1.0-0" }}%</span
-          >
-        </div>
+              <div class="amount-line">
+                @if (debt.unit === "UF") {
+                  <span class="amount-main">UF {{ debt.installmentValue | number: "1.0-2" }}</span>
+                  @if (debt.progress.installmentValueClp !== null) {
+                    <span class="amount-clp">
+                      ≈ {{ debt.progress.installmentValueClp | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                      @if (debt.progress.installmentValueSource === "LAST_PAYMENT") {
+                        <span class="muted">(según tu último pago)</span>
+                      }
+                    </span>
+                  } @else {
+                    <span class="muted">sin estimación en pesos</span>
+                  }
+                } @else {
+                  <span class="amount-main">
+                    {{ debt.installmentValue | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                  </span>
+                  <span class="muted">por cuota</span>
+                }
+              </div>
 
-        <div class="debt-footer">
-          <span>Cuota {{ debt.paidInstallments }} de {{ debt.totalInstallments }}</span>
-          <span *ngIf="!debt.isFinished">
-            Termina aprox. {{ debt.estimatedEndDate | date : "MMM yyyy" : "UTC" }}
-          </span>
-          <span *ngIf="debt.isFinished" class="finished-label">Pagada</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
+              @if (debt.progress.nextDueDate) {
+                <div class="due-line">
+                  <mat-icon>event</mat-icon>
+                  Vence el {{ formatShortDay(debt.progress.nextDueDate) }}
+                </div>
+              }
+
+              <div class="debt-bar-track" role="progressbar" [attr.aria-valuenow]="debt.progress.percentage | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100">
+                <div class="debt-bar-fill" [class.complete]="debt.progress.isFinished" [style.width.%]="debt.progress.percentage"></div>
+              </div>
+
+              <div class="debt-footer">
+                @if (debt.progress.isFinished) {
+                  <span class="finished-label">¡Pagada!</span>
+                } @else {
+                  <span>
+                    Te quedan {{ debt.progress.remainingInstallments }}
+                    {{ debt.progress.remainingInstallments === 1 ? "cuota" : "cuotas" }}
+                  </span>
+                  <span>Terminas en {{ formatMonthYear(debt.progress.endDate) }}</span>
+                }
+              </div>
+            } @else {
+              <!-- ===== MONTO LIBRE ===== -->
+              <div class="headline-row">
+                <span class="headline">
+                  Pagado {{ debt.progress.paidAmountClp | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                  de {{ debt.totalAmount | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                </span>
+                @if (debt.progress.isFinished) {
+                  <span class="status-chip" data-status="PAID">Pagada</span>
+                }
+              </div>
+
+              <div class="debt-bar-track" role="progressbar" [attr.aria-valuenow]="debt.progress.percentage | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100">
+                <div class="debt-bar-fill" [class.complete]="debt.progress.isFinished" [style.width.%]="debt.progress.percentage"></div>
+              </div>
+
+              <div class="debt-footer">
+                <span>
+                  Quedan {{ debt.progress.remainingAmountClp | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                </span>
+                <span>{{ debt.progress.percentage | number: "1.0-0" }}%</span>
+              </div>
+              @if (!debt.progress.isFinished) {
+                <p class="estimate">
+                  @if (debt.progress.estimatedEndDate) {
+                    Al ritmo actual, terminas ~{{ formatMonthYear(debt.progress.estimatedEndDate) }}
+                    <span class="muted">(estimado)</span>
+                  } @else {
+                    Registra pagos para estimar cuándo terminas.
+                  }
+                </p>
+              }
+            }
+
+            @if (!debt.progress.isFinished) {
+              <button mat-stroked-button class="pay-button" (click)="registerPayment(debt)">
+                <mat-icon>payments</mat-icon>
+                Registrar pago
+              </button>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
 </div>

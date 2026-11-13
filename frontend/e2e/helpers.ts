@@ -1,4 +1,4 @@
-import { APIRequestContext, Page, expect } from '@playwright/test';
+import { APIRequestContext, Locator, Page, expect } from '@playwright/test';
 import { API_URL } from '../playwright.config';
 
 /**
@@ -129,4 +129,59 @@ export async function slowDown(
     },
   );
   return { count: () => count };
+}
+
+/** Crea una deuda por la API y devuelve su respuesta (incluye subcategoryId). */
+export async function createDebt(
+  request: APIRequestContext,
+  user: E2EUser,
+  body: Record<string, unknown>,
+): Promise<{ id: string; subcategoryId: string; categoryId: string }> {
+  const res = await request.post(`${API_URL}/debts`, {
+    headers: auth(user.token),
+    data: { walletId: user.personalWalletId, ...body },
+  });
+  expect(res.status()).toBe(201);
+  return res.json();
+}
+
+/** Registra un gasto (por la API) en una subcategoría: si es de una deuda, es un pago. */
+export async function createExpense(
+  request: APIRequestContext,
+  user: E2EUser,
+  subcategoryId: string,
+  amount: number,
+  date: string,
+): Promise<void> {
+  const res = await request.post(`${API_URL}/transactions`, {
+    headers: auth(user.token),
+    data: {
+      amount,
+      type: 'EXPENSE',
+      date,
+      description: 'Pago',
+      walletId: user.personalWalletId,
+      subcategoryId,
+    },
+  });
+  expect(res.status()).toBe(201);
+}
+
+/**
+ * Elige una opción de un mat-select. Se hace clic en el campo completo (como
+ * un usuario) y no en el combobox: con el select vacío, Material deja la
+ * etiqueta flotando encima del control.
+ */
+export async function pickOption(
+  dialog: Locator,
+  label: string,
+  option: string,
+): Promise<void> {
+  const page = dialog.page();
+  await dialog
+    .locator('mat-form-field')
+    .filter({ has: page.getByRole('combobox', { name: label, exact: true }) })
+    .click();
+  await page.getByRole('option', { name: option }).click();
+  await expect(page.getByRole('listbox')).toHaveCount(0);
 }

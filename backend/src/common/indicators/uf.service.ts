@@ -25,6 +25,11 @@ export class UfService {
   private cache: { value: number; fetchedAt: number } | null = null;
 
   async getUfValue(): Promise<number | null> {
+    // Solo para el stack de pruebas de Playwright (Paso 78): una UF fija hace
+    // que los montos esperados no dependan del día ni de internet.
+    const fixed = Number(process.env.UF_FIXED_VALUE);
+    if (fixed > 0) return fixed;
+
     if (this.cache && Date.now() - this.cache.fetchedAt < CACHE_TTL_MS) {
       return this.cache.value;
     }

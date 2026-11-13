@@ -55,6 +55,8 @@ export default defineConfig({
         PORT: '3100',
         FRONTEND_URL: APP_URL,
         JWT_SECRET: 'jwt-secret-solo-para-tests',
+        // UF fija: los tests no dependen de mindicador.cl ni del día.
+        UF_FIXED_VALUE: '41324.4',
       },
       reuseExistingServer: !process.env['CI'],
       timeout: 120_000,
