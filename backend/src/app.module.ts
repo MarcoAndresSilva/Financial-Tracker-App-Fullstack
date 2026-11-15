@@ -12,6 +12,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { WalletModule } from './wallet/wallet.module';
 import { SavingsGoalModule } from './savings-goal/savings-goal.module';
 import { DebtModule } from './debt/debt.module';
+import { BudgetModule } from './budget/budget.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { DebtModule } from './debt/debt.module';
     WalletModule,
     SavingsGoalModule,
     DebtModule,
+    BudgetModule,
   ],
   controllers: [AppController],
   providers: [AppService],

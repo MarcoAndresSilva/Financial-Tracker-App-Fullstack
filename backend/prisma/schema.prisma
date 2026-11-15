@@ -123,6 +123,7 @@ model Category {
   walletId      String
   wallet        Wallet         @relation(fields: [walletId], references: [id], onDelete: Cascade)
   subcategories Subcategory[]
+  budgetEntries BudgetEntry[]
 
   @@unique([walletId, name]) // El nombre de la categoría debe ser único por cartera
 }
@@ -205,6 +206,9 @@ model Debt {
   totalAmount       Float?
   // Plata pagada ANTES de registrar la deuda en la app.
   initialPaidAmount Float @default(0)
+  // "Pago mensual habitual" (ej. $300.000): lo que se planea pagar cada mes.
+  // Lo usa el presupuesto para los compromisos del mes (Paso 81).
+  plannedMonthlyPayment Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -234,4 +238,36 @@ model SavingsGoal {
   wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
   @@unique([walletId, name]) // El nombre de la meta debe ser único por cartera
+}
+
+// ========================================
+//          PRESUPUESTO (Paso 81)
+// ========================================
+
+// Alcance de un monto de presupuesto:
+//   FROM_MONTH → "desde este mes en adelante" (el monto habitual)
+//   ONLY_MONTH → "solo este mes" (un ajuste puntual)
+enum BudgetScope {
+  FROM_MONTH
+  ONLY_MONTH
+}
+
+// Un monto de presupuesto para una categoría, con fecha y alcance. El
+// presupuesto de un mes se resuelve combinando estas entradas (resolveBudget,
+// budget-logic.ts): así cambiar "desde enero" no reescribe lo planificado en
+// meses anteriores. amount null = "sin presupuesto" (para quitarlo).
+model BudgetEntry {
+  id        String      @id @default(uuid())
+  year      Int
+  month     Int // 1–12
+  scope     BudgetScope
+  amount    Float?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Un solo monto por categoría, mes y alcance: volver a guardar actualiza.
+  @@unique([categoryId, year, month, scope])
 }

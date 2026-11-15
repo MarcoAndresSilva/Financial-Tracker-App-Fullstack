@@ -57,4 +57,10 @@ export class UpdateDebtDto {
   @IsNumber()
   @Min(0)
   initialPaidAmount?: number;
+
+  /** Monto libre: "pago mensual habitual" (ej. 300000). Lo usa el presupuesto. */
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  plannedMonthlyPayment?: number;
 }

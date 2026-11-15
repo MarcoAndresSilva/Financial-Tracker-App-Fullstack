@@ -13,7 +13,10 @@ import { CreateDebtDto, UpdateDebtDto } from './dto';
 import {
   computeFreeAmountProgress,
   computeInstallmentProgress,
+  FreeAmountProgress,
+  InstallmentProgress,
 } from './debt-progress';
+import { CommitmentDebt, YearMonth } from '../budget/budget-logic';
 
 /** Categoría donde viven las subcategorías de las deudas (una por deuda). */
 export const DEBTS_CATEGORY_NAME = 'Deudas';
@@ -160,6 +163,53 @@ export class DebtService {
     return { message: 'Debt deleted successfully' };
   }
 
+  /**
+   * Las deudas de la wallet en el formato que necesita el presupuesto para
+   * calcular los compromisos de un mes (Paso 81). Vive acá y no en el
+   * presupuesto porque solo este servicio sabe qué gastos son pagos de qué
+   * deuda y cómo se calcula su progreso. NO verifica permisos: lo llama
+   * BudgetService después de verificarlos.
+   */
+  async getCommitmentDebts(
+    walletId: string,
+    period: YearMonth,
+  ): Promise<CommitmentDebt[]> {
+    const debts = await this.prisma.debt.findMany({
+      where: { walletId },
+      orderBy: { createdAt: 'asc' },
+      include: debtInclude,
+    });
+    const ufValue = await this.ufValueFor(debts);
+    const { start, end } = monthRangeUtc(period);
+
+    return debts.map((debt): CommitmentDebt => {
+      const { progress } = this.toResponse(debt, ufValue);
+      if (debt.kind === DebtKind.INSTALLMENTS) {
+        const p = progress as InstallmentProgress;
+        return {
+          kind: 'INSTALLMENTS',
+          name: debt.name,
+          totalInstallments: debt.totalInstallments,
+          initialPaidInstallments: debt.initialPaidInstallments,
+          nextDueDateAtStart: debt.nextDueDateAtStart,
+          paidInstallments: p.paidInstallments,
+          installmentValueClp: p.installmentValueClp,
+        };
+      }
+      const p = progress as FreeAmountProgress;
+      return {
+        kind: 'FREE_AMOUNT',
+        name: debt.name,
+        isFinished: p.isFinished,
+        plannedMonthlyClp: debt.plannedMonthlyPayment,
+        averageRecentPaymentClp: p.averageRecentPaymentClp,
+        paidInPeriodClp: paymentsOf(debt)
+          .filter((pay) => pay.date >= start && pay.date < end)
+          .reduce((acc, pay) => acc + pay.amount, 0),
+      };
+    });
+  }
+
   // -------------------------------------------------------------------------
 
   private async getDebtOrThrow(debtId: string): Promise<DebtWithPayments> {
@@ -232,6 +282,7 @@ export class DebtService {
       nextDueDateAtStart: debt.nextDueDateAtStart,
       totalAmount: debt.totalAmount,
       initialPaidAmount: debt.initialPaidAmount,
+      plannedMonthlyPayment: debt.plannedMonthlyPayment,
       walletId: debt.walletId,
       subcategoryId: debt.subcategoryId,
       categoryId: debt.subcategory.categoryId,
@@ -267,6 +318,7 @@ type KindSpecificFields = Partial<
     | 'nextDueDateAtStart'
     | 'totalAmount'
     | 'initialPaidAmount'
+    | 'plannedMonthlyPayment'
   >
 >;
 
@@ -288,6 +340,7 @@ function kindSpecificData(
   return {
     totalAmount: dto.totalAmount,
     initialPaidAmount: dto.initialPaidAmount,
+    plannedMonthlyPayment: dto.plannedMonthlyPayment,
   };
 }
 
@@ -329,4 +382,15 @@ function todayInChile(): Date {
     timeZone: 'America/Santiago',
   }).format(new Date());
   return new Date(`${iso}T00:00:00.000Z`);
+}
+
+/** [inicio, fin) de un mes en UTC: las fechas de transacción son "solo día". */
+export function monthRangeUtc({ year, month }: YearMonth): {
+  start: Date;
+  end: Date;
+} {
+  return {
+    start: new Date(Date.UTC(year, month - 1, 1)),
+    end: new Date(Date.UTC(year, month, 1)),
+  };
 }

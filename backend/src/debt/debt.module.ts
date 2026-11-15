@@ -9,5 +9,7 @@ import { IndicatorsModule } from '../common/indicators/indicators.module';
   imports: [PrismaModule, PermissionsModule, IndicatorsModule],
   controllers: [DebtController],
   providers: [DebtService],
+  // El presupuesto (Paso 81) lee los compromisos de deudas del mes.
+  exports: [DebtService],
 })
 export class DebtModule {}

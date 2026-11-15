@@ -58,7 +58,7 @@ describe('Autorización por wallet (e2e)', () => {
   // 1. Un usuario ajeno no puede leer ni modificar nada de la wallet de Ana.
   //    Tabla de casos: cada fila es un endpoint que Beto intenta usar.
   // ---------------------------------------------------------------------
-  type Method = 'get' | 'post' | 'patch' | 'delete';
+  type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
   interface IntruderCase {
     name: string;
     method: Method;
@@ -260,6 +260,24 @@ describe('Autorización por wallet (e2e)', () => {
       name: 'desglose anual',
       method: 'get',
       path: (d) => `/dashboard/yearly-breakdown?walletId=${d.walletId}`,
+    },
+    // Presupuesto (Paso 81)
+    {
+      name: 'ver el presupuesto del mes',
+      method: 'get',
+      path: (d) => `/budget?walletId=${d.walletId}&year=2026&month=12`,
+    },
+    {
+      name: 'definir un presupuesto',
+      method: 'put',
+      path: () => '/budget/entries',
+      body: (d) => ({
+        categoryId: d.categoryId,
+        year: 2026,
+        month: 12,
+        scope: 'FROM_MONTH',
+        amount: 1,
+      }),
     },
     // La wallet misma
     {
