@@ -21,6 +21,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       where: { id: payload.sub },
       include: {
         memberships: {
+          // Orden fijo: la wallet personal primero y las compartidas en el
+          // orden en que se crearon. Sin orderBy, Postgres devuelve las filas
+          // en cualquier orden y la wallet "por defecto" del frontend (la
+          // primera de la lista) cambiaba al azar entre un ingreso y otro.
+          orderBy: [
+            { wallet: { type: 'asc' } },
+            { wallet: { createdAt: 'asc' } },
+          ],
           include: {
             wallet: true,
           },
