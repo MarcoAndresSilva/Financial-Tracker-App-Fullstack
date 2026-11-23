@@ -1,0 +1,40 @@
+.entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-top: 0.75rem !important;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.scope-label {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+}
+
+mat-button-toggle-group {
+  align-self: flex-start;
+  margin-top: 0.35rem;
+}
+
+.scope-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+
+  .spacer {
+    flex: 1;
+  }
+
+  .remove {
+    color: var(--app-expense);
+  }
+}

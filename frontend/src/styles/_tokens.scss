@@ -66,6 +66,12 @@
   --app-income-surface: light-dark(#e8f5e9, #1c2e1f);
   --app-expense: light-dark(#c62828, #ef6b6b);
   --app-expense-surface: light-dark(#ffebee, #3a1f21);
+  // Estado "cerca del tope" (presupuesto, Paso 82). Color de ESTADO, distinto
+  // del amarillo categórico (--app-cat-4): no se reutilizan entre sí. Validado
+  // con el script de dataviz: separación del rojo ΔE ≥ 18 en ambos modos y
+  // contraste ≥ 3:1. Verde vs ámbar es casi igual para daltonismo protán, así
+  // que el estado siempre va con ícono + texto, nunca solo color.
+  --app-warning: light-dark(#b8860b, #e0b030);
 
   /* ---- Paleta categórica (gráficos por categoría del Home) ---- */
   // Orden fijo, nunca ciclado (skill de dataviz). La columna oscura son los

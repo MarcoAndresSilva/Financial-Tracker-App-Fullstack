@@ -1,0 +1,209 @@
+<div class="budget-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      <mat-icon class="page-title-icon">request_quote</mat-icon>
+      Presupuesto
+    </h1>
+    <app-month-selector></app-month-selector>
+  </div>
+
+  @if (isLoading && !plan) {
+    <div class="loading"><p>Cargando presupuesto...</p></div>
+  } @else if (plan) {
+    <div class="layout">
+      <!-- ===== EL PLAN: de lo que entra, ¿a dónde va cada peso? ===== -->
+      <mat-card class="plan-card" appearance="outlined" data-testid="plan-summary">
+        <mat-card-content>
+          <h2 class="card-title">El plan de {{ monthName }}</h2>
+
+          <dl class="plan-rows">
+            <div class="plan-row">
+              <dt>Ingresos del mes</dt>
+              <dd>{{ plan.summary.income | currency: "CLP" : "symbol-narrow" : "1.0-0" }}</dd>
+            </div>
+            <div class="plan-row">
+              <dt>
+                Compromisos de deudas
+                <a routerLink="/dashboard/debts" class="row-link">ver</a>
+              </dt>
+              <dd class="minus">
+                −{{ plan.summary.debtCommitments | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+              </dd>
+            </div>
+            <div class="plan-row">
+              <dt>Planificado</dt>
+              <dd class="minus">
+                −{{ plan.summary.totalPlanned | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+              </dd>
+            </div>
+            <div class="plan-row total" [class.negative]="plan.summary.unassigned < 0">
+              <dt>Sin asignar</dt>
+              <dd>{{ plan.summary.unassigned | currency: "CLP" : "symbol-narrow" : "1.0-0" }}</dd>
+            </div>
+          </dl>
+          @if (plan.summary.unassigned < 0) {
+            <p class="note negative-note">
+              <mat-icon>error</mat-icon>
+              Planificaste más de lo que entra este mes.
+            </p>
+          }
+
+          <!-- ¿Cómo voy con lo planificado? Número + medidor (no una dona:
+               un solo porcentaje contra un tope se lee mejor como barra). -->
+          @if (plan.summary.overall; as overall) {
+            <div class="overall" [attr.data-status]="overall.status">
+              <div class="hero">
+                <span class="hero-value">{{ overall.percentage ?? 100 | number: "1.0-0" }}%</span>
+                <span class="hero-label">
+                  del plan gastado ·
+                  {{ plan.summary.totalSpent | currency: "CLP" : "symbol-narrow" : "1.0-0" }} de
+                  {{ plan.summary.totalPlanned | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                </span>
+              </div>
+              <div
+                class="meter"
+                role="progressbar"
+                aria-label="Gastado del total planificado"
+                [attr.aria-valuenow]="overall.percentage | number: '1.0-0'"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <div class="meter-fill" [style.width.%]="overall.percentage === null ? 100 : (overall.percentage > 100 ? 100 : overall.percentage)"></div>
+              </div>
+            </div>
+          } @else {
+            <p class="note">
+              Todavía no planificas {{ monthName }}. Define abajo cuánto quieres
+              gastar en cada categoría.
+            </p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ===== COMPROMISOS DE DEUDAS (solo lectura) ===== -->
+      @if (plan.commitments.totalCount > 0) {
+        <mat-card class="commitments-card" appearance="outlined" data-testid="debt-commitments">
+          <mat-card-content>
+            <div class="card-head">
+              <h2 class="card-title">Compromisos de {{ monthName }}</h2>
+              <a routerLink="/dashboard/debts" class="row-link">Ver en Deudas →</a>
+            </div>
+            <ul class="commitments">
+              @for (item of plan.commitments.items; track item.name) {
+                <li [class.paid]="item.paid">
+                  <mat-icon class="check" [attr.aria-label]="item.paid ? 'Pagada' : 'Pendiente'">
+                    {{ item.paid ? "check_circle" : "radio_button_unchecked" }}
+                  </mat-icon>
+                  <div class="commitment-main">
+                    <span class="commitment-name">{{ item.name }}</span>
+                    <span class="commitment-detail">
+                      @if (item.installmentNumber !== null) {
+                        Cuota {{ item.installmentNumber }} de {{ item.totalInstallments }}
+                        @if (item.dueDate) {
+                          · vence el {{ formatShortDay(item.dueDate) }}
+                        }
+                      } @else {
+                        {{ item.paid ? "Pagado este mes" : item.estimated ? "Tu ritmo promedio" : "Pago mensual habitual" }}
+                      }
+                    </span>
+                  </div>
+                  <span class="commitment-amount">
+                    @if (item.amountClp !== null) {
+                      {{ item.estimated ? "~" : "" }}{{ item.amountClp | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                    } @else {
+                      <span class="muted">sin estimación</span>
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+            <div class="commitments-total">
+              <span>Pagado {{ plan.commitments.paidCount }} de {{ plan.commitments.totalCount }}</span>
+              <strong>{{ plan.commitments.totalClp | currency: "CLP" : "symbol-narrow" : "1.0-0" }}</strong>
+            </div>
+            @if (plan.commitments.withoutEstimate > 0) {
+              <p class="note">
+                {{ plan.commitments.withoutEstimate }} sin monto estimado: no suman al total.
+              </p>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- ===== CATEGORÍAS CON PRESUPUESTO ===== -->
+      <section class="lines-section">
+        <h2 class="section-title">Por categoría</h2>
+        @if (budgeted.length === 0) {
+          <p class="note">Ninguna categoría tiene presupuesto en {{ monthName }} todavía.</p>
+        }
+        @for (line of budgeted; track line.categoryId) {
+          <div class="budget-line" data-testid="budget-line" [attr.data-status]="line.status!.status">
+            <div class="line-head">
+              <span class="line-name">{{ line.name }}</span>
+              @if (line.source === "MONTH_ADJUSTMENT") {
+                <span class="adjust-chip" matTooltip="Ajuste solo para este mes">solo este mes</span>
+              }
+              <span class="status-chip">
+                <mat-icon>{{ statusIcon(line.status!.status) }}</mat-icon>
+                {{ statusLabel(line) }}
+              </span>
+              <button mat-icon-button [attr.aria-label]="'Editar presupuesto de ' + line.name" (click)="editBudget(line)">
+                <mat-icon>edit</mat-icon>
+              </button>
+            </div>
+            <div
+              class="meter"
+              role="progressbar"
+              [attr.aria-label]="line.name + ': gastado del presupuesto'"
+              [attr.aria-valuenow]="line.status!.percentage | number: '1.0-0'"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div class="meter-fill" [style.width.%]="barWidth(line)"></div>
+            </div>
+            <div class="line-foot">
+              <span>
+                {{ line.spent | currency: "CLP" : "symbol-narrow" : "1.0-0" }} de
+                {{ line.budget | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+              </span>
+              <span class="remaining">
+                @if (line.status!.remaining >= 0) {
+                  Te quedan {{ line.status!.remaining | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                } @else {
+                  Te pasaste {{ -line.status!.remaining | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                }
+              </span>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- ===== SIN PRESUPUESTO ===== -->
+      @if (unbudgeted.length > 0) {
+        <section class="unbudgeted" data-testid="unbudgeted">
+          <h2 class="section-title">Sin presupuesto ({{ unbudgeted.length }})</h2>
+          @if (plan.summary.unbudgetedSpent > 0) {
+            <p class="note">
+              Gastaste {{ plan.summary.unbudgetedSpent | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+              en estas categorías.
+            </p>
+          }
+          <ul class="unbudgeted-list">
+            @for (line of unbudgeted; track line.categoryId) {
+              <li>
+                <span class="line-name">{{ line.name }}</span>
+                @if (line.spent > 0) {
+                  <span class="muted">{{ line.spent | currency: "CLP" : "symbol-narrow" : "1.0-0" }} gastado</span>
+                }
+                <button mat-stroked-button [attr.aria-label]="'Definir presupuesto de ' + line.name" (click)="editBudget(line)">
+                  <mat-icon>add</mat-icon>
+                  Definir
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,360 @@
+// ---- Encabezado (mismo patrón que Deudas / Home) ----
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0;
+    font-weight: 600;
+    color: var(--mat-sys-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.page-title-icon {
+  color: var(--app-accent);
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--app-text-muted);
+}
+
+// ---- Color de estado: se define UNA vez por bloque y lo heredan la barra,
+// su pista (un tono más claro del mismo color) y el ícono. Nunca va solo:
+// siempre acompaña un ícono + texto ("Vas bien" / "Cerca del tope"...).
+[data-status="OK"] {
+  --status: var(--app-income);
+}
+[data-status="WARNING"] {
+  --status: var(--app-warning);
+}
+[data-status="OVER"] {
+  --status: var(--app-expense);
+}
+
+// ---- Disposición: plan y compromisos lado a lado; categorías abajo ----
+.layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.lines-section,
+.unbudgeted {
+  grid-column: 1 / -1;
+}
+
+mat-card {
+  border-radius: 16px !important;
+}
+
+.card-title,
+.section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--app-text-strong);
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.row-link {
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--app-accent-strong);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.negative-note {
+  color: var(--app-expense);
+}
+
+.muted {
+  color: var(--app-text-muted);
+  font-size: 0.85rem;
+}
+
+// ---- El plan ----
+.plan-rows {
+  margin: 0;
+}
+
+.plan-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  font-variant-numeric: tabular-nums;
+
+  dt {
+    color: var(--app-text-muted);
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 500;
+    // Un monto nunca se parte en dos líneas (ej. "−" arriba y la cifra abajo).
+    white-space: nowrap;
+  }
+
+  .minus {
+    color: var(--app-text-muted);
+  }
+
+  &.total {
+    margin-top: 0.35rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+
+    dt,
+    dd {
+      color: var(--app-text-strong);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    &.negative dd {
+      color: var(--app-expense);
+    }
+  }
+}
+
+// ---- ¿Cómo voy? número grande + medidor ----
+.overall {
+  margin-top: 1.25rem;
+}
+
+.hero {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.hero-value {
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--app-text-strong);
+}
+
+.hero-label {
+  font-size: 0.875rem;
+  color: var(--app-text-muted);
+}
+
+// ---- Medidor (barra): relleno del color del estado sobre su pista ----
+.meter {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--status, var(--app-accent)) 18%, transparent);
+}
+
+.meter-fill {
+  height: 100%;
+  min-width: 6px;
+  border-radius: 999px;
+  background: var(--status, var(--app-accent));
+  transition: width 0.4s ease;
+}
+
+// ---- Compromisos de deudas ----
+.commitments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  .check {
+    color: var(--app-text-muted);
+    flex-shrink: 0;
+  }
+
+  li.paid .check {
+    color: var(--app-income);
+  }
+}
+
+.commitment-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.commitment-name {
+  font-weight: 500;
+}
+
+.commitment-detail {
+  font-size: 0.8rem;
+  color: var(--app-text-muted);
+}
+
+.commitment-amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.commitments-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--app-text-muted);
+
+  strong {
+    color: var(--app-text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// ---- Una línea por categoría ----
+.budget-line {
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px;
+  background: var(--mat-sys-surface-container-lowest);
+}
+
+.line-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  button {
+    margin-left: auto;
+  }
+}
+
+.line-name {
+  font-weight: 600;
+}
+
+.adjust-chip {
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  color: var(--app-accent-strong);
+  border: 1px solid var(--app-accent);
+}
+
+// El texto del estado va en tinta normal; el color lo lleva el ícono.
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--app-text-strong);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--status);
+  }
+}
+
+.line-foot {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-status="OVER"] .remaining {
+  color: var(--app-expense);
+  font-weight: 600;
+}
+
+// ---- Sin presupuesto ----
+.unbudgeted-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.6rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.5rem 0.5rem 1rem;
+    border: 1px dashed var(--mat-sys-outline-variant);
+    border-radius: 12px;
+
+    button {
+      margin-left: auto;
+    }
+
+    .muted {
+      white-space: nowrap;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-value {
+    font-size: 2.5rem;
+  }
+}

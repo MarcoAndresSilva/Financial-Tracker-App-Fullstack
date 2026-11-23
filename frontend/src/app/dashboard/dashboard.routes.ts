@@ -8,6 +8,7 @@ import { SavingsGoalsComponent } from './pages/savings-goals/savings-goals.compo
 import { DebtsComponent } from './pages/debts/debts.component';
 import { HistorialComponent } from './pages/historial/historial.component';
 import { AccountComponent } from './pages/account/account.component';
+import { BudgetComponent } from './pages/budget/budget.component';
 
 export const DASHBOARD_ROUTES: Routes = [
   {
@@ -18,6 +19,7 @@ export const DASHBOARD_ROUTES: Routes = [
     children: [
       { path: 'home', component: HomeComponent },
       { path: 'transactions', component: TransactionListComponent },
+      { path: 'budget', component: BudgetComponent },
       { path: 'historial', component: HistorialComponent },
       { path: 'categories', component: CategoriesComponent },
       { path: 'goals', component: SavingsGoalsComponent },

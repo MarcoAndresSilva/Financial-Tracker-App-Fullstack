@@ -32,6 +32,15 @@
       </a>
       <a
         mat-list-item
+        routerLink="budget"
+        routerLinkActive="active-link"
+        (click)="onNavLinkClick(sidenav)"
+      >
+        <mat-icon matListItemIcon>request_quote</mat-icon>
+        <span matListItemTitle>Presupuesto</span>
+      </a>
+      <a
+        mat-list-item
         routerLink="historial"
         routerLinkActive="active-link"
         (click)="onNavLinkClick(sidenav)"

@@ -1,0 +1,38 @@
+<h2 mat-dialog-title>Presupuesto de {{ data.categoryName }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div mat-dialog-content class="entry-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Monto mensual</mat-label>
+      <span matTextPrefix>$&nbsp;</span>
+      <input matInput type="number" min="0" formControlName="amount" cdkFocusInitial />
+      <mat-hint>Cuánto quieres gastar en {{ data.categoryName }}.</mat-hint>
+    </mat-form-field>
+
+    <span class="scope-label">¿Para qué meses?</span>
+    <mat-button-toggle-group formControlName="scope" aria-label="Para qué meses aplica">
+      <mat-button-toggle value="ONLY_MONTH">Solo {{ data.monthName }}</mat-button-toggle>
+      <mat-button-toggle value="FROM_MONTH">{{ monthTitle }} y los siguientes</mat-button-toggle>
+    </mat-button-toggle-group>
+    <p class="scope-hint">
+      @if (form.value.scope === "ONLY_MONTH") {
+        Un ajuste puntual: el mes siguiente vuelve a tu monto habitual.
+      } @else {
+        Tu nuevo monto habitual. Los meses anteriores no cambian.
+      }
+    </p>
+  </div>
+
+  <div mat-dialog-actions class="actions">
+    @if (data.currentAmount !== null) {
+      <button mat-button type="button" class="remove" (click)="remove()">
+        Quitar presupuesto
+      </button>
+    }
+    <span class="spacer"></span>
+    <button mat-button type="button" mat-dialog-close>Cancelar</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+      Guardar
+    </button>
+  </div>
+</form>
