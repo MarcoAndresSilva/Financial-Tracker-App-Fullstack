@@ -103,6 +103,12 @@
       </div>
     </mat-card>
 
+    <!-- Presupuesto del mes (Paso 84): solo lo que necesita atención -->
+    <app-home-budget-card
+      *ngIf="budgetPlan"
+      [plan]="budgetPlan"
+      [monthName]="monthName"
+    ></app-home-budget-card>
   </section>
 
   <!-- ======================= RESUMEN (mes / histórico) ======================= -->

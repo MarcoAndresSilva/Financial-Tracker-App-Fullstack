@@ -170,7 +170,7 @@
                 @if (line.status!.remaining >= 0) {
                   Te quedan {{ line.status!.remaining | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
                 } @else {
-                  Te pasaste {{ -line.status!.remaining | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                  Te pasaste por {{ -line.status!.remaining | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
                 }
               </span>
             </div>

@@ -1,0 +1,178 @@
+// Mismo lenguaje visual que la página Presupuesto (Paso 82): el color de
+// estado se define una vez por bloque y lo heredan barra, pista e ícono;
+// nunca va solo, siempre con ícono + texto.
+[data-status="OK"] {
+  --status: var(--app-income);
+}
+[data-status="WARNING"] {
+  --status: var(--app-warning);
+}
+[data-status="OVER"] {
+  --status: var(--app-expense);
+}
+
+.budget-card {
+  border-radius: 16px !important;
+  margin-top: 1rem;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--app-text-strong);
+
+  mat-icon {
+    color: var(--app-accent);
+  }
+}
+
+.row-link {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--app-accent-strong);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+
+  p {
+    flex: 1 1 260px;
+    margin: 0;
+    color: var(--app-text-muted);
+  }
+}
+
+// ---- Sin asignar + medidor del plan, lado a lado en desktop ----
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem 1.5rem;
+  align-items: end;
+  margin-bottom: 0.75rem;
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.figure-label {
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+}
+
+.figure-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--app-text-strong);
+  white-space: nowrap;
+}
+
+.figure.negative .figure-value {
+  color: var(--app-expense);
+}
+
+.meter {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--status, var(--app-accent)) 18%, transparent);
+}
+
+.meter-fill {
+  height: 100%;
+  min-width: 6px;
+  border-radius: 999px;
+  background: var(--status, var(--app-accent));
+  transition: width 0.4s ease;
+}
+
+// ---- Lo que necesita atención ----
+.attention {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+  }
+}
+
+.status-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--status);
+}
+
+.item-name {
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+}
+
+.item-detail {
+  font-size: 0.875rem;
+  color: var(--app-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+[data-status="OVER"] .item-detail {
+  color: var(--app-expense);
+  font-weight: 600;
+}
+
+.all-ok {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--app-text-strong);
+}
+
+.muted {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+}
+
+.debts {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}

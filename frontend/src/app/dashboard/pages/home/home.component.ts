@@ -19,6 +19,8 @@ import {
   PeriodContextService,
 } from '../../../core/services/period-context.service';
 import { Wallet } from '../../../user/types/user.types';
+import { BudgetPlan, BudgetService } from '../../../budget/services/budget.service';
+import { HomeBudgetCardComponent } from '../../../budget/components/home-budget-card/home-budget-card.component';
 
 import { MATERIAL_MODULES } from '../../../shared/material/material.module';
 import { MonthSelectorComponent } from '../../../shared/components/month-selector/month-selector.component';
@@ -113,6 +115,7 @@ function buildSpendingMood(percentage: number | null): SpendingMood {
     ...MATERIAL_MODULES,
     CategoryBarsComponent,
     MonthSelectorComponent,
+    HomeBudgetCardComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
@@ -122,6 +125,7 @@ export class HomeComponent implements OnInit {
   private transactionService = inject(TransactionService);
   private walletContext = inject(WalletContextService);
   private periodContext = inject(PeriodContextService);
+  private budgetService = inject(BudgetService);
   private dialog = inject(MatDialog);
 
   // Vista rápida: los últimos movimientos del mes activo (máx. 5).
@@ -135,6 +139,10 @@ export class HomeComponent implements OnInit {
   monthlyBalance = 0;
   savings?: SavingsSummary;
   recentTransactions: Transaction[] = [];
+  // Plan del presupuesto del mes (Paso 84). Null mientras carga o si falla:
+  // la card simplemente no aparece, el resto del Home sigue funcionando.
+  budgetPlan: BudgetPlan | null = null;
+  private budgetPlanKey = '';
 
   // Lente del bloque "Resumen": el mes en curso o todo el histórico de la wallet.
   // Antes eran dos filas de cards idénticas una debajo de otra — al empezar
@@ -151,6 +159,11 @@ export class HomeComponent implements OnInit {
     const d = new Date(this.activePeriod.year, this.activePeriod.month - 1, 1);
     const month = formatDate(d, 'MMMM', 'es-CL');
     return month.charAt(0).toUpperCase() + month.slice(1);
+  }
+
+  // Ej: "diciembre" — para los textos de la card del presupuesto.
+  get monthName(): string {
+    return this.periodLabel.toLowerCase();
   }
 
   // Arco del anillo de gasto: el % real puede pasar de 100, pero el arco se llena al tope.
@@ -260,6 +273,22 @@ export class HomeComponent implements OnInit {
       .getIncomeByCategory(wallet.id, period)
       .subscribe((data) => {
         this.incomeCategoryBars = this.buildCategoryBars(data);
+      });
+
+    // Card del presupuesto: el mismo plan que la página Presupuesto.
+    // Se vacía solo al cambiar de wallet o de mes (no mostrar el plan de otro
+    // mes); al recargar tras agregar una transacción se mantiene hasta que
+    // llega el nuevo, así la card no parpadea.
+    const key = `${wallet.id}:${period.year}-${period.month}`;
+    if (key !== this.budgetPlanKey) {
+      this.budgetPlan = null;
+      this.budgetPlanKey = key;
+    }
+    this.budgetService
+      .getPlan(wallet.id, period.year, period.month)
+      .subscribe({
+        next: (plan) => (this.budgetPlan = plan),
+        error: () => (this.budgetPlan = null),
       });
 
     // Vista rápida de últimos movimientos del mes activo.

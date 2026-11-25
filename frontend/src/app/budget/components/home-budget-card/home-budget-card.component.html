@@ -1,0 +1,87 @@
+<mat-card class="budget-card" appearance="outlined" data-testid="home-budget">
+  <mat-card-content>
+    <div class="card-head">
+      <h3 class="card-title">
+        <mat-icon>request_quote</mat-icon>
+        Presupuesto
+      </h3>
+      @if (hasBudget) {
+        <a routerLink="/dashboard/budget" class="row-link">Ver presupuesto →</a>
+      }
+    </div>
+
+    @if (!hasBudget) {
+      <!-- Cada mes parte de cero: invitar a armarlo -->
+      <div class="empty">
+        <p>
+          Aún no armas el presupuesto de {{ monthName }}. Decide cuánto quieres
+          gastar en cada categoría y ve cuánto te queda sin asignar.
+        </p>
+        <a mat-flat-button color="primary" routerLink="/dashboard/budget">
+          Armar presupuesto
+        </a>
+      </div>
+    } @else {
+      <div class="figures">
+        <div class="figure" [class.negative]="plan.summary.unassigned < 0">
+          <span class="figure-label">Sin asignar</span>
+          <span class="figure-value">{{
+            plan.summary.unassigned | currency: "CLP" : "symbol-narrow" : "1.0-0"
+          }}</span>
+        </div>
+
+        @if (plan.summary.overall; as overall) {
+          <div class="figure overall" [attr.data-status]="overall.status">
+            <span class="figure-label">
+              {{ overall.percentage ?? 100 | number: "1.0-0" }}% del plan gastado
+            </span>
+            <div
+              class="meter"
+              role="progressbar"
+              aria-label="Gastado del total planificado"
+              [attr.aria-valuenow]="overall.percentage | number: '1.0-0'"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div class="meter-fill" [style.width.%]="barWidth(overall.percentage)"></div>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (attention.length) {
+        <ul class="attention">
+          @for (line of attention; track line.categoryId) {
+            <li data-testid="home-budget-item" [attr.data-status]="line.status!.status">
+              <mat-icon class="status-icon">{{ statusIcon(line.status!.status) }}</mat-icon>
+              <span class="item-name">{{ line.name }}</span>
+              <span class="item-detail">
+                @if (line.status!.remaining >= 0) {
+                  Te quedan {{ line.status!.remaining | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                } @else {
+                  Te pasaste por {{ -line.status!.remaining | currency: "CLP" : "symbol-narrow" : "1.0-0" }}
+                }
+              </span>
+            </li>
+          }
+        </ul>
+        @if (moreAttention > 0) {
+          <p class="muted">y {{ moreAttention }} más en Presupuesto</p>
+        }
+      } @else {
+        <p class="all-ok" data-status="OK">
+          <mat-icon class="status-icon">check_circle</mat-icon>
+          Todas tus categorías van bien.
+        </p>
+      }
+
+      @if (plan.commitments.totalCount > 0) {
+        <p class="muted debts">
+          <mat-icon>credit_card</mat-icon>
+          {{ plan.commitments.paidCount }} de {{ plan.commitments.totalCount }}
+          deudas pagadas este mes
+        </p>
+      }
+    }
+  </mat-card-content>
+</mat-card>
