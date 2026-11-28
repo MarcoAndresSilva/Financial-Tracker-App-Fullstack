@@ -234,6 +234,9 @@ mat-list-item {
 
 .transaction-info {
   flex-grow: 1;
+  // Sin esto un hijo de flex no se achica bajo el ancho de su texto,
+  // y una descripción larga empuja el monto fuera de la tarjeta.
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -241,6 +244,9 @@ mat-list-item {
 .transaction-description {
   font-weight: 500;
   color: var(--app-text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .transaction-details {
   font-size: 0.8rem;
@@ -251,10 +257,12 @@ mat-list-item {
   font-weight: 500;
   font-size: 1rem;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 .transaction-actions {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   margin-left: 16px;
 }
 .income-amount {
